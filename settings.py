@@ -1,8 +1,13 @@
 import os
+import sys
+
+PROJECT_ROOT = os.path.dirname(__file__)
+sys.path.insert(0, os.path.join(PROJECT_ROOT, "apps"))
+
 
 #from settings_philadelphia import *
-#from settings_sanfrancisco import *
-from settings_greenprint import *
+from settings_sandiego import *
+#from settings_greenprint import *
 #from settings_dctreekit import *
 
 DEBUG = True
@@ -80,7 +85,7 @@ INSTALLED_APPS = (
     'sorl.thumbnail',
     'classfaves',
     'qs_tiles',
-    'treekey',
+    #'treekey',
     'badges',
     'pagination',
     'django_sorting',
