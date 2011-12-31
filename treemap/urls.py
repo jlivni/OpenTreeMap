@@ -1,6 +1,6 @@
 from django.conf.urls.defaults import *
 from views import *
-from treemap.models import Neighborhood, SupervisorDistrict, Tree, TreeFavorite
+from treemap.models import Neighborhood, Tree, TreeFavorite
 from classfaves.views import CreateFavorite, DeleteFavorite, UserFavorites
 from django.views.generic.simple import direct_to_template
 

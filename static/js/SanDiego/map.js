@@ -29,9 +29,9 @@ tm.init_base_map = function(div_id, controls){
     if (!controls) {
         tm.map = new OpenLayers.Map(div_id, {
             maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
-            restrictedExtent: new OpenLayers.Bounds(-13669424.883684, 4502981.7575163, -13574337.220514, 4576361.3046569), 
+            restrictedExtent: new OpenLayers.Bounds(-13049000,3852890,-13037000,3862000),
             units: 'm',
-            projection: new OpenLayers.Projection("EPSG:102100"),
+            projection: new OpenLayers.Projection("EPSG:4326"),
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
             controls: [new OpenLayers.Control.Attribution(),
                        new OpenLayers.Control.Navigation(),
@@ -43,9 +43,9 @@ tm.init_base_map = function(div_id, controls){
     else {
         tm.map = new OpenLayers.Map(div_id, {
             maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
-            restrictedExtent: new OpenLayers.Bounds(-13669424.883684, 4502981.7575163, -13574337.220514, 4576361.3046569), 
+            restrictedExtent: new OpenLayers.Bounds(-13049000,3852890,-13037000,3862000),
             units: 'm',
-            projection: new OpenLayers.Projection("EPSG:102100"),
+            projection: new OpenLayers.Projection("EPSG:4326"),
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
             controls: controls
         });

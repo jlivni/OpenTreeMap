@@ -123,29 +123,14 @@ class Choices(models.Model):
 # GEOGRAPHIES #
 class Neighborhood(models.Model):
     """
-    from zillow
+    from city of sd
     """
     name = models.CharField(max_length=255)
-    region_id = models.IntegerField()
-    city = models.CharField(max_length=255)
-    county = models.CharField(max_length=255)
-    state = models.CharField(max_length=2)
     geometry = models.MultiPolygonField(srid=4326)
     objects=models.GeoManager()
     
     def __unicode__(self): return '%s' % self.name
  
-
-class SupervisorDistrict(models.Model):
-    """
-    from sfgov
-    """
-    id = models.IntegerField(primary_key=True)
-    supervisor = models.CharField(max_length=255)
-    geometry = models.MultiPolygonField(srid=4326)
-    objects=models.GeoManager()
-    
-    def __unicode__(self): return '%s (%s)' % (self.id, self.supervisor)
 
     
 class ZipCode(models.Model):
@@ -946,9 +931,6 @@ class AggregateSearchResult(AggregateSummaryModel):
 
 class AggregateNeighborhood(AggregateSummaryModel):
     location = models.OneToOneField(Neighborhood, related_name='aggregates')
-
-class AggregateSupervisorDistrict(AggregateSummaryModel):
-    location = models.OneToOneField(SupervisorDistrict, related_name='aggregates')
 
 class AggregateZipCode(AggregateSummaryModel):
     location = models.OneToOneField(ZipCode, related_name='aggregates')

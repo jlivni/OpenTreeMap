@@ -1416,7 +1416,7 @@ def geographies(request, model, id=''):
     name = request.GET.get('name', '')
     list = request.GET.get('list', '')
     
-    ns = model.objects.all().order_by('state','county','name')
+    ns = model.objects.all().order_by('name')
     
     if location:
         coords = map(float,location.split(','))

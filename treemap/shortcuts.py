@@ -113,7 +113,10 @@ def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_
         #set up special attribs for geographies
         # todo - make more generic?
         if query_set.model.__name__ in ['Neighborhood','ZipCode']:
-            summaries, benefits = get_summaries_and_benefits(item)
+            try:
+              summaries, benefits = get_summaries_and_benefits(item)
+            except:
+              print 'FAIL getting summaries/benefits for %s' % item
             
                 
         g = getattr(item,geo_field.name)

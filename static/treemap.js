@@ -591,7 +591,6 @@ var tm = {
     init_add_map : function(){
         tm.init_base_map('add_tree_map');
         
-        
         tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
 
