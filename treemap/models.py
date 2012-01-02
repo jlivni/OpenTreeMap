@@ -507,9 +507,17 @@ class Tree(models.Model):
         if not self.species.resource.all():
             #delete old TR if it exists
             tr.delete()
-            return None
+            return Nonea
+
         #calc results and set them
-        resource = self.species.resource.all()[0] #todo: and region
+
+        #filter for resource in the proper zone
+        zone = Zone.objects.filter(geometry__contains=pnt)
+        resource = self.species.resource.filter(zone=zone)
+        if not resource:
+          logging.warning('Unable to locate proper zone for this resource')
+        else:
+          resource = resource[0]
         base_resources = resource.calc_base_resources(RESOURCE_NAMES, self.dbh)
         results = resource.calc_resource_summaries(base_resources)
         if not results:

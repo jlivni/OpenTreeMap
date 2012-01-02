@@ -9,7 +9,7 @@ body {
 }
 a {
 	text-decoration:none;
-	color:#cc6600;
+	color:#663399;
 }
 a:hover {
 	text-decoration:underline;
@@ -66,12 +66,12 @@ form, fieldset {
 	position:relative;
 }
 .logo {
-	width: 280px;
-	height: 85px;
+	width: 448px;
+	height: 79px;
 	text-indent:-9999px;
 	overflow:hidden;
 	float:left;
-	background:url(/static/images/v2/logo.gif) no-repeat;
+	background:url(/static/images/logo.png) no-repeat;
 	margin:0;
 }
 .logo a {
@@ -1156,6 +1156,7 @@ ul#promoMap li#promoMapEmbed {
 
 }
 .threecolumns .box .number{
+        color: #663399;
 	float:left;
 	font-size:80px;
 	line-height:61px;
@@ -1240,7 +1241,7 @@ ul#promoMap li#promoMapEmbed {
     margin:0;
     padding:6px 0 11px 40px;
     font-size:14px;
-    color:#666;
+    color:#663398;
     font-weight:bold;
 }
 #results_aside.aside ul#messageStats li.impact#cost {
@@ -1708,7 +1709,7 @@ ul#resultsContainer li#export ul li#firstOption {
 .visual ul a,
 .visual ul img{float:left;}
 .visual ul li{
-	border:2px solid #c60;
+	border:2px solid #663399;
 	margin:0 14px 0 0;	
 }
 */
@@ -1976,7 +1977,7 @@ ul#resultsContainer li#export ul li#firstOption {
 }
 .parameter .title em{
 	float:right;
-	color:#c60;
+	color:#663399;
 	font-style:normal;
 }
 .filter-box .options,
@@ -2413,7 +2414,7 @@ box-2 .comments a.more {
 }
 .tab-content .comments .cancel{
 	background-image:none;
-	color:#c60;
+	color:#663399;
 	width:auto;
 }
 .tab-content .comments .submit2{
@@ -3030,7 +3031,7 @@ table.addet .update p{
 .side-box .feedback{
 	padding:1px 0 0 17px;
 	background: url(/static/images/es/ico-speak.gif) no-repeat;
-	color:#c60;
+	color:#663399;
 	font-size:14px;
 	font-weight:normal;
 	display:block;
@@ -3266,7 +3267,7 @@ table.addet .update p{
 .callout ul a,
 .calloutl ul img{float:left;}
 .callout ul li{
-	border:2px solid #c60;
+	border:2px solid #663399;
 	margin:0 14px 0 0;	
 }
 .callout li.last{
