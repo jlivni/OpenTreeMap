@@ -1218,8 +1218,11 @@ def _build_tree_search_result(request):
         tile_query.append("last_updated AFTER " + min.isoformat() + "Z AND last_updated BEFORE " + max.isoformat() + "Z")   
     if not geog_obj:
         q = request.META['QUERY_STRING'] or ''
+        print '!!!',q
+        print 'TREES COUNT',trees.count()
         cached_search_agg = AggregateSearchResult.objects.filter(key=q)
-        if cached_search_agg.exists() and cached_search_agg[0].ensure_recent(trees.count()):
+        print 'CSA',cached_search_agg
+        if cached_search_agg and cached_search_agg.exists() and cached_search_agg[0].ensure_recent(trees.count()):
             geog_obj = cached_search_agg[0]
         else:
             #geog_obj = cache_search_aggs(query_pairs=({'trees':trees,'query':q},),return_first=True)
@@ -1240,7 +1243,6 @@ def _build_tree_search_result(request):
             except:
                 # another thread has already likely saved the same object...
                 pass
-
 
     return trees, geog_obj, ' AND '.join(tile_query)
 

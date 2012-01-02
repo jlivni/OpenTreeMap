@@ -95,7 +95,7 @@ def get_tile(request, version, layername, z, x, y, extension='png'):
         # cached map - must be run multiprocess to avoid potential race condition
         m = query_hash.get(name)
         if not m:
-            trees, geog_obj = _build_tree_search_result(request)
+            trees, geog_obj, ignore = _build_tree_search_result(request)
             trees = trees.only('geometry')
             styles=[{'name':'style','obj':style}]
             m = qs_to_map(trees,styles=styles)

@@ -1,13 +1,13 @@
 var tm_urls = {
     eactive_key : '898cfa06a63e5ad7a427a30896cd95c2',
-    tc_url : 'http://207.245.89.246:8080/tilecache/tilecache.py/',
-    geo_url: 'http://207.245.89.246:8081/geoserver/wms?transparent=true',
+    tc_url : 'http://tc.beardedmaps.com/tilecache.py/',
+    //geo_url: 'http://207.245.89.246:8081/geoserver/wms?transparent=true',
     //tc_url : 'http://sajara01:8080/cgi-bin/mapserv.exe?map=E:\\Projects\\UrbanForestMap\\mapserver\\trees.map',
     qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
 };
 
-tm.map_center_lon = -122.437821;
-tm.map_center_lat = 37.752809;
+tm.map_center_lon = -117.43;
+tm.map_center_lat = 32.75;
 tm.start_zoom = 12;
 tm.add_start_zoom = 11;
 tm.add_zoom = 18;
@@ -29,7 +29,7 @@ tm.init_base_map = function(div_id, controls){
     if (!controls) {
         tm.map = new OpenLayers.Map(div_id, {
             maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
-            restrictedExtent: new OpenLayers.Bounds(-13049000,3852890,-13037000,3862000),
+            //restrictedExtent: new OpenLayers.Bounds(-13049000,3852890,-13037000,3862000),
             units: 'm',
             projection: new OpenLayers.Projection("EPSG:4326"),
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
@@ -43,7 +43,7 @@ tm.init_base_map = function(div_id, controls){
     else {
         tm.map = new OpenLayers.Map(div_id, {
             maxExtent: new OpenLayers.Bounds(-20037508.34, -20037508.34, 20037508.34, 20037508.34),
-            restrictedExtent: new OpenLayers.Bounds(-13049000,3852890,-13037000,3862000),
+            //restrictedExtent: new OpenLayers.Bounds(-13049000,3852890,-13037000,3862000),
             units: 'm',
             projection: new OpenLayers.Projection("EPSG:4326"),
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
@@ -66,7 +66,7 @@ tm.init_base_map = function(div_id, controls){
     tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 
         tm_urls.tc_url,
         {
-            layername: 'SF',
+            layername: 'SanDiego',
             type: 'png',
             isBaseLayer: false,
             wrapDateLine: true,
@@ -74,8 +74,14 @@ tm.init_base_map = function(div_id, controls){
         }
     );
     tm.tms.buffer = 0;
+
+    tm.xyz = new OpenLayers.Layer.XYZ('TreeLayer',
+         tm_urls.qs_tile_url + "${z}/${x}/${y}.png?", 
+         {sphericalmercator : true}
+     );
+
     tm.baseLayer.buffer = 0;
     tm.aerial.buffer = 0;
     tm.map.addLayers([tm.aerial, tm.baseLayer, tm.tms]);
-    tm.map.setBaseLayer(tm.baseLayer);
+    tm.map.setBaseLayer(tm.BaseLayer);
 };

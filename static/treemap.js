@@ -1217,9 +1217,9 @@ var tm = {
         // either "Map","Hybrid", or "Terrain"
         //var layer_name = tm.map.getCurrentMapType().getName();
         //var u = tm_urls.tc_url + layer_name + '/' + tm.map.getZoom() + '/' + a.x  + '/' + a.y + '.png';
-        //var u = tm_urls.qs_tile_url + tm.map.getZoom() + '/' + a.x  + '/' + a.y + '.png?' + tm.selected_tile_query;
-        //console.log(u);
-        //return u;
+        var u = tm_urls.qs_tile_url + tm.map.getZoom() + '/' + a.x  + '/' + a.y + '.png?' + tm.selected_tile_query;
+        console.log(u);
+        return u;
         },
     
     set_selected_tile_overlay : function(){
