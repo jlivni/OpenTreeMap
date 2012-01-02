@@ -22,75 +22,75 @@ IMAGETYPE agg
     SYMBOL
       NAME "green1"
       TYPE PIXMAP
-      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom1_2.png"
+      IMAGE "../static/images/SanDiego/map_icons/v3/UFM_Tree_Icon_zoom1_2.png"
       #TRANSPARENT 8
     END
 
     SYMBOL
       NAME "green1s"
       TYPE PIXMAP
-      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom1_2.png"
+      IMAGE "../static/images/SanDiego/map_icons/v1s/UFM_Tree_Icon_zoom1_2.png"
       #TRANSPARENT 8
     END
     
     SYMBOL
       NAME "green2"
       TYPE PIXMAP
-      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom3_4.png"
+      IMAGE "../static/images/SanDiego/map_icons/v3/UFM_Tree_Icon_zoom3_4.png"
     END
 
     SYMBOL
       NAME "green2s"
       TYPE PIXMAP
-      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom3_4.png"
+      IMAGE "../static/images/SanDiego/map_icons/v1s/UFM_Tree_Icon_zoom3_4.png"
     END
     
     SYMBOL
       NAME "green3"
       TYPE PIXMAP
-      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom5.png"
+      IMAGE "../static/images/SanDiego/map_icons/v3/UFM_Tree_Icon_zoom5.png"
     END
 
     SYMBOL
       NAME "green3s"
       TYPE PIXMAP
-      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom5.png"
+      IMAGE "../static/images/SanDiego/map_icons/v1s/UFM_Tree_Icon_zoom5.png"
     END
     
     SYMBOL
       NAME "green4"
       TYPE PIXMAP
-      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom6.png"
+      IMAGE "../static/images/SanDiego/map_icons/v3/UFM_Tree_Icon_zoom6.png"
     END
 
     SYMBOL
       NAME "green4s"
       TYPE PIXMAP
-      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom6.png"
+      IMAGE "../static/images/SanDiego/map_icons/v1s/UFM_Tree_Icon_zoom6.png"
     END
     
     SYMBOL
       NAME "green5"
       TYPE PIXMAP
-      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png"
+      IMAGE "../static/images/SanDiego/map_icons/v3/UFM_Tree_Icon_zoom7b.png"
     END
 
     SYMBOL
       NAME "green5s"
       TYPE PIXMAP
-      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom7_sat.png"
+      IMAGE "../static/images/SanDiego/map_icons/v1s/UFM_Tree_Icon_zoom7_sat.png"
     END
     
     SYMBOL
       NAME "green6"
       TYPE PIXMAP
-      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v3/UFM_Tree_Icon_zoom8b.png"
+      IMAGE "../static/images/SanDiego/map_icons/v3/UFM_Tree_Icon_zoom8b.png"
     END
 
     SYMBOL
       NAME "green6s"
       TYPE PIXMAP
-      IMAGE "E:/projects/PhillyTreeMap/static/images/map_icons/v1s/UFM_Tree_Icon_zoom8_sat.png"
+      IMAGE "../static/images/SanDiego/map_icons/v1s/UFM_Tree_Icon_zoom8_sat.png"
     END
                 
 OUTPUTFORMAT
@@ -135,9 +135,9 @@ LAYER
     GROUP nhbds
 
     TYPE POLYGON
-    TRANSPARENCY ALPHA
+    #TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION " dbname=sftrees password=12345 user=treekeyuser  port=5432"
+    CONNECTION " dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
     DATA 'geometry from (select * from treemap_neighborhood) as foo using unique id using srid=4326'
       CLASS
         #STYLE
@@ -151,6 +151,8 @@ END
 
 # TODO also nee trees_sat and trees_terrain
 
+
+
 LAYER 
     # TREES YO
     NAME trees
@@ -158,7 +160,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sftrees password=12345 user=treekeyuser  port=5432"
+    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
     DATA "geometry from (select * from treemap_tree where geocoded_accuracy >= 7 or geocoded_accuracy is null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -177,7 +179,7 @@ LAYER
         MAXSCALEDENOM 2000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 3
+          WIDTH 3
           #SIZE 35
           #OUTLINECOLOR 250 200 60
           SYMBOL "green5"
@@ -189,7 +191,7 @@ LAYER
         MAXSCALEDENOM 5000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 2
+          WIDTH 2
           #SIZE 25
           #OUTLINECOLOR 250 200 60
           SYMBOL "green4"
@@ -201,7 +203,7 @@ LAYER
         MAXSCALEDENOM 10000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 1
+          WIDTH 1
           #SIZE 20
           #OUTLINECOLOR 250 200 60
           SYMBOL "green3"
@@ -213,7 +215,7 @@ LAYER
         MAXSCALEDENOM 50000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 1
+          WIDTH 1
           #SIZE 3
           #OUTLINECOLOR 110 175 110
           SYMBOL "green2"
@@ -225,7 +227,7 @@ LAYER
         MAXSCALEDENOM 250000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 1
+          WIDTH 1
           #SIZE 2
           #OUTLINECOLOR 110 175 110
           SYMBOL "green2"
@@ -242,14 +244,14 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sftrees password=12345 user=treekeyuser  port=5432"
+    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
     DATA "geometry from (select * from treemap_tree where geocoded_accuracy >= 8 or geocoded_accuracy is null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
         MAXSCALEDENOM 1000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 3
+          WIDTH 3
           #SIZE 35
           #OUTLINECOLOR 250 200 60
           SYMBOL "green6s"
@@ -261,7 +263,7 @@ LAYER
         MAXSCALEDENOM 2000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 3
+          WIDTH 3
           #SIZE 35
           #OUTLINECOLOR 250 200 60
           SYMBOL "green5s"
@@ -273,7 +275,7 @@ LAYER
         MAXSCALEDENOM 5000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 2
+          WIDTH 2
           #SIZE 25
           #OUTLINECOLOR 250 200 60
           SYMBOL "green4s"
@@ -285,7 +287,7 @@ LAYER
         MAXSCALEDENOM 10000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 1
+          WIDTH 1
           #SIZE 20
           #OUTLINECOLOR 250 200 60
           SYMBOL "green3s"
@@ -297,7 +299,7 @@ LAYER
         MAXSCALEDENOM 50000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 1
+          WIDTH 1
           #SIZE 3
           #OUTLINECOLOR 110 175 110
           SYMBOL "green2s"
@@ -309,7 +311,7 @@ LAYER
         MAXSCALEDENOM 150000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 1
+          WIDTH 1
           #SIZE 2
           #OUTLINECOLOR 110 175 110
           SYMBOL "green1s"
@@ -325,14 +327,14 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sftrees password=12345 user=treekeyuser  port=5432"
+    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
     DATA "geometry from (select * from treemap_tree where geocoded_accuracy >= 8 or geocoded_accuracy is null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
         MAXSCALEDENOM 1000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 3
+          WIDTH 3
           #SIZE 35
           #OUTLINECOLOR 250 200 60
           SYMBOL "green6"
@@ -344,7 +346,7 @@ LAYER
         MAXSCALEDENOM 2000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 3
+          WIDTH 3
           #SIZE 35
           #OUTLINECOLOR 250 200 60
           SYMBOL "green5"
@@ -410,7 +412,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sftrees password=12345 user=treekeyuser  port=5432"
+    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
     # dane - not sure why ilike paved is in there, so commenting
     #DATA "geometry from (select * from treemap_tree where (geocoded_accuracy >= 8 or geocoded_accuracy is null) and (species_id is null) and  orig_species not ilike '%paved%' ) as foo using unique id using srid=4326"
     DATA "geometry from (select * from treemap_tree where (geocoded_accuracy >= 8 or geocoded_accuracy is null)and species_id is null ) as foo using unique id using srid=4326"
@@ -483,7 +485,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sftrees password=12345 user=treekeyuser  port=5432"
+    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
     DATA "geometry from (select * from treemap_tree where (geocoded_accuracy >= 8 or geocoded_accuracy is null) and species_id is not null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -553,7 +555,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sftrees password=12345 user=treekeyuser  port=5432"
+    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
     DATA 'geometry from (select * from treemap_tree where species_id = %SPECIES_ID%) as foo using unique id using srid=4326'
     #CLASSITEM 'species_id'
       CLASS 
