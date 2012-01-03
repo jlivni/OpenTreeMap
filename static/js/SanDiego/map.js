@@ -83,5 +83,5 @@ tm.init_base_map = function(div_id, controls){
     tm.baseLayer.buffer = 0;
     tm.aerial.buffer = 0;
     tm.map.addLayers([tm.aerial, tm.baseLayer, tm.tms]);
-    tm.map.setBaseLayer(tm.BaseLayer);
+    tm.map.setBaseLayer(tm.baseLayer);
 };

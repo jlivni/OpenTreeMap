@@ -1056,7 +1056,7 @@ var tm = {
             });
         var poly = new OpenLayers.Geometry.LineString(verts);
         var feature = new OpenLayers.Feature.Vector(poly, null, {
-            strokeColor: "#289255",
+            strokeColor: "#663399",
             strokeWidth: 4,
             strokeOpacity: 0.7
         });
