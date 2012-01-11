@@ -6,7 +6,7 @@ var tm_urls = {
     qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
 };
 
-tm.map_center_lon = -117.43;
+tm.map_center_lon = -117.13;
 tm.map_center_lat = 32.75;
 tm.start_zoom = 12;
 tm.add_start_zoom = 11;
@@ -58,7 +58,7 @@ tm.init_base_map = function(div_id, controls){
     });
   
     tm.aerial = new OpenLayers.Layer.Google("Hybrid", {
-        type: google.maps.MapTypeId.HYBRID,            
+        type: google.maps.MapTypeId.TERRAIN,            
         sphericalMercator: true,
         numZoomLevels: 21
     });
@@ -82,6 +82,6 @@ tm.init_base_map = function(div_id, controls){
 
     tm.baseLayer.buffer = 0;
     tm.aerial.buffer = 0;
-    tm.map.addLayers([tm.aerial, tm.baseLayer, tm.tms]);
+    tm.map.addLayers([tm.baseLayer, tm.aerial, tm.tms]);
     tm.map.setBaseLayer(tm.baseLayer);
 };

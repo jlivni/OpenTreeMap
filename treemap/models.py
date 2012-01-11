@@ -507,13 +507,14 @@ class Tree(models.Model):
         if not self.species.resource.all():
             #delete old TR if it exists
             tr.delete()
-            return Nonea
+            return None
 
         #calc results and set them
 
         #filter for resource in the proper zone
-        zone = Zone.objects.filter(geometry__contains=pnt)
-        resource = self.species.resource.filter(zone=zone)
+        #zone = Zone.objects.filter(geometry__contains=pnt)
+        #resource = self.species.resource.filter(zone=zone)
+        resource = self.species.resource.all()
         if not resource:
           logging.warning('Unable to locate proper zone for this resource')
         else:
