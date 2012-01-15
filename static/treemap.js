@@ -540,7 +540,7 @@ var tm = {
                 );
 
         
-        tm.map.addLayers([tm.vector_layer, tm.tree_layer, tm.misc_markers]);
+        tm.map.addLayers([tm.vector_layer, tm.misc_markers]);
         tm.map.setCenter(
             new OpenLayers.LonLat(tm.map_center_lon, tm.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
             , tm.start_zoom);

@@ -477,7 +477,6 @@ ul#searchSuggest li#searchFilter a#advanced #arrow {
 	z-index:9999;
 	padding-top:200px;
 	padding-left:0;
-	background:url(/static/images/es/bg_fade4.png) repeat top left;
 	text-align:center;
 }
 #displayResults p {
@@ -1188,11 +1187,11 @@ ul#promoMap li#promoMapEmbed {
 */
 
 #results_aside.aside{
+	background: url(/static/images/es/sidebar_gradient.png) repeat-y #fde9bd ;
 	width:250px;
 	margin-right:20px;
 	margin-top:0;
 	padding:10px 15px 25px 15px;
-	background-color:#eef5d8;
 	height:465px;
 }
 #results_aside.aside h2 {
@@ -1292,9 +1291,9 @@ ul#promoMap li#promoMapEmbed {
 }
 .heading .holder{ }
 ul#resultsContainer {
-	float:left;
-	width:920px;
-    background: #eef5d8;
+    background: url(/static/images/es/sidebar_gradient.png) repeat-y #fde9bd ;
+    float:left;
+    width:920px;
     margin:0 0 10px 0;
     padding:7px 15px 3px 10px;
 }

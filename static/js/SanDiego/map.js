@@ -1,7 +1,7 @@
 var tm_urls = {
     eactive_key : '898cfa06a63e5ad7a427a30896cd95c2',
-    tc_url : 'http://tc.beardedmaps.com/tilecache.py/',
-    //geo_url: 'http://207.245.89.246:8081/geoserver/wms?transparent=true',
+    tc_url : 'http://tc.sdtrees.beardedmaps.com/tilecache.py/',
+    geo_url: 'http://tc2.sdtrees.beardedmaps.com/cgi-bin/mapserv?transparent=true&',
     //tc_url : 'http://sajara01:8080/cgi-bin/mapserv.exe?map=E:\\Projects\\UrbanForestMap\\mapserver\\trees.map',
     qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
 };
@@ -12,7 +12,7 @@ tm.start_zoom = 12;
 tm.add_start_zoom = 11;
 tm.add_zoom = 18;
 tm.edit_zoom = 18;
-tm.initial_location_string = "San Francisco, CA";
+tm.initial_location_string = "San Diego, CA";
 tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
 tm.popup_maxSize = new OpenLayers.Size(450,450);
