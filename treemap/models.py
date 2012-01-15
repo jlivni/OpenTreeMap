@@ -121,6 +121,19 @@ class Choices(models.Model):
 
 
 # GEOGRAPHIES #
+
+class StratumZone(models.Model):
+    """
+    each tree can be in a single zone; a species may have
+    multiple resources; one for each zone
+    """
+    name = models.CharField(max_length=255)
+    slug = models.CharField(max_length=255)
+    geometry = models.MultiPolygonField(srid=4326)
+    objects=models.GeoManager()
+    
+    def __unicode__(self): return '%s' % self.name
+
 class Neighborhood(models.Model):
     """
     from city of sd
@@ -158,7 +171,7 @@ class Resource(models.Model):
     and has different values for each dbh/resource combo.
     """
     meta_species = models.CharField(max_length=150, null=True, blank=True)
-    region = models.CharField(max_length=150, null=True, blank=True)
+    stratum_zone = models.CharField(max_length=150, null=True, blank=True)
     hydro_interception_dbh = models.TextField(null=True, blank=True)
     #property_value_dbh = models.TextField()
     aq_ozone_dep_dbh = models.TextField(null=True, blank=True)
@@ -512,11 +525,12 @@ class Tree(models.Model):
         #calc results and set them
 
         #filter for resource in the proper zone
-        #zone = Zone.objects.filter(geometry__contains=pnt)
-        #resource = self.species.resource.filter(zone=zone)
-        resource = self.species.resource.all()
+        zone = StratumZone.objects.filter(geometry__contains=self.geometry)[0]
+        resource = self.species.resource.filter(stratum_zone=zone.slug)
+        #resource = self.species.resource.all()
         if not resource:
-          logging.warning('Unable to locate proper zone for this resource')
+          raise Exception('unable to find resource for %s in %s' % (self.species.symbol, zone.slug))
+          #logging.warning('Unable to locate proper zone for this resource')
         else:
           resource = resource[0]
         base_resources = resource.calc_base_resources(RESOURCE_NAMES, self.dbh)
@@ -553,15 +567,15 @@ class Tree(models.Model):
 
     def save(self,*args,**kwargs):
         #save new neighborhood/zip connections if needed
-        self.photo_count = self.treephoto_set.count()
+        #self.photo_count = self.treephoto_set.count()
         pnt = self.geometry
                 
         n = Neighborhood.objects.filter(geometry__contains=pnt)
         #z = ZipCode.objects.filter(geometry__contains=pnt)
         
         self.projects = ""
-        for fl in self.treeflags_set.all():
-            self.projects = self.projects + " " + fl.key
+        #for fl in self.treeflags_set.all():
+        #    self.projects = self.projects + " " + fl.key
 
         super(Tree, self).save(*args,**kwargs) 
 
@@ -584,7 +598,7 @@ class Tree(models.Model):
         if hasattr(self,'species') and self.species:
             self.species.save()
           
-        if n: 
+        if n and 0: 
           for nhood in n:
             self.update_aggregate(AggregateNeighborhood, nhood)
         if oldn: 
