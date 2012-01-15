@@ -120,6 +120,7 @@ WEB
       "wms_title"                  "Umbrella Consulting and SF Trees"
       "wms_onlineresource"         "http://mapserver.beardedmaps.com"
       "wms_srs"                    "EPSG:26910 EPSG:4326  EPSG:900913"
+	"ows_enable_request" "*"
    END
 END
 
@@ -141,7 +142,7 @@ LAYER
     DATA 'geometry from (select * from treemap_neighborhood) as foo using unique id using srid=4326'
       CLASS
         #STYLE
-          #WIDTH 3
+          ##WIDTH 3
           OUTLINECOLOR 150 50 50
           #SYMBOL "circle"
           #ANTIALIAS true
@@ -168,7 +169,7 @@ LAYER
         STYLE
           #COLOR 15 120 20
           #WIDTH 3
-          #SIZE 35
+          size 35
           #OUTLINECOLOR 250 200 60
           SYMBOL "green6"
           ANTIALIAS true
@@ -179,8 +180,8 @@ LAYER
         MAXSCALEDENOM 2000
         STYLE
           #COLOR 15 120 20
-          WIDTH 3
-          #SIZE 35
+          #WIDTH 4
+          size 35
           #OUTLINECOLOR 250 200 60
           SYMBOL "green5"
           ANTIALIAS true
@@ -191,8 +192,8 @@ LAYER
         MAXSCALEDENOM 5000
         STYLE
           #COLOR 15 120 20
-          WIDTH 2
-          #SIZE 25
+          #WIDTH 9
+          size 25
           #OUTLINECOLOR 250 200 60
           SYMBOL "green4"
           ANTIALIAS true
@@ -203,8 +204,8 @@ LAYER
         MAXSCALEDENOM 10000
         STYLE
           #COLOR 15 120 20
-          WIDTH 1
-          #SIZE 20
+          #WIDTH 7
+          size 15
           #OUTLINECOLOR 250 200 60
           SYMBOL "green3"
           ANTIALIAS true
@@ -215,8 +216,8 @@ LAYER
         MAXSCALEDENOM 50000
         STYLE
           #COLOR 15 120 20
-          WIDTH 1
-          #SIZE 3
+          #WIDTH 5
+          size 10
           #OUTLINECOLOR 110 175 110
           SYMBOL "green2"
           ANTIALIAS true
@@ -224,11 +225,11 @@ LAYER
       END
       CLASS
         MINSCALEDENOM 50000
-        MAXSCALEDENOM 250000
+        #MAXSCALEDENOM 250000
         STYLE
           #COLOR 15 120 20
-          WIDTH 1
-          #SIZE 2
+          #WIDTH 3
+          size 7
           #OUTLINECOLOR 110 175 110
           SYMBOL "green2"
           ANTIALIAS true
@@ -251,8 +252,8 @@ LAYER
         MAXSCALEDENOM 1000
         STYLE
           #COLOR 15 120 20
-          WIDTH 3
-          #SIZE 35
+          #WIDTH 3
+          size 35
           #OUTLINECOLOR 250 200 60
           SYMBOL "green6s"
           ANTIALIAS true
@@ -263,8 +264,8 @@ LAYER
         MAXSCALEDENOM 2000
         STYLE
           #COLOR 15 120 20
-          WIDTH 3
-          #SIZE 35
+          #WIDTH 3
+          size 35
           #OUTLINECOLOR 250 200 60
           SYMBOL "green5s"
           ANTIALIAS true
@@ -275,8 +276,8 @@ LAYER
         MAXSCALEDENOM 5000
         STYLE
           #COLOR 15 120 20
-          WIDTH 2
-          #SIZE 25
+          #WIDTH 2
+          size 25
           #OUTLINECOLOR 250 200 60
           SYMBOL "green4s"
           ANTIALIAS true
@@ -287,8 +288,8 @@ LAYER
         MAXSCALEDENOM 10000
         STYLE
           #COLOR 15 120 20
-          WIDTH 1
-          #SIZE 20
+          #WIDTH 1
+          size 20
           #OUTLINECOLOR 250 200 60
           SYMBOL "green3s"
           ANTIALIAS true
@@ -299,8 +300,8 @@ LAYER
         MAXSCALEDENOM 50000
         STYLE
           #COLOR 15 120 20
-          WIDTH 1
-          #SIZE 3
+          #WIDTH 1
+          size 3
           #OUTLINECOLOR 110 175 110
           SYMBOL "green2s"
           ANTIALIAS true
@@ -311,8 +312,8 @@ LAYER
         MAXSCALEDENOM 150000
         STYLE
           #COLOR 15 120 20
-          WIDTH 1
-          #SIZE 2
+          #WIDTH 1
+          size 2
           #OUTLINECOLOR 110 175 110
           SYMBOL "green1s"
           ANTIALIAS true
@@ -334,8 +335,8 @@ LAYER
         MAXSCALEDENOM 1000
         STYLE
           #COLOR 15 120 20
-          WIDTH 3
-          #SIZE 35
+          #WIDTH 3
+          size 35
           #OUTLINECOLOR 250 200 60
           SYMBOL "green6"
           ANTIALIAS true
@@ -346,8 +347,8 @@ LAYER
         MAXSCALEDENOM 2000
         STYLE
           #COLOR 15 120 20
-          WIDTH 3
-          #SIZE 35
+          #WIDTH 3
+          size 35
           #OUTLINECOLOR 250 200 60
           SYMBOL "green5"
           ANTIALIAS true
@@ -358,8 +359,8 @@ LAYER
         MAXSCALEDENOM 5000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 2
-          #SIZE 25
+          ##WIDTH 2
+          size 25
           #OUTLINECOLOR 250 200 60
           SYMBOL "green4"
           ANTIALIAS true
@@ -370,8 +371,8 @@ LAYER
         MAXSCALEDENOM 10000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 1
-          #SIZE 20
+          ##WIDTH 1
+          size 20
           #OUTLINECOLOR 250 200 60
           SYMBOL "green3"
           ANTIALIAS true
@@ -382,8 +383,8 @@ LAYER
         MAXSCALEDENOM 50000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 1
-          #SIZE 3
+          ##WIDTH 1
+          size 6
           #OUTLINECOLOR 110 175 110
           SYMBOL "green2"
           ANTIALIAS true
@@ -394,8 +395,8 @@ LAYER
         MAXSCALEDENOM 150000
         STYLE
           #COLOR 15 120 20
-          #WIDTH 1
-          #SIZE 2
+          ##WIDTH 1
+          size 4
           #OUTLINECOLOR 110 175 110
           SYMBOL "green1"
           ANTIALIAS true
@@ -421,7 +422,7 @@ LAYER
         MAXSCALEDENOM 2000
         STYLE
           COLOR 15 120 20
-          WIDTH 3
+          #WIDTH 3
           SIZE 12
           OUTLINECOLOR 150 150 150
           SYMBOL "circle"
@@ -433,7 +434,7 @@ LAYER
         MAXSCALEDENOM 5000
         STYLE
           COLOR 15 120 20
-          WIDTH 2
+          #WIDTH 2
           SIZE 9
           OUTLINECOLOR 150 150 150
           SYMBOL "circle"
@@ -445,7 +446,7 @@ LAYER
         MAXSCALEDENOM 10000
         STYLE
           COLOR 15 120 20
-          WIDTH 1
+          #WIDTH 1
           SIZE 6
           OUTLINECOLOR 150 150 150
           SYMBOL "circle"
@@ -457,7 +458,7 @@ LAYER
         MAXSCALEDENOM 50000
         STYLE
           COLOR 15 120 20
-          WIDTH 1
+          #WIDTH 1
           SIZE 3
           OUTLINECOLOR 150 150 150
           SYMBOL "circle"
@@ -469,7 +470,7 @@ LAYER
         MAXSCALEDENOM 150000
         STYLE
           COLOR 15 120 20
-          WIDTH 1
+          #WIDTH 1
           SIZE 2
           OUTLINECOLOR 150 150 150
           SYMBOL "circle"
@@ -492,7 +493,7 @@ LAYER
         MAXSCALEDENOM 2000
         STYLE
           COLOR 15 120 20
-          WIDTH 3
+          #WIDTH 3
           SIZE 12
           OUTLINECOLOR 250 200 60
           SYMBOL "circle"
@@ -504,7 +505,7 @@ LAYER
         MAXSCALEDENOM 5000
         STYLE
           COLOR 15 120 20
-          WIDTH 2
+          #WIDTH 2
           SIZE 9
           OUTLINECOLOR 250 200 60
           SYMBOL "circle"
@@ -516,7 +517,7 @@ LAYER
         MAXSCALEDENOM 10000
         STYLE
           COLOR 15 120 20
-          WIDTH 1
+          #WIDTH 1
           SIZE 6
           OUTLINECOLOR 250 200 60
           SYMBOL "circle"
@@ -528,7 +529,7 @@ LAYER
         MAXSCALEDENOM 50000
         STYLE
           COLOR 15 120 20
-          WIDTH 1
+          #WIDTH 1
           SIZE 3
           OUTLINECOLOR 110 175 110
           SYMBOL "circle"
@@ -540,7 +541,7 @@ LAYER
         MAXSCALEDENOM 150000
         STYLE
           COLOR 15 120 20
-          WIDTH 1
+          #WIDTH 1
           SIZE 2
           OUTLINECOLOR 110 175 110
           SYMBOL "circle"
@@ -561,7 +562,7 @@ LAYER
       CLASS 
         STYLE
           COLOR 110 175 110
-          WIDTH 4
+          #WIDTH 4
           SIZE 8
           OUTLINECOLOR 0 80 50
           SYMBOL "circle"
