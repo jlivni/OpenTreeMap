@@ -46,6 +46,12 @@ ACCOUNT_ACTIVATION_DAYS = 5
 DEFAULT_FROM_EMAIL= 'contact@urbanforestmap.org'
 EMAIL_MANAGERS = False
 
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'treemap@umbrellaconsulting.com'
+EMAIL_HOST_PASSWORD = 'treemap05'
+EMAIL_PORT = 587
+
 #http://sftrees.securemaps.com/ticket/236
 CONTACT_EMAILS = ['joshlivni@gmail.com']#,'admins@urbanforestmap.org']
 

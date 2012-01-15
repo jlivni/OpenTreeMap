@@ -157,7 +157,7 @@ form, fieldset {
 */
 
 #searchBox{
-	background: url(/static/images/v2/bg_search.gif) repeat-x top left;
+	background: url(/static/images/es/top_gradient.png) repeat-y #fde9bd ;
 	width:100%;
 	height:115px;
 	border-top:1px solid #a0be31;
@@ -477,7 +477,7 @@ ul#searchSuggest li#searchFilter a#advanced #arrow {
 	z-index:9999;
 	padding-top:200px;
 	padding-left:0;
-	background:url(/static/images/v2/bg_fade4.png) repeat top left;
+	background:url(/static/images/es/bg_fade4.png) repeat top left;
 	text-align:center;
 }
 #displayResults p {
