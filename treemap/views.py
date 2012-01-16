@@ -1012,7 +1012,6 @@ def _build_tree_search_result(request):
              tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
 
     #import pdb;pdb.set_trace()
-
     tree_criteria = {'project1' : '1',
                      'project2' : '2',
                      'project3' : '3',
@@ -1224,6 +1223,7 @@ def _build_tree_search_result(request):
         print 'CSA',cached_search_agg
         if cached_search_agg and cached_search_agg.exists() and cached_search_agg[0].ensure_recent(trees.count()):
             geog_obj = cached_search_agg[0]
+            print 'USING CACHED RESULT'
         else:
             #geog_obj = cache_search_aggs(query_pairs=({'trees':trees,'query':q},),return_first=True)
             geog_obj = AggregateSearchResult(key=q)
@@ -1302,7 +1302,7 @@ def advanced_search(request, format='json'):
         maximum_trees_for_display = 500   
     maximum_trees_for_summary = 200000  
     response = {}
-
+    
     trees, geog_obj, tile_query = _build_tree_search_result(request)
     sql = str(trees.query)
     if format == "geojson":    
@@ -1349,29 +1349,46 @@ def advanced_search(request, format='json'):
         #print 'we have %s  ..' % esj
         #print 'aggregating..'
 
-        r = ResourceSummaryModel()
-        
-        with_out_resources = trees.filter(treeresource=None).count()
-        #print 'without resourcesums:', with_out_resources
-        resources = tree_count - with_out_resources
-        #print 'have resourcesums:', resources
-        
-        EXTRAPOLATE_WITH_AVERAGE = True
-
-        for f in r._meta.get_all_field_names():
-            if f.startswith('total') or f.startswith('annual'):
-                fn = 'treeresource__' + f
-                s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
-                # TODO - need to make this logic accesible from shortcuts.get_summaries_and_benefits
-                # which is also a location where summaries are calculated
-                # also add likely to treemap/update_aggregates.py (not really sure how this works)
-                if EXTRAPOLATE_WITH_AVERAGE and resources:
-                    avg = float(s)/resources
-                    s += avg * with_out_resources
-                        
-                setattr(r,f,s)
-                esj[f] = s
+        #Todo Jlivni -- make this a chached AggregateSearchResult
+        # check on (last_updated or ensure_recent) and search key 
+        q = request.META['QUERY_STRING'] or ''
+        r = AggregateSearchResult.objects.filter(key='json_' + q)
+        if r and r.exists() and r[0].ensure_recent(tree_count):
+          r=r[0]
+        else:
+          r = AggregateSearchResult(key = 'json_' + q)
+          
+          with_out_resources = trees.filter(treeresource=None).count()
+          print tree_count, with_out_resources, 'TCWOR'
+          #print 'without resourcesums:', with_out_resources
+          resources = tree_count - with_out_resources
+          #print 'have resourcesums:', resources
+          
+          EXTRAPOLATE_WITH_AVERAGE = True
+          #TODO jlivni -- check; does this really do nothing except multiply by .01 [for each benefit?]
+          for f in r._meta.get_all_field_names():
+            if (f.startswith('total') and not f == 'total_trees') or f.startswith('annual'):
+              fn = 'treeresource__' + f
+              s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
+              # TODO - need to make this logic accesible from shortcuts.get_summaries_and_benefits
+              # which is also a location where summaries are calculated
+              # also add likely to treemap/update_aggregates.py (not really sure how this works)
+              if EXTRAPOLATE_WITH_AVERAGE and resources:
+                  avg = float(s)/resources
+                  s += avg * with_out_resources
+                      
+              setattr(r,f,s)
+              print f,s  #todo jlivni set esj with r stuff later
+              esj[f] = s
+          r.total_trees = tree_count
+          r.distinct_species = esj['distinct_species']
+          r.save()
         esj['benefits'] = r.get_benefits()
+        for f in r._meta.get_all_field_names():
+          if (f.startswith('total') and not f == 'total_trees') or f.startswith('annual'):
+            esj[f] = getattr(r,f)
+        
+        print esj
 
         #print 'aggregated...'
     
