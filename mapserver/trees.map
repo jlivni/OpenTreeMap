@@ -131,6 +131,28 @@ END
 
 ######################
 #
+
+LAYER
+  NAME counties
+  TYPE polygon
+  DATA /projects/sandiego/data/geo/tl_2008_06_county
+  CLASSITEM "CNTYIDFP"
+  OPACITY 70
+
+  CLASS
+    expression "06073"
+    OUTLINECOLOR 255 255 0
+  END
+
+  CLASS
+    OUTLINECOLOR 50 50 50
+    COLOR 255 255 255
+  END
+
+END
+
+
+
 LAYER 
     NAME nhbds
     GROUP nhbds
