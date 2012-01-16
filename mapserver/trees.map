@@ -58,13 +58,13 @@ IMAGETYPE agg
     END
     
     SYMBOL
-      NAME "green4"
+      NAME "green5"
       TYPE PIXMAP
       IMAGE "../static/images/SanDiego/map_icons/v3/UFM_Tree_Icon_zoom6.png"
     END
 
     SYMBOL
-      NAME "green4s"
+      NAME "green5s"
       TYPE PIXMAP
       IMAGE "../static/images/SanDiego/map_icons/v1s/UFM_Tree_Icon_zoom6.png"
     END
@@ -169,9 +169,9 @@ LAYER
         STYLE
           #COLOR 15 120 20
           #WIDTH 3
-          size 35
+          size 25
           #OUTLINECOLOR 250 200 60
-          SYMBOL "green6"
+          SYMBOL "green5"
           ANTIALIAS true
         END
       END
@@ -181,7 +181,7 @@ LAYER
         STYLE
           #COLOR 15 120 20
           #WIDTH 4
-          size 35
+          size 25
           #OUTLINECOLOR 250 200 60
           SYMBOL "green5"
           ANTIALIAS true
@@ -195,7 +195,7 @@ LAYER
           #WIDTH 9
           size 25
           #OUTLINECOLOR 250 200 60
-          SYMBOL "green4"
+          SYMBOL "green5"
           ANTIALIAS true
         END
       END
@@ -279,7 +279,7 @@ LAYER
           #WIDTH 2
           size 25
           #OUTLINECOLOR 250 200 60
-          SYMBOL "green4s"
+          SYMBOL "green5s"
           ANTIALIAS true
         END
       END
@@ -362,7 +362,7 @@ LAYER
           ##WIDTH 2
           size 25
           #OUTLINECOLOR 250 200 60
-          SYMBOL "green4"
+          SYMBOL "green5"
           ANTIALIAS true
         END
       END
