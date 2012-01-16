@@ -60,19 +60,19 @@ form, fieldset {
 }
 #header {
 	width:940px;
-	background: #fff url(/static/images/v2/bg_tree.gif) no-repeat right top;
+	background: #fff url(/static/images/es/bg_header.png) no-repeat right top;
 	overflow:hidden;
 	margin:0 auto;
 	position:relative;
 }
 .logo {
-	width: 448px;
-	height: 79px;
+	width: 258px;
+	height: 59px;
 	text-indent:-9999px;
 	overflow:hidden;
 	float:left;
-	background:url(/static/images/logo.png) no-repeat;
-	margin:0;
+	background:url(/static/images/es/new_logo.png) no-repeat;
+	margin:8px;
 }
 .logo a {
 	display:block;
