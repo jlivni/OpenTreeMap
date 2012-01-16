@@ -58,7 +58,7 @@ tm.init_base_map = function(div_id, controls){
     });
   
     tm.aerial = new OpenLayers.Layer.Google("Hybrid", {
-        type: google.maps.MapTypeId.TERRAIN,            
+        type: google.maps.MapTypeId.HYBRID,            
         sphericalMercator: true,
         numZoomLevels: 21
     });
