@@ -84,4 +84,6 @@ tm.init_base_map = function(div_id, controls){
     tm.aerial.buffer = 0;
     tm.map.addLayers([tm.baseLayer, tm.aerial, tm.tms]);
     tm.map.setBaseLayer(tm.baseLayer);
+    tm.baseLayer.mapObject.setTilt(0);
+    tm.aerial.mapObject.setTilt(0);
 };

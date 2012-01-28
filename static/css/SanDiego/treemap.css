@@ -24,24 +24,24 @@ margin:2px;
 height:382px;
 }
 #index_map{
-border:10px solid #eef5d8;
+border:10px solid #fde9bd;
 height:400px;
 }
 #results_map{
 position:relative;
 height:480px;
 width:622px;
-border:10px solid #eef5d8;
+border:10px solid #fde9bd;
 }
 #favorite_tree_map{
 height:250px;
 width:260px;
-border:10px solid #eef5d8;
+border:10px solid #fde9bd;
 }
 #edit_tree_map_wrap{
 height:220px;
 width:260px;
-border:10px solid #eef5d8;
+border:10px solid #fde9bd;
 overflow: hidden;
 position:relative;
 }
@@ -56,7 +56,7 @@ position:relative;
 float:left;
 width: 630px;
 height:350px;
-border:10px solid #eef5d8;
+border:10px solid #fde9bd;
 overflow: hidden;
 }
 #add_tree_map{
@@ -101,7 +101,7 @@ width:40px;
 #tree_streetview{
 height:220px;
 width:260px;
-border:10px solid #eef5d8;
+border:10px solid #fde9bd;
 padding-top:0;
 margin-top:0;
 }
@@ -208,7 +208,7 @@ input.button {
 	display:block;
 	margin-top:1px;
 	padding-bottom:22px;
-	border-bottom:1px solid #eef5d8;
+	border-bottom:1px solid #fde9bd;
 }
 .activeEdit input.hide {
     border: 0;

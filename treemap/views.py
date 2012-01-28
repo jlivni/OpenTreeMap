@@ -80,6 +80,7 @@ def location_map(request):
     pass
 
 def home_feeds(request):
+    return HttpResponseRedirect('/map')
     feeds = {}
     recent_trees = Tree.history.filter(present=True).order_by("-last_updated")[0:3]
     

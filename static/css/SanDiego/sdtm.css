@@ -54,7 +54,7 @@ form, fieldset {
 */
 
 #announceHeader {
-	background:#eef5d8;
+	background:#fde9bd;
 	text-align:center;
 	padding:10px 20px;
 }
@@ -157,12 +157,15 @@ form, fieldset {
 */
 
 #searchBox{
-	background: url(/static/images/es/top_gradient.png) repeat-y #fde9bd ;
-	width:100%;
-	height:115px;
+	background: url(/static/images/es/sidebar_gradient.png) repeat-y #fde9bd ;
+	width:920px;
+	height:90px;
 	border-top:1px solid #a0be31;
+
+        margin: 0 auto;
 	border-bottom:1px solid #bfd769;
-	margin-bottom:0;
+	padding: 10px;
+        position:relative;
 }
 #searchBoxContainer {
 	width:940px;
@@ -267,8 +270,8 @@ ul#searchBoxes li#searchSpeciesBox input#location_search_input {
 	color:#afafaf;
 }
 ul#searchBoxes  li#searchButton {
-	float:right;
-	width:210px;
+	float:left;
+	width:170px;
 	list-style-type: none;
 	text-align:right;
 }
@@ -312,7 +315,7 @@ ul#searchSuggest li#searchLocationSuggest {
 }
 ul#searchSuggest li#searchFilter {
 	float:right;
-	width:193px;
+	width:153px;
 	list-style-type: none;
 	text-align:right;
 }
@@ -608,7 +611,8 @@ ul#promoMap li#promoMapEmbed {
 	margin-right:20px;
 	margin-top:30px;
 	padding:20px 20px 25px 20px;
-	background-color:#eef5d8;
+	background-color:#fde9bd;
+	xbackground: url(/static/images/es/sidebar_gradient.png) repeat-y #fde9bd ;
 }
 /*
 #t2_middle_panel {
@@ -912,7 +916,7 @@ ul#promoMap li#promoMapEmbed {
 	margin-left: 5px;
 	border: 1px solid #ccc;
 	border-bottom: none;
-	background: #eff5d9;
+	background: #fde9bd;
 	text-decoration: none;
 }
 #tablist li a:link {  }
@@ -1400,7 +1404,7 @@ ul#resultsContainer li#export ul li#firstOption {
 /* 	white-space: nowrap; */
 }
 .box-table-a tr:hover td {
-	background: #eef5d8;
+	background: #fde9bd;
 }
 .box-table-a td.col1{
     width:125px;
@@ -1440,13 +1444,13 @@ ul#resultsContainer li#export ul li#firstOption {
 #dropSpace {
     margin:0;
     padding:0;
-	background:#eef5d8 ;
+	background:#fde9bd ;
 }
 .box-table-a tr td#dropSpace #hazardList table#hazardTable tr td, .box-table-a tr td#dropSpace #actionList table#actionTable tr td{
     padding-left:5px;
     padding-right:5px;
     margin:0;
-	background:#eef5d8 ;
+	background:#fde9bd ;
 
 }
 /*
@@ -1486,7 +1490,7 @@ ul#resultsContainer li#export ul li#firstOption {
 .box-table-b td {
     margin:0;
 /* 	padding: 4px 8px 4px 38px; */
-	background: #eef5d8; 
+	background: #fde9bd; 
 	border-bottom: 0;
 	color: #666;
 	border-top: 1px solid transparent;
@@ -1523,7 +1527,7 @@ ul#resultsContainer li#export ul li#firstOption {
 /* 	white-space: nowrap; */
 }
 .box-table-c tr:hover td {
-	background: #eef5d8;
+	background: #fde9bd;
 }
 .box-table-c td.col1{
     width:100px;
@@ -1560,7 +1564,7 @@ ul#resultsContainer li#export ul li#firstOption {
 	width:390px;
 	margin:0;
 	padding:0;
-	background:#eef5d8;
+	background:#fde9bd;
 }
 #popupContainer ul {
 	float:left;
@@ -1606,14 +1610,14 @@ ul#resultsContainer li#export ul li#firstOption {
 	font-size:14px;
 	font-weight:bold;
 	padding:0 0 0 20px;
-	background:#eef5d8 url(/static/images/es/ico-details.gif) no-repeat center left;
+	background:#fde9bd url(/static/images/es/ico-details.gif) no-repeat center left;
 	margin:10px 0 2px 0;
 }
 #popupContainer ul li#options ul#optionList li#edit {
 	font-size:14px;
 	font-weight:bold;
 	padding:0 0 0 20px;
-	background:#eef5d8 url(/static/images/edit.png) no-repeat center left;
+	background:#fde9bd url(/static/images/edit.png) no-repeat center left;
 	margin:10px 0 2px 0;
 }
 
@@ -1625,17 +1629,17 @@ ul#resultsContainer li#export ul li#firstOption {
 }
 #popupContainer ul li#options ul#optionList li#fav {
 	padding:0 0 0 20px;
-	background:#eef5d8 url(/static/images/es/ico-favorite.gif) no-repeat bottom left;
+	background:#fde9bd url(/static/images/es/ico-favorite.gif) no-repeat bottom left;
 	margin:0 0 5px 0;
 }
 #popupContainer ul li#options ul#optionList li#email {
 	padding:0 0 0 20px;
-	background:#eef5d8 url(/static/images/es/ico-email.gif) no-repeat center left;
+	background:#fde9bd url(/static/images/es/ico-email.gif) no-repeat center left;
 	margin:0 0 5px 0;
 }
 #popupContainer ul li#options ul#optionList li#twitter {
 	padding:0 0 0 20px;
-	background:#eef5d8 url(/static/images/es/ico-twitter.gif) no-repeat center left;
+	background:#fde9bd url(/static/images/es/ico-twitter.gif) no-repeat center left;
 	margin:0 0 5px 0;
 }
 
@@ -1935,7 +1939,7 @@ ul#resultsContainer li#export ul li#firstOption {
 .filter-box{
 	width:900px;
 	margin:0 auto;
-	background:#eff5d9;
+	background:#fde9bd;
 	overflow:hidden;
 	padding:10px 20px 6px;
 	border:1px solid #bfd769;
@@ -2211,14 +2215,14 @@ ul#resultsContainer li#export ul li#firstOption {
     width:180px;
     padding:3px 20px 5px 40px;
     margin:0;
-    background:#eef5d8;
+    background:#fde9bd;
     color:#333;
 }
 .common-attributes .twoDropItems dl dd {
     width:138px;
     padding:3px 0 5px 0;
     margin:0 10px 0 0 ;
-    background:#eef5d8;
+    background:#fde9bd;
 }
 */
 
@@ -2258,7 +2262,7 @@ ul#resultsContainer li#export ul li#firstOption {
     width:250px;
     padding:10px 20px 10px 10px;
     margin:0;
-    background:#eef5d8;
+    background:#fde9bd;
 }
 .tab-content .aside #editOptionContainer ul li {
     list-style-type: none;
@@ -3312,7 +3316,7 @@ width:944px;
 
 
 #genError {
-	background:#eff5d9;
+	background:#fde9bd;
 	padding:15px;
 	margin-bottom:25px;
 	margin-top:0px;
@@ -3507,7 +3511,7 @@ padding: 15px 0 0 0;
 	width:200px;
 	margin-top:0;
 	padding:0 10px 15px 10px;
-	background-color:#eef5d8;
+	background-color:#fde9bd;
 }
 #mapHolder {
 	clear:both;
@@ -3561,7 +3565,7 @@ padding: 15px 0 0 0;
 	margin-top: 20px;
 }
 #register.added #addedTrees table th {
-	background: #EEF5D8;
+	background: #fde9bd;
 	height: 30px;
 }
 #register.added #addedTrees table td.noTrees {
