@@ -28,7 +28,8 @@ TILED_SEARCH_RESPONSE = False
 # separate instance of tilecache for dynamic selection tiles
 CACHE_SEARCH_TILES = True
 CACHE_SEARCH_METHOD = 'disk' #'disk'
-CACHE_SEARCH_DISK_PATH = os.path.join(os.path.dirname(__file__), 'local_tiles/')
+#CACHE_SEARCH_DISK_PATH = os.path.join(os.path.dirname(__file__), 'local_tiles/')
+CACHE_SEARCH_DISK_PATH =  '/tmp/local_tiles/'
 MAPNIK_STYLESHEET = os.path.join(os.path.dirname(__file__), 'mapserver/stylesheet.xml')
 
 # sorl thumbnail settings

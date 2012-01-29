@@ -17,7 +17,7 @@ tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
 tm.popup_maxSize = new OpenLayers.Size(450,450);
 
-tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(37.62,-122.62), new google.maps.LatLng(37.88,-122.19));
+tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(32.0,-118.0), new google.maps.LatLng(33.0,-116.0));
 tm.geo_layer = "sf:sf_treemap_tree"
 tm.geo_layer_style = "sanfrancisco_tree_highlight"
 tm.panoAddressControl = false;
@@ -76,7 +76,8 @@ tm.init_base_map = function(div_id, controls){
     tm.tms.buffer = 0;
 
     tm.xyz = new OpenLayers.Layer.XYZ('TreeLayer',
-         tm_urls.qs_tile_url + "${z}/${x}/${y}.png?", 
+         //tm_urls.qs_tile_url + "${z}/${x}/${y}.png?", 
+         tm_urls.qs_tile_url + "${z}/${x}/${y}.png?" + tm.selected_tile_query,
          {sphericalmercator : true}
      );
 

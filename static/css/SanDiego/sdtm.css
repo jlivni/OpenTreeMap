@@ -102,7 +102,7 @@ form, fieldset {
 }
 
 .buttonMed:hover {
-	background:#e08a00;
+	background:#9653d6;
 	text-decoration:none;
 }
 
@@ -124,7 +124,7 @@ form, fieldset {
 	margin-left:2px;
 }
 .buttomSm:hover {
-	background:#e08a00;
+	background:#9653d6;
 	text-decoration:none;
 }
 .globalAdd {
@@ -173,7 +173,7 @@ form, fieldset {
 	position: relative;
 }
 ul#searchTitles {
-        color:#fff;
+        color:#663398;
         font-size:2em;
 	display: inline;
 	margin-top:18px;
@@ -203,7 +203,7 @@ ul#searchBoxes {
 }
 ul#searchBoxes li#searchSpeciesBox {
 	float:left;
-	width:300px;
+	width:285px;
 	list-style-type: none;
 }
 #searchLocationBrowse, #searchSpeciesBrowse {
@@ -222,7 +222,7 @@ ul#searchBoxes li#searchSpeciesBox {
 	float: left;
 }
 #searchLocationBrowse:hover, #searchSpeciesBrowse:hover {
-	background: #e08a00;
+	background: #9653d6;
 }
 ul#searchBoxes li#searchSpeciesBox input#species_search_input {
 	width:235px;
@@ -242,12 +242,12 @@ ul#searchBoxes li#searchSpeciesBox input#species_search_input2 {
 }
 ul#searchBoxes  li#searchJoiner {
 	float:left;
-	width:60px;
+	width:75px;
 	list-style-type: none;
 	font-size:20px;
 	color:#4e6205;
 	font-weight:bold;
-	text-align:center;
+	text-align:left;
 	padding-top:3px;
 }
 ul#searchBoxes  li#searchLocationBox {
@@ -291,7 +291,7 @@ ul#searchBoxes li#searchButton .go {
 	vertical-align: middle;
 }
 ul#searchBoxes li#searchButton .go:hover {
-	background:#e08a00;
+	background:#9653d6;
 }
 ul#searchSuggest {
 	clear:both;
@@ -300,7 +300,7 @@ ul#searchSuggest {
 }
 ul#searchSuggest li#searchSpeciesSuggest {
 	float:left;
-	width:300px;
+	width:305px;
 	list-style-type: none;
 	text-align:left;
 	margin-right:0;
@@ -308,16 +308,16 @@ ul#searchSuggest li#searchSpeciesSuggest {
 }
 ul#searchSuggest li#searchLocationSuggest {
 	float:left;
-	width:380px;
+	width:355px;
 	list-style-type: none;
 	margin-left:60px;
 	padding-left:0;
 }
 ul#searchSuggest li#searchFilter {
-	float:right;
+	float:left;
 	width:153px;
 	list-style-type: none;
-	text-align:right;
+	text-align:left;
 }
 ul#searchSuggest li#searchFilter a#advanced em span {
     font-style: normal;
@@ -1250,25 +1250,25 @@ ul#promoMap li#promoMapEmbed {
     font-weight:bold;
 }
 #results_aside.aside ul#messageStats li.impact#cost {
-    background:url(/static/images/v2/icon_cost.gif) no-repeat top left;
+    background:url(/static/images/v2/SD_icons_env_ben_cost_green.png) no-repeat top left;
 }
 #results_aside.aside ul#messageStats li.impact#gas {
-    background:url(/static/images/v2/icon_gas.gif) no-repeat top left;
+    background:url(/static/images/v2/SD_icons_env_ben_pollution_green.png) no-repeat top left;
 }
 #results_aside.aside ul#messageStats li.impact#water {
-    background:url(/static/images/v2/icon_water.gif) no-repeat top left;
+    background:url(/static/images/v2/SD_icons_env_ben_water_green.png) no-repeat top left;
 }
 #results_aside.aside ul#messageStats li.impact#energy {
-    background:url(/static/images/v2/icon_energy.gif) no-repeat top left;
+    background:url(/static/images/v2/SD_icons_env_ben_energy_green.png) no-repeat top left;
 }
 #results_aside.aside ul#messageStats li.impact#air {
-    background:url(/static/images/v2/icon_air.gif) no-repeat top left;
+    background:url(/static/images/v2/SD_icons_env_ben_air_green.png) no-repeat top left;
 }
 
 #results_aside.aside ul#messageStats li.impactStat {
     padding:0 0 0 40px;
     margin:-5px 0 5px 0;
-/*     line-height:105%; */
+     line-height:105%; 
     font-size:16px;
     color:#333;
     font-weight:bold;
@@ -1939,7 +1939,7 @@ ul#resultsContainer li#export ul li#firstOption {
 .filter-box{
 	width:900px;
 	margin:0 auto;
-	background:#fde9bd;
+	background: url(/static/images/es/sidebar_gradient.png) repeat-y #fde9bd ;
 	overflow:hidden;
 	padding:10px 20px 6px;
 	border:1px solid #bfd769;
@@ -3504,7 +3504,7 @@ padding: 15px 0 0 0;
 	padding:0 5px 2px 5px;
 }
 #register button:hover {
-	background:#e08a00;
+	background:#9653d6;
 }
 #calloutContainer {
 	float:right;
@@ -3728,4 +3728,10 @@ div.clearer {
 	height: 0;
 	line-height: 1%;
 	font-size: 1px;
+
+}
+/* JQUERY OVERRIDE */
+
+ui-state-active, .ui-widget-content .ui-state-active {
+  color:purple;
 }

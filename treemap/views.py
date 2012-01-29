@@ -16,6 +16,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidde
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import permission_required
 from django.contrib.gis.feeds import Feed
 from django.contrib.gis.geos import Point
 from django.contrib.comments.models import Comment, CommentFlag
@@ -440,14 +441,16 @@ def tree_delete(request, tree_id):
     )
 
 def photo_delete(request, tree_id, photo_id):    
-    tree = Tree.objects.get(pk=tree_id)
-    photo = TreePhoto.objects.get(pk=photo_id)
-    photo.delete()
+    if request.method == 'POST':
+      #TODO(jlivni): ensure only auth'd and admin or owner can delete
+      tree = Tree.objects.get(pk=tree_id)
+      photo = TreePhoto.objects.get(pk=photo_id)
+      photo.delete()
     
-    return HttpResponse(
+      return HttpResponse(
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),
         content_type = 'text/plain'
-    )
+      )
     
 def userphoto_delete(request, username):
     profile = UserProfile.objects.get(user__username=username)
@@ -459,7 +462,6 @@ def userphoto_delete(request, username):
         content_type = 'text/plain'
     )
 
-from django.contrib.auth.decorators import permission_required
 
 @login_required
 @permission_required('auth.change_user')
