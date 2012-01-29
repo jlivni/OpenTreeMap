@@ -163,7 +163,7 @@ ul.edit .activeEdit button, input.button {
 	float:left;
 	width:50px;
 	background: #fff url(/static/images/v2/buttonsm_bg.gif) repeat-x center center;
-	border:2px solid #d8731a;
+	border:2px solid #663397;
 	text-align:center;
 	color:#FFFFFF;
 	font-size:11px;
@@ -179,7 +179,7 @@ ul.edit .activeEdit button:hover {
 .activeEdit button, input.button {
 	clear:both;
 	background: #fff url(/static/images/v2/buttonsm_bg.gif) repeat-x center center;
-	border:2px solid #d8731a;
+	border:2px solid #663397;
 	text-align:center;
 	color:#FFFFFF;
 	font-size:11px;
@@ -192,7 +192,7 @@ input.button {
     margin-top:-2px;
 }
 .activeEdit button:hover {
-	background:#e08a00;
+	background:#9653d6;
 	text-decoration:none;
 }    
 .activeEdit input, .activeEdit select {
