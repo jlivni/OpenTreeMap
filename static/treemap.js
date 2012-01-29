@@ -2052,7 +2052,7 @@ var tm = {
             $.ajax({
                 url: '/trees/' + tree_id + '/deletephoto/' +  photo_id,
                 dataType: 'json',
-                //type: 'POST',
+                type: 'POST',
                 success: function(response) {
                     window.location.reload(true);
                 },

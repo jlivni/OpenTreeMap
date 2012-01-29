@@ -440,8 +440,16 @@ def tree_delete(request, tree_id):
         content_type = 'text/plain'
     )
 
+@csrf_view_exempt
 def photo_delete(request, tree_id, photo_id):    
     if request.method == 'POST':
+      rep = Reputation.objects.reputation_for_user(request.user)
+      if rep < 1000 or not request.user.is_superuser:
+          return HttpResponse(
+            simplejson.dumps({'success':False, 'message' : 'unauthorized'}, sort_keys=True, indent=4),
+            content_type = 'text/plain'
+          )
+  
       #TODO(jlivni): ensure only auth'd and admin or owner can delete
       tree = Tree.objects.get(pk=tree_id)
       photo = TreePhoto.objects.get(pk=photo_id)
@@ -452,6 +460,7 @@ def photo_delete(request, tree_id, photo_id):
         content_type = 'text/plain'
       )
     
+@login_required
 def userphoto_delete(request, username):
     profile = UserProfile.objects.get(user__username=username)
     profile.photo = ""
