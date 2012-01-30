@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE Map [
-<!ENTITY base "../static/images/map_icons/v3/">
+<!ENTITY base "../static/images/SanDiego/map_icons/v3/">
 <!ENTITY green1 "UFM_Tree_Icon_zoom1_2_hilite.png">
 <!ENTITY green2 "UFM_Tree_Icon_zoom3_4_hilite.png">
 <!ENTITY green3 "UFM_Tree_Icon_zoom5_hilite.png">
@@ -13,7 +13,7 @@
     <FileSource name="base">&base;</FileSource>
     <Style name="style">
         <Rule>
-            <PointSymbolizer type="png" base="base" allow_overlap="true" width="4" height="4" file="&green4;" />
+            <PointSymbolizer base="base" allow-overlap="true" file="&green4;" />
         </Rule>
     </Style>
 </Map>
