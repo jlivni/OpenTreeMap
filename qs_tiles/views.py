@@ -14,11 +14,7 @@ from treemap.views import _build_tree_search_result
 
 # http://bitbucket.org/springmeyer/djmapnik/
 from djmapnik.adapter import qs_to_map
-
-try:
-    import mapnik2 as mapnik
-except:
-    import mapnik
+import mapnik
 
 # todo - remove <layername>, and remove 'foo' from url in static/treemap.js
 tile_request_pat = r'/(?P<version>\d{1,2}\.\d{1,3}\.\d{1,3})/(?P<layername>[a-z]{1,64})/(?P<z>\d{1,10})/(?P<x>\d{1,10})/(?P<y>\d{1,10})\.(?P<extension>(?:png|jpg|gif))'
@@ -72,7 +68,7 @@ def get_tile(request, version, layername, z, x, y, extension='png'):
                  'foo',# mapfile skipped as we dynamically assign map object
                  spherical_mercator = 'true',
                  extension = "png",
-                 tms_type = 'google',
+                 tms_type = 'tms',
                  paletted = 'true',
                  debug=False
                  )
@@ -99,6 +95,7 @@ def get_tile(request, version, layername, z, x, y, extension='png'):
             trees = trees.only('geometry')
             styles=[{'name':'style','obj':style}]
             m = qs_to_map(trees,styles=styles)
+            #print mapnik.save_map_to_string(m)
             query_hash[name] = m
         # push the actual mapnik map into the TC MapnikLayer
         mapnik_layer.mapnik = m
