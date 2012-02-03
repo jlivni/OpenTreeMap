@@ -77,13 +77,13 @@ tm.init_base_map = function(div_id, controls){
 
     tm.xyz = new OpenLayers.Layer.XYZ('TreeLayer',
          //tm_urls.qs_tile_url + "${z}/${x}/${y}.png?", 
-         tm_urls.qs_tile_url + "${z}/${x}/${y}.png?" + tm.selected_tile_query,
+         tm_urls.qs_tile_url + tm.map.getZoom() + "/${x}/${y}.png?" + tm.selected_tile_query,
          {sphericalmercator : true}
      );
 
     tm.baseLayer.buffer = 0;
     tm.aerial.buffer = 0;
-    tm.map.addLayers([tm.baseLayer, tm.aerial, tm.tms]);
+    tm.map.addLayers([tm.baseLayer, tm.aerial, tm.tms, tm.xyz]);
     tm.map.setBaseLayer(tm.baseLayer);
     tm.baseLayer.mapObject.setTilt(0);
     tm.aerial.mapObject.setTilt(0);

@@ -3046,12 +3046,32 @@ table.addet .update p{
 .side-box p{
 	padding-left:16px;
 }
-#footer .footer-nav{
+#footer .footer-nav .footer-nav-lower{
 	float:right;
 	list-style:none;
 	margin:0;
 	padding:0;
 }
+
+.footer-nav-lower{
+  margin-top:15px;
+}
+
+.social{
+  float:left;
+}
+
+.social li {
+	float:left;
+        list-style:none;
+/* 	background: url(/static/images/es/separator01.gif) no-repeat 100% 2px; */
+	padding:0 6px;
+	margin:5px -4px 0 4px;
+	font-size:12px;
+	font-weight:bold;
+	color:#888;
+}
+
 .footer-nav li{
 	float:left;
 	border-right:1px solid #ccc;
