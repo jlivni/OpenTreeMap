@@ -41,7 +41,7 @@ status_choices = (
     
 choices_choices = ( 
     ('factoid', 'Factoid'), 
-    ('plot', 'Plot'), 
+    ('plot_type', 'Plot'), 
     ('alert', 'Alert'), 
     ('action', 'Action'), 
     ('local', 'Local'),

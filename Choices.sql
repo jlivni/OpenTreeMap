@@ -61,17 +61,19 @@ INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (70, 'canop
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (72, 'canopy_condition', 'Moderate Gaps (up to 50% missing)', '3', 'int');
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (73, 'canopy_condition', 'Large Gaps (up to 75% missing)', '4', 'int');
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (74, 'canopy_condition', 'Little or None (up to 100% missing)', '5', 'int');
-INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (75, 'plot_type', 'Other', '7', 'int');
-INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (76, 'plot_type', 'Natural Area', '8', 'int');
-INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (6, 'plot_type', 'Well or Pit', '1', 'int');
-INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (7, 'plot_type', 'Median', '2', 'int');
-INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (8, 'plot_type', 'Tree Lawn', '3', 'int');
-INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (9, 'plot_type', 'Island', '4', 'int');
-INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (10, 'plot_type', 'Planter', '5', 'int');
-INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (11, 'plot_type', 'Open', '6', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (75, 'plot_type', 'Other', '10', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (6, 'plot_type', 'Tree Pit in a paved area', '4', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (7, 'plot_type', 'Median', '5', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (8, 'plot_type', 'Tree Lawn or Planting strip', '6', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (9, 'plot_type', 'Island', '7', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (10, 'plot_type', 'Raised Planter', '8', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (11, 'plot_type', 'Open / Unrestricted', '9', 'int');
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (77, 'powerline_conflict_potential', 'Yes', '1', 'int');
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (78, 'powerline_conflict_potential', 'No', '2', 'int');
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (79, 'powerline_conflict_potential', 'Unknown', '3', 'int');
+INSERT INTO treemap_choices (value, key, key_type) VALUES ('plot_type', 'Residential Yard', '1', 'int');
+INSERT INTO treemap_choices (value, key, key_type) VALUES ('plot_type', 'Park', '2', 'int');
+INSERT INTO treemap_choices (value, key, key_type) VALUES ('plot_type', 'Schoolyard', '3', 'int');
 
 ALTER TABLE ONLY treemap_choices
     ADD CONSTRAINT treemap_choices_pkey PRIMARY KEY (id);
