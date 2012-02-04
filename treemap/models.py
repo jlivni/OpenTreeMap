@@ -4,14 +4,17 @@ from decimal import *
 from datetime import datetime
 from django.conf import settings
 from django.contrib.gis.db import models
-from django.contrib.gis.db.models import Sum
+from django.contrib.gis.db.models import Sum, Q
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User, Group
 from sorl.thumbnail.fields import ImageWithThumbnailsField
 from classfaves.models import FavoriteBase
 import logging
 import audit
-import simplejson 
+import simplejson
+from itertools import chain
+
+from django.core.exceptions import ValidationError
 
 RESOURCE_NAMES = ['Hydro interception',
                      'AQ Ozone dep',
@@ -126,6 +129,7 @@ class StratumZone(models.Model):
     """
     each tree can be in a single zone; a species may have
     multiple resources; one for each zone
+    Restricts point placement to within these boundaries.
     """
     name = models.CharField(max_length=255)
     slug = models.CharField(max_length=255)
@@ -137,6 +141,7 @@ class StratumZone(models.Model):
 class Neighborhood(models.Model):
     """
     from city of sd
+    not used currently
     """
     name = models.CharField(max_length=255)
     geometry = models.MultiPolygonField(srid=4326)
@@ -148,7 +153,7 @@ class Neighborhood(models.Model):
     
 class ZipCode(models.Model):
     """
-    from sfgov
+    Display and searching only
     """
     zip = models.CharField(max_length=255)
     geometry = models.MultiPolygonField(srid=4326)
@@ -156,6 +161,14 @@ class ZipCode(models.Model):
     
     def __unicode__(self): return '%s (%s)' % (self.id, self.zip)
     
+
+class ExclusionMask(models.Model):
+    """
+    Further restrict point placement if settings.MASKING_ON = True 
+    """
+    geometry = models.MultiPolygonField(srid=4326)
+    type = models.CharField(max_length=50, blank=True, null=True)
+    objects=models.GeoManager()
     
 class Factoid(models.Model):
     category = models.CharField(max_length=255, choices=Choices().get_field_choices('factoid'))
@@ -352,32 +365,241 @@ class ImportEvent(models.Model):
     file_name = models.CharField(max_length=256)
     import_date = models.DateField(auto_now=True) 
 
+class Plot(models.Model):
+    present = models.BooleanField(default=True)
+    width = models.FloatField(null=True, blank=True)
+    length = models.FloatField(null=True, blank=True)
+    type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
+    powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
+        help_text = "Are there overhead powerlines present?",null=True, blank=True, default='3')
+    sidewalk_damage = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('sidewalk_damage'))
+    
+    address_street = models.CharField(max_length=256, blank=True, null=True)
+    address_city = models.CharField(max_length=256, blank=True, null=True)
+    address_zip = models.CharField(max_length=30,blank=True, null=True)
+    neighborhood = models.ManyToManyField(Neighborhood, null=True)
+    neighborhoods = models.CharField(max_length=150, null=True, blank=True) # Really this should be 'blank=True' and null=False
+    zipcode = models.ForeignKey(ZipCode, null=True, blank=True) # Because it is calculated in the save method
+    
+    geocoded_accuracy = models.IntegerField(null=True, blank=True)
+    geocoded_address = models.CharField(max_length=256, null=True, blank=True)
+    geocoded_lat = models.FloatField(null=True, blank=True)
+    geocoded_lon  = models.FloatField(null=True, blank=True)
+
+    geometry = models.PointField(srid=4326)
+
+    #geocoded_geometry = models.PointField(null=True, srid=4326)
+    #owner_geometry = models.PointField(null=True, srid=4326) #should we keep this?
+
+    last_updated = models.DateTimeField(auto_now=True)
+    last_updated_by = models.ForeignKey(User, related_name='plot_updated_by') # TODO set to current user
+
+    history = audit.AuditTrail()
+    import_event = models.ForeignKey(ImportEvent)
+    objects = models.GeoManager()
+
+    #original data to help owners associate back to their own db
+    data_owner = models.ForeignKey(User, related_name="owner", null=True)
+    owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
+    owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
+
+    readonly = models.BooleanField(default=False)
+
+    def validate(self):
+        self.full_clean()
+        em = ExclusionMask.objects.filter(geometry__contains=self.geometry)
+        if em.count() > 0:
+            raise ValidationError("Geometry may not be within an exclusion zone.")
+
+
+    def get_plot_type_display(self):
+        for key, value in Choices().get_field_choices('plot_type'):
+            if key == self.type:
+                return value
+        return None
+
+    def get_plot_size(self):
+        length = self.length
+        width = self.width
+        if length == None: length = 'Missing'
+        elif length == 99: length = '15+ ft'
+        else: length = '%.2f ft' % length
+        if width == None: width = 'Missing'
+        elif width == 99: width = '15+ ft'
+        else: width = '%.2f ft' % width
+        #print length, width
+        return '%s x %s' % (length, width)
+
+    def get_sidewalk_damage_display(self):
+        for key, value in Choices().get_field_choices('sidewalk_damage'):
+            if key == self.sidewalk_damage:
+                return value
+        return None    
+       
+    def get_powerline_conflict_display(self):
+        for key, value in Choices().get_field_choices('powerline_conflict_potential'):
+            if key == self.powerline_conflict_potential:
+                return value
+        return None
+
+    def current_tree(self):
+        trees = Tree.objects.filter(present=True, plot=self)
+        if len(trees) > 0:
+            return trees[0]
+        else:
+            return None
+
+    def get_active_pends(self):
+        pends = self.plotpending_set.filter(status='pending')
+        return pends
+
+    def get_active_pends_with_tree_pends(self):
+        plot_pends = self.plotpending_set.filter(status='pending')
+        if self.current_tree():
+            tree_pends = self.current_tree().get_active_pends()
+        else:
+            tree_pends = []
+        pends = list(chain(plot_pends, tree_pends))
+        return pends
+
+    def get_plot_type_display(self):
+        for key, value in Choices().get_field_choices('plot_type'):
+            if key == self.type:
+                return value
+        return None
+
+    def get_plot_size(self): 
+        length = self.length
+        width = self.width
+        if length == None: length = 'Missing'
+        elif length == 99: length = '15+ ft'
+        else: length = '%.2f ft' % length
+        if width == None: width = 'Missing'
+        elif width == 99: width = '15+ ft'
+        else: width = '%.2f ft' % width
+        return '%s x %s' % (length, width)
+    
+    def get_sidewalk_damage_display(self):
+        for key, value in Choices().get_field_choices('sidewalk_damage'):
+            if key == self.sidewalk_damage:
+                return value
+        return None    
+
+    def get_powerline_conflict_potential(self):
+        for key, value in Choices().get_field_choices('powerline_conflict_potential'):
+            if key == self.powerline_conflict_potential:
+                return value
+        return None
+
+    def quick_save(self, *args, **kwargs):
+        super(Plot, self).save(*args,**kwargs) 
+
+    def save(self, *args, **kwargs):
+        self.validate()
+
+        pnt = self.geometry
+
+        n = Neighborhood.objects.filter(geometry__contains=pnt)
+        z = ZipCode.objects.filter(geometry__contains=pnt)
+        
+        if n:
+            oldns = self.neighborhoods
+            self.neighborhoods = ""
+            for nhood in n:
+                if nhood:
+                    self.neighborhoods = self.neighborhoods + " " + nhood.id.__str__()
+        else: 
+            self.neighborhoods = ""
+            oldns = None
+                
+        if self.id:
+            oldn = self.neighborhood.all()
+            oldz = self.zipcode
+        else:
+            oldn = []
+            oldz = None
+
+        super(Plot, self).save(*args,**kwargs) 
+        if n:
+            self.neighborhood.clear()
+            for nhood in n:
+                if nhood:
+                    self.neighborhood.add(nhood)
+        else: 
+            self.neighborhood.clear()
+        if z: self.zipcode = z[0]
+        else: self.zipcode = None
+
+        super(Plot, self).save(*args,**kwargs) 
+
+        if self.neighborhoods != oldns:
+            done = []
+            if n: 
+                for nhood in n:
+                    if nhood.id in done: continue
+                    if self.current_tree():
+                        self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+                    else:
+                        self.update_aggregate(AggregateNeighborhood, nhood)
+                    done.append(nhood.id)
+            if oldn: 
+                for nhood in oldn:
+                    if nhood.id in done: continue
+                    if self.current_tree():
+                        self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
+                    else:
+                        self.update_aggregate(AggregateNeighborhood, nhood)
+                    done.append(nhood.id)
+             
+        if self.current_tree() and z and z[0] != oldz:
+            if z: self.current_tree().update_aggregate(AggregateZipCode, z[0])
+            if oldz: self.current_tree().update_aggregate(AggregateZipCode, oldz)
+
+    def update_aggregate(self, ag_model, location):        
+        agg =  ag_model.objects.filter(location=location)
+        if agg:
+            agg = agg[0]
+        else:
+            agg = ag_model(location=location)
+        #print agg.__dict__
+        #summaries = []        
+        trees = Tree.objects.filter(plot__geometry__within=location.geometry)
+        plots = Plot.objects.filter(geometry__within=location.geometry)
+        #print trees
+        agg.total_trees = trees.count()
+        agg.total_plots = plots.count()
+
+        agg.save()
+
+    def validate_proximity(self, return_trees=False, max_count=1):
+        if not self.geometry:
+            return None
+        nearby = Plot.objects.filter(present=True, geometry__distance_lte=(self.geometry, D(ft=10.0)))
+        if nearby.count() > max_count: 
+            if return_trees:
+                return nearby 
+            return (nearby.count()-max_count).__str__() #number greater than max_count allows
+        return None
+
 class Tree(models.Model):
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)  #save, in order to get ID for the tree
-        #self.current_geometry = self.geometry or None       
     #owner properties based on wiki/DatabaseQuestions
-    data_owner = models.ForeignKey(User, related_name="owner", null=True)
+    plot = models.ForeignKey(Plot)
     tree_owner = models.CharField(max_length=256, null=True, blank=True)
     steward_name = models.CharField(max_length=256, null=True, blank=True) #only modifyable by admin
     steward_user = models.ForeignKey(User, null=True, blank=True, related_name="steward") #only modifyable by admin
     sponsor = models.CharField(max_length=256, null=True, blank=True) #only modifyable by us
     
-    #original data to help owners associate back to their own db
-    owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
-    owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
-
     species = models.ForeignKey(Species,verbose_name="Scientific name",null=True, blank=True)
     orig_species = models.CharField(max_length=256, null=True, blank=True)
-    #special = models.BooleanField(help_text="Landmark or other Special status")
     dbh = models.FloatField(null=True, blank=True) #gets auto-set on save
     height = models.FloatField(null=True, blank=True)
     canopy_height = models.FloatField(null=True, blank=True)
     date_planted = models.DateField(null=True, blank=True) 
     date_removed = models.DateField(null=True, blank=True)
-    powerline_conflict_potential = models.CharField(max_length=256, choices=Choices().get_field_choices('powerline_conflict_potential'),
-        help_text = "Are there overhead powerlines present?",null=True, blank=True, default='3')
     present = models.BooleanField(default=True)
+
     plot_width = models.FloatField(null=True, blank=True)
     plot_length = models.FloatField(null=True, blank=True) 
     plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
@@ -411,10 +633,10 @@ class Tree(models.Model):
     
     import_event = models.ForeignKey(ImportEvent)
     
-    sidewalk_damage = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('sidewalk_damage'))
     condition = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('condition'))
     canopy_condition = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('canopy_condition'))
 
+    readonly = models.BooleanField(default=False)
 
     def has_common_attributes(self):
         if self.get_flag_count > 0:
@@ -428,29 +650,6 @@ class Tree(models.Model):
     def get_absolute_url(self):
         return "/trees/%i/" % self.id
     
-    def get_plot_type_display(self):
-        for key, value in Choices().get_field_choices('plot_type'):
-            if key == self.plot_type:
-                return value
-        return None
-
-    def get_plot_size(self): 
-        length = self.plot_length
-        width = self.plot_width
-        if length == None: length = 'Missing'
-        elif length == 99: length = '15+ ft'
-        else: length = '%.2f ft' % length
-        if width == None: width = 'Missing'
-        elif width == 99: width = '15+ ft'
-        else: width = '%.2f ft' % width
-        print length, width
-        return '%s x %s' % (length, width)
-    
-    def get_sidewalk_damage_display(self):
-        for key, value in Choices().get_field_choices('sidewalk_damage'):
-            if key == self.sidewalk_damage:
-                return value
-        return None    
 
     def get_condition_display(self):
         for key, value in Choices().get_field_choices('condition'):
@@ -458,12 +657,6 @@ class Tree(models.Model):
                 return value
         return None
        
-    def get_powerline_conflict_display(self):
-        for key, value in Choices().get_field_choices('powerline_conflict_potential'):
-            if key == self.powerline_conflict_potential:
-                return value
-        return None
-
     def get_scientific_name(self):
         if self.species:
             sn = self.species.scientific_name
@@ -499,7 +692,7 @@ class Tree(models.Model):
         return pends
 
     def get_active_geopends(self):
-        pends = TreeGeoPending.objects.filter(status='pending').filter(tree=self)
+        pends = PlotPending.objects.filter(status='pending').filter(tree=self)
         return pends
 
     def set_environmental_summaries(self):
@@ -573,10 +766,13 @@ class Tree(models.Model):
         n = Neighborhood.objects.filter(geometry__contains=pnt)
         #z = ZipCode.objects.filter(geometry__contains=pnt)
         
+        #self.photo_count = self.treephoto_set.count() #TODO jlivni uncomment
+
         self.projects = ""
         #for fl in self.treeflags_set.all():
         #    self.projects = self.projects + " " + fl.key
 
+        
         super(Tree, self).save(*args,**kwargs) 
 
         oldn = self.neighborhood.all()
@@ -625,19 +821,31 @@ class Tree(models.Model):
             agg = agg[0]
         else:
             agg = ag_model(location=location)
-        summaries = []        
-        trees = Tree.objects.filter(geometry__within=location.geometry)
-        agg.total_trees = len(trees)
-        #TODO: speed this up! A lot!
-        agg.distinct_species = len(trees.values("species"))
+        #print agg.__dict__
+        #summaries = []        
+        trees = Tree.objects.filter(plot__geometry__within=location.geometry)
+        plots = Plot.objects.filter(geometry__within=location.geometry)
+        #print trees
+        agg.total_trees = trees.count()
+        agg.total_plots = plots.count()
+
+        trees = trees.exclude( Q(dbh=None) | Q(dbh=0.0) ).exclude(species=None)
+        #print agg.total_trees
         #TODO figure out how to summarize diff stratum stuff
         field_names = [x.name for x in ResourceSummaryModel._meta.fields 
             if not x.name == 'id']
-        for f in field_names:
-            fn = 'treeresource__' + f
-            s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
-            setattr(agg,f,s)
+    
+        if agg.total_trees == 0:
+            for f in field_names:
+                setattr(agg, f, 0.0)
+        else:
+        #TODO speed this up
+            for f in field_names:
+                fn = 'treeresource__' + f
+                s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
+                setattr(agg,f,s)
         agg.save()
+        
         
     def percent_complete(self):
         has = 0
@@ -645,6 +853,9 @@ class Tree(models.Model):
         for item in attr:
             if hasattr(self,item):
                 if getattr(self,item):
+                    has +=1
+            elif hasattr(self.plot, item):
+                if getattr(self.plot, item):
                     has +=1
         return has/float(len(attr))*100
     
@@ -670,14 +881,9 @@ class Tree(models.Model):
             )
             
     def validate_proximity(self, return_trees=False, max_count=1):
-        if not self.geometry:
+        if not self.plot.geometry:
             return None
-        nearby = Tree.objects.filter(geometry__distance_lte=(self.geometry, D(ft=10.0)))
-        if nearby.count() > max_count: 
-            if return_trees:
-                return nearby 
-            return (nearby.count()-max_count).__str__() #number greater than max_count allows
-        return None
+        return self.plot.validate_proximity()
     
     
     # Disallowed combinations:
@@ -729,9 +935,9 @@ class Tree(models.Model):
         
     def __unicode__(self): 
         if self.species:
-            return '%s, %s, %s' % (self.species.common_name or '', self.species.scientific_name, self.geocoded_address)
+            return '%s, %s, %s' % (self.species.common_name or '', self.species.scientific_name, self.plot.geocoded_address)
         else:
-            return self.geocoded_address    
+            return self.plot.geocoded_address
 
 status_types = (
     ('pending', 'Pending'),
@@ -739,8 +945,7 @@ status_types = (
     ('rejected', 'Rejected')
 )
 
-class TreePending(models.Model):
-    tree = models.ForeignKey(Tree)
+class Pending(models.Model):
     field = models.CharField(max_length=255)
     value = models.CharField(max_length=255, blank=True, null=True)
     text_value = models.CharField(max_length=255, blank=True, null=True)
@@ -751,6 +956,20 @@ class TreePending(models.Model):
     updated_by = models.ForeignKey(User, related_name="pend_updated_by")
 
     def approve(self, updating_user):
+        self.updated_by = updating_user
+        self.status = 'approved'
+        self.save()
+
+    def reject(self, updating_user):
+        self.status = 'rejected'
+        self.updated_by = updating_user
+        self.save()
+
+class TreePending(Pending):
+    tree = models.ForeignKey(Tree)
+
+    def approve(self, updating_user):
+        super(Pending, self).approve(updating_user)
         update = {}
         update['old_' + self.field] = getattr(self.tree, self.field).__str__()
         update[self.field] = self.value.__str__()
@@ -760,31 +979,27 @@ class TreePending(models.Model):
         self.tree._audit_diff = simplejson.dumps(update)
         self.tree.save()
 
-        self.updated_by = updating_user
-        self.status = 'approved'
-        self.save()
-    
-    def reject(self, updating_user):
-    	self.status = 'rejected'
-        self.updated_by = updating_user
-        self.save()
+class PlotPending(Pending):
+    plot = models.ForeignKey(Plot)
 
-class TreeGeoPending(TreePending):
-    geometry = models.PointField(srid=4326)
+    geometry = models.PointField(srid=4326, blank=True, null=True)
     objects = models.GeoManager()
 
     def approve(self, updating_user):
+        super(Pending, self).approve(updating_user)
         update = {}
-        update['old_geometry'] = self.tree.geometry
-        update['geometry'] = self.geometry
-        self.tree.geometry = self.geometry
-        self.tree.last_updated_by = self.submitted_by 
-        self.tree._audit_diff = simplejson.dumps(update)
-        self.tree.save()
-        
-        self.updated_by = updating_user
-        self.status = 'approved'
-        self.save()
+        if self.geometry:
+            update['old_geometry'] = self.plot.geometry
+            update['geometry'] = self.geometry
+            self.plot.geometry = self.geometry
+        else:
+            update['old_' + self.field] = getattr(self.plot, self.field).__str__()
+            update[self.field] = self.value.__str__()
+            setattr(self.plot, self.field, self.value)
+
+        self.plot.last_updated_by = self.submitted_by
+        self.plot._audit_diff = simplejson.dumps(update)
+        self.plot.save()
     
 
 class TreeWatch(models.Model):
@@ -925,7 +1140,8 @@ class TreeResource(ResourceSummaryModel):
 class AggregateSummaryModel(ResourceSummaryModel):
     last_updated = models.DateTimeField(auto_now=True)
     total_trees = models.IntegerField()
-    distinct_species = models.IntegerField()
+    total_plots = models.IntegerField()
+    #distinct_species = models.IntegerField()
 
     def ensure_recent(self, current_tree_count = ''):
       if current_tree_count and current_tree_count == self.total_trees:

@@ -5,10 +5,18 @@ PROJECT_ROOT = os.path.dirname(__file__)
 sys.path.insert(0, os.path.join(PROJECT_ROOT, "apps"))
 
 
+SITE_ROOT = ''
+
 #from settings_philadelphia import *
 from settings_sandiego import *
 #from settings_greenprint import *
 #from settings_dctreekit import *
+#from settings_sanfrancisco import *
+#from settings_greenprint import *
+#from settings_dctreekit import *
+
+OTM_VERSION = "1.2"
+API_VERSION = "0.1"
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -44,7 +52,8 @@ TEMPLATE_CONTEXT_PROCESSORS += (
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
     'django.core.context_processors.request',
-    'django.contrib.messages.context_processors.messages'
+    'django.contrib.messages.context_processors.messages',
+    'treemap.context_processors.site_root'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -72,11 +81,12 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     'django.contrib.humanize',
     'django.contrib.webdesign',
-    'django.contrib.comments',
     'django.contrib.markup',
     'django.contrib.flatpages',
     'django.contrib.messages',
+    'threadedcomments',
     'treemap',
+    'api',
     'registration',
     'template_utils',
     'profiles',
@@ -89,9 +99,12 @@ INSTALLED_APPS = (
     'badges',
     'pagination',
     'django_sorting',
+    'geopy_extensions',
 )
 
 try:
     from local_settings import *
 except ImportError, exp:
     pass
+
+LOGIN_URL = "%s/accounts/login" % SITE_ROOT

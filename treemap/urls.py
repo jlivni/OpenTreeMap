@@ -9,7 +9,6 @@ delete_favorite = DeleteFavorite(TreeFavorite, Tree)
 most_recent = lambda qs: qs.order_by('-date_created')
 user_favorites = UserFavorites(TreeFavorite, Tree, extra_filter=most_recent)
 
-
 urlpatterns = patterns('',
     #(r'^$', direct_to_template, {'template':'under_construction.html'}),
     (r'^$', home_feeds),
@@ -21,12 +20,24 @@ urlpatterns = patterns('',
     (r'^export/kmz$', get_all_kmz),
     
     (r'^map/$', result_map),
+
+    (r'^geocode/$', get_geocode),
+    (r'^geocode/reverse/$', get_reverse_geocode),
     
     (r'^neighborhoods/$', geographies, {'model' : Neighborhood}),
     (r'^neighborhoods/(?P<id>\d+)/$', geographies, {'model' : Neighborhood}),
     (r'^zipcodes/$', zips),
     (r'^zipcodes/(?P<id>\d+)/$', zips),
-    
+
+    url(r'^plots/(?P<plot_id>\d+)/$', plot_detail, name="treemap_plot_detail"),
+    (r'^plots/(?P<plot_id>\d+)/addtree/$', plot_add_tree),
+    (r'^plots/(?P<plot_id>\d+)/edit/$', plot_edit),
+    (r'^plots/(?P<plot_id>\d+)/delete/$', plot_delete),
+    (r'^plots/location/$', plot_location_search),
+    (r'^plots/location/update/$', plot_location_update),
+    (r'^plots/(?P<plot_id>\d+)/edit/choices/(?P<type_>[a-z_]*)/$', plot_edit_choices),
+
+    (r'^plots/(?P<plot_id>\d+)/update/$', update_plot),
     (r'^update/$', object_update),
     (r'^trees/$', trees),
     (r'^trees/batch_edit/$', batch_edit),
@@ -38,8 +49,6 @@ urlpatterns = patterns('',
     (r'^trees/(?P<tree_id>\d+)/deletephoto/(?P<photo_id>\d+)$', photo_delete),
     (r'^trees/(?P<tree_id>\d+)/ecosystem/$', trees),
     url(r'^trees/(?P<tree_id>\d+)/$', trees, name="treemap_tree_detail"),
-    (r'^trees/location/$', tree_location_search),
-    (r'^trees/location/update/$', tree_location_update), 
     (r'^trees/new/$', added_today_list),   
     (r'^trees/new/(?P<format>(geojson))/$', added_today_list),   
     (r'^trees/new/(?P<user_id>\d+)/$', added_today_list),
@@ -66,6 +75,7 @@ urlpatterns = patterns('',
     (r'^species/(?P<code>[-\w]+)/$', species),
 
     (r'^search/$', advanced_search),
+    (r'^search/geo$', geo_search),
     (r'^search/(?P<format>.*)/$', advanced_search),
     
     (r'^check_username/$', check_username),

@@ -32,21 +32,21 @@ jQuery('html').ajaxSend(function(event, xhr, settings) {
 
 var tm_icons = {
     //base folder for shadow and other icon specific stuff
-    base_folder : '/static/images/map_icons/v3/', 
-    small_trees : "/static/images/map_icons/v4/zoom5.png",
-    small_trees_complete : "/static/images/map_icons/v4/zoom5.png",
-    focus_tree : '/static/images/map_icons/v4/marker-selected.png',
-    pending_tree : '/static/images/map_icons/v4/marker-pending.png', 
-    marker : '/static/openlayers/img/marker.png'
+    base_folder : tm_static + '/static/images/map_icons/v3/', 
+    small_trees : tm_static + "/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
+    small_trees_complete : tm_static + "/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
+    focus_tree : tm_static + '/static/images/map_icons/v4/marker-selected.png',
+    pending_tree : tm_static + '/static/images/map_icons/v4/marker-pending.png', 
+    marker : tm_static + '/static/openlayers/img/marker.png'
     };
-var tm_urls = {};
+
 var tm = {
     speciesData: null,
     speciesDataListeners: [],
     map : null, 
     tree_markers : [],
     geocoded_locations: {},
-    tree_detail_marker : null,
+    plot_detail_market : null,
     current_tile_overlay : null,
     current_select_tile_overlay : null,
     selected_tile_query : null,
@@ -89,7 +89,7 @@ var tm = {
         $("#logo").click(function() {
         //    location.href="/home";
         });        
-        jQuery.getJSON('/species/json/', function(species){
+        jQuery.getJSON(tm_static + '/species/json/', function(species){
             tm.speciesData = species;
             tm.setupAutoComplete($('#species_search_input')).result(function(event, item) {
                 $("#species_search_id").val(item.id).change(); 
@@ -107,7 +107,7 @@ var tm = {
                 tm.speciesDataListeners[i]();
             }    
         });
-        jQuery.getJSON('/neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
+        jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
             tm.locations = nbhoods;
             tm.setupLocationList();
         });
@@ -118,7 +118,7 @@ var tm = {
                     $('.filter-box').slideDown('slow');
                 }
                 adv_active = true;
-                $('#arrow').attr('src','/static/images/v2/arrow2.gif');
+                $('#arrow').attr('src',tm_static + '/static/images/v2/arrow2.gif');
                 //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
             }    
             else {
@@ -126,7 +126,7 @@ var tm = {
                     $('.filter-box').slideUp('slow');
                 }
                 adv_active = false;
-                $('#arrow').attr('src','/static/images/v2/arrow1.gif');
+                $('#arrow').attr('src',tm_static + '/static/images/v2/arrow1.gif');
                 //$('#filter_name')[0].innerHTML = 'Show advanced filters';          
             }
             return false;
@@ -212,7 +212,7 @@ var tm = {
             if (tm.advancedClick) {
                 q = q.set('advanced', 'open');
             }    
-            window.location.href = "/map/#" + decodeURIComponent(q.toString());
+            window.location.href = tm_static + "/map/#" + decodeURIComponent(q.toString());
             return false;
         }
         //$("#search_form").submit(triggerSearch);    
@@ -524,9 +524,9 @@ var tm = {
                         transparent: 'true',
                         width: '256',
                         srs: 'EPSG:4326',
-                        layers: tm.geo_layer,
+                        layers: tm_urls.geo_layer,
                         height: '256',
-                        styles: tm.geo_layer_style,
+                        styles: tm_urls.geo_style,
                         format: 'image/png',
                         tiled: 'true',
                         tilesOrigin : tm.map.maxExtent.left + ',' + tm.map.maxExtent.bottom
@@ -548,7 +548,7 @@ var tm = {
         //check to see if coming for a bookmarked tree
         var bookmark_id = jQuery.urlParam('tree');
         if (bookmark_id){
-            jQuery.getJSON('/trees/' + bookmark_id  + '/',
+            jQuery.getJSON(tm_static + '/trees/' + bookmark_id  + '/',
                {'format' : 'json'},
                 tm.display_tree_details);
             }
@@ -565,7 +565,7 @@ var tm = {
             window.clearTimeout(tm.clckTimeOut); 
             tm.clckTimeOut = null; 
             var spp = jQuery.urlParam('species');
-            jQuery.getJSON('/trees/location/',
+            jQuery.getJSON(tm_static + '/plots/location/',
               {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp},
             tm.display_tree_details);
         } 
@@ -586,7 +586,32 @@ var tm = {
         });
 
     },
-            
+    
+    update_add_address: function(ll, full_address, city, zip) {
+        if ($("#geocode_address")) {
+            $("#geocode_address").html("<b>Address Found: </b><br>" + full_address);
+        }
+        if ($("#id_geocode_address")) {
+            $('#id_geocode_address').val(full_address);
+        }
+        if ($('#edit_address_city')) {
+            $('#edit_address_city').val(city);
+            $('#edit_address_city').html(city);
+        }
+        if ($('#id_edit_address_city')) {
+            $('#id_edit_address_city').val(city);
+        }            
+        if ($('#edit_address_zip')) {
+            $('#edit_address_zip').val(zip);
+            $('#edit_address_zip').html(zip);
+        }
+        if ($('#id_edit_address_zip')) {
+            $('#id_edit_address_zip').val(zip);
+        }
+        
+        tm.update_nearby_trees_list(ll, 10, .0001);
+    },
+
     //initializes the map where a user places a new tree
     init_add_map : function(){
         tm.init_base_map('add_tree_map');
@@ -598,12 +623,28 @@ var tm = {
         tm.drag_control.onComplete = function(feature, mousepix) {
             var mapCoord = tm.map.getLonLatFromViewPortPx(mousepix);
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
-            tm.reverse_geocode(mapCoord);
-            jQuery('#id_lat').val(mapCoord.lat);
-            jQuery('#id_lon').val(mapCoord.lon);
+            $('#id_lat').val(mapCoord.lat);
+            $('#id_lon').val(mapCoord.lon);
+            tm.reverse_geocode(mapCoord, function(ll, full_address, city, zip) {
+                tm.update_add_address(ll, full_address, city, zip);
+                
+            }, function (ll) {
+                if ($("#geocode_address")) {
+                    $("#geocode_address").html("<b>Address Found: </b><br>" + $('#id_geocode_address').val);
+                    tm.update_nearby_trees_list(ll, 10, .0001);                    
+                }
+                else {
+                    alert("Reverse Geocode was not successful.");
+                }
+            });
         }
 
+
+        if (tm.mask) {tm.map.addLayer(tm.mask);}
+        if (tm.parcels) {tm.map.addLayer(tm.parcels);}
+
         tm.map.addLayers([tm.add_vector_layer, tm.tree_layer]);
+
         tm.map.setBaseLayer(tm.aerial);
         tm.map.addControl(tm.drag_control);
         tm.map.setCenter(
@@ -639,33 +680,29 @@ var tm = {
                city = ""
             }
             if (!address || address == "Enter an Address or Intersection") {return;}
-            tm.geocoder.geocode({
-                address: address + " " + city,
-                bounds: tm.google_bounds    
-            }, function(results, status){
-                if (status == google.maps.GeocoderStatus.OK) {
-                    var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
-                    var zoom = tm.add_zoom;
-                    if (tm.map.getZoom() > tm.add_zoom) {zoom = tm.map.getZoom();}
-                    tm.map.setCenter(new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
-                    
-                    if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
-                    if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
-                    
-                    tm.load_nearby_trees(olPoint);
-                    tm.add_new_tree_marker(olPoint, true);
-                    
-                    tm.drag_control.activate();
-                    
-                    jQuery('#id_lat').val(olPoint.lat);
-                    jQuery('#id_lon').val(olPoint.lon);
-                    jQuery('#id_geocode_address').val(results[0].formatted_address)
-                    
-                    jQuery('#update_map').html("Update Map");
-                    jQuery("#mapHolder").show();
-                    jQuery("#calloutContainer").show();
-                    tm.trackEvent('Add', 'View Map');
-                }
+            geo_address = address + " " + city
+            tm.geocode(geo_address, function (lat, lng, place) {
+                var olPoint = new OpenLayers.LonLat(lng, lat);
+                var zoom = tm.add_zoom;
+                if (tm.map.getZoom() > tm.add_zoom) {zoom = tm.map.getZoom();}
+                tm.map.setCenter(new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
+                
+                if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
+                if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
+                
+                tm.load_nearby_trees(olPoint);
+                tm.add_new_tree_marker(olPoint, true);
+                
+                tm.drag_control.activate();
+                
+                jQuery('#id_lat').val(olPoint.lat);
+                jQuery('#id_lon').val(olPoint.lon);
+                jQuery('#id_geocode_address').val(place)
+                
+                jQuery('#update_map').html("Update Map");
+                jQuery("#mapHolder").show();
+                jQuery("#calloutContainer").show();
+                tm.trackEvent('Add', 'View Map');
             });
             
         });
@@ -680,7 +717,7 @@ var tm = {
         
         //load in favorite trees
         var url = ['/trees/favorites/' + user + '/geojson/']
-        $.getJSON(url, function(json){
+        $.getJSON(tm_static + url, function(json){
             $.each(json, function(i,f){
                 var coords = f.coords;
                 var ll = new OpenLayers.LonLat(coords[0], coords[1]);
@@ -704,7 +741,7 @@ var tm = {
         //load in new trees
         if (user) {url = ['/trees/new/' + user + '/geojson/']}
         else {url = ['/trees/new/geojson/']}
-        $.getJSON(url, function(json){
+        $.getJSON(tm_static + url, function(json){
             $.each(json, function(i,f){
                 var coords = f.coords;
                 var ll = new OpenLayers.LonLat(coords[0], coords[1]);
@@ -731,14 +768,24 @@ var tm = {
         tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
         tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
         
+        if (tm.mask) {tm.map.addLayer(tm.mask);}
+        if (tm.parcels) {tm.map.addLayer(tm.parcels);}
+
         tm.drag_control = new OpenLayers.Control.DragFeature(tm.add_vector_layer);
         tm.drag_control.onComplete = function(feature, mousepix) {
             var mapCoord = tm.map.getLonLatFromViewPortPx(mousepix);
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
             jQuery('#id_geometry').val('POINT (' + mapCoord.lon + ' ' + mapCoord.lat + ')')
-            tm.reverse_geocode(mapCoord);
-            //tm.updateEditableLocation();
-            
+            tm.reverse_geocode(mapCoord, function(ll, full_address, city, zip) {
+                if ($('#edit_address_city')) {
+                    $('#edit_address_city').val(city);
+                    $('#edit_address_city').html(city);
+                }
+                if ($('#edit_address_zip')) {
+                    $('#edit_address_zip').val(zip);
+                    $('#edit_address_zip').html(zip);
+                }
+            });
         }
         
         tm.map.addLayers([tm.tree_layer, tm.add_vector_layer]);
@@ -752,7 +799,7 @@ var tm = {
         
         tm.geocoder = new google.maps.Geocoder();
         tm.add_new_tree_marker(currentPoint, false);
-        //TODO: get this working
+
         tm.load_nearby_trees(currentPoint);
         
         if (tm.current_tree_geometry_pends && tm.current_tree_geometry_pends.length > 0) {
@@ -766,10 +813,10 @@ var tm = {
         tm.map.events.register('click', tm.map, function(e){
             var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
             mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
-            jQuery.getJSON('/trees/location/',
-                {'lat': mapCoord.lat, 'lon' : mapCoord.lon, 'format' : 'json', 'max_trees' : 1},
+            jQuery.getJSON(tm_static + '/plots/location/',
+                {'lat': mapCoord.lat, 'lon' : mapCoord.lon, 'format' : 'json', 'max_plots' : 1},
                 function(json) {
-                    var html = '<a href="/trees/' + json.features[0].properties.id + '">Tree #' + json.features[0].properties.id + '</a>';
+                    var html = '<a href="/plots/' + json.features[0].properties.id + '">Tree Bed #' + json.features[0].properties.id + '</a>';
                     $('#alternate_tree_div').html(html);
                 }
             );
@@ -784,7 +831,7 @@ var tm = {
             //new_addy += ', ph';
             tm.geocoder.getLatLng(new_addy, function(ll){
                 if (tm.validate_point(ll,new_addy) && !tm.tree_marker){ //only add marker if it doesn't yet exist
-                    tm.add_new_tree_marker(ll);
+                    tm.add_new_tree_marker(ll, false);
                     tm.map.setCenter(ll,15);
                     }
                 
@@ -821,8 +868,8 @@ var tm = {
         
     load_nearby_trees : function(ll){
         //load in nearby trees as well
-        var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=70'].join('');
-        $.getJSON(url, function(geojson){
+        var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=70'].join('');
+        $.getJSON(tm_static + url, function(geojson){
             $.each(geojson.features, function(i,f){
                 coords = f.geometry.coordinates;
                 var ll = new OpenLayers.LonLat(coords[0], coords[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
@@ -874,11 +921,41 @@ var tm = {
         
         tm.add_vector_layer.addFeatures([tree_vector])
         if (do_reverse_geocode) {
-            tm.reverse_geocode(ll);
+            tm.reverse_geocode(ll, function(ll, full_address, city, zip) {
+                tm.update_add_address(ll, full_address, city, zip);
+            });
         }
-        
-        },
-        
+    
+    },
+    
+    update_nearby_trees_list: function (ll, plots, distance) {
+        if ($('#nearby_trees')) {
+            $('#nearby_trees').html("Loading...")
+            var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=' + plots + '&distance=' + distance].join('');
+            $.getJSON(tm_static + url, function(geojson){
+                if (geojson.features.length == 0) {
+                    $('#nearby_trees').html("No other trees nearby.")
+                }
+                else {
+                    $('#nearby_trees').html("Found " + geojson.features.length + " tree bed(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
+                    $.each(geojson.features, function(i,f){
+                        var tree = $('#nearby_trees');
+                        if (f.properties.common_name){
+                            tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
+                        }
+                        else {
+                            tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
+                        }
+                        if (f.properties.current_dbh){
+                            tree.append("<div class='nearby_tree_diameter'>Diameter: " + f.properties.current_dbh + " inches</div>");
+                        }
+                        
+                    });
+                }
+            });
+        }
+    },
+
     add_location_marker: function (ll) {
         var icon = tm.get_icon(tm_icons.marker,0);
         tm.location_marker = new OpenLayers.Marker(ll, icon);
@@ -903,117 +980,141 @@ var tm = {
     },
     
 
-    geocode : function(address, display_local_summary, callback){
+    geocode : function(address, callback, error_callback){
         if (!address){
             address = jQuery('#searchInput').text();
         }
 
         tm.geocode_address = address;
 
-        tm.geocoder.geocode({
-            address: tm.geocode_address,
-            bounds: tm.google_bounds  
-        }, function(results, status){
-            if (status == google.maps.GeocoderStatus.OK) {
-                var olPoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat());
-                var llpoint = new OpenLayers.LonLat(results[0].geometry.location.lng(), results[0].geometry.location.lat()).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-                tm.map.setCenter(llpoint, 15);
+        if (tm.local_geocoder) {
+            $.getJSON(tm_static + "/geocode/", {address: tm.geocode_address, geocoder_name: tm.local_geocoder}, function(json) {
+                if (json.success == true) {
+                    if (callback) {
+                        callback(json.lat, json.lng, json.place)
+                    }
+                }
+                else {
+                    tm.geocoder.geocode({
+                        address: tm.geocode_address,
+                        bounds: tm.google_bounds  
+                    }, function(results, status){
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            
+                            if (callback) {
+                                callback(results[0].geometry.location.lat(), results[0].geometry.location.lng(), results[0].formatted_address);
+                            }
 
-                tm.add_location_marker(llpoint);
+                        } else {
+                            if (error_callback) {
+                                error_callback(status)
+                            }
+                        }
 
-                if (callback) {
-                    callback(olPoint);
+                    });
+                }
+            });
+        }
+        else {
+            tm.geocoder.geocode({
+                address: tm.geocode_address,
+                bounds: tm.google_bounds  
+            }, function(results, status){
+                if (status == google.maps.GeocoderStatus.OK) {
+                    
+                    if (callback) {
+                        callback(results[0].geometry.location.lat(), results[0].geometry.location.lng(), results[0].formatted_address);
+                    }
+
+                } else {
+                    if (error_callback) {
+                        error_callback(status)
+                    }
                 }
 
-            } else {
-                alert("Geocode was not successful for the following reason: " + status);
-            }
+            });
+        }
 
-        });
-                 
     },
         
         
     //pass in a GLatLng and get back closest address
-    reverse_geocode : function(ll){
-        latlng = new google.maps.LatLng(ll.lat, ll.lon)
-        tm.geocoder.geocode({
-                latLng: latlng
-            }, function(results, status){
-            if (status == google.maps.GeocoderStatus.OK) {
-                var addy = results[0].address_components;
-                
-                if ($("#geocode_address")) {
-                    $("#geocode_address").html("<b>Address Found: </b><br>" + results[0].formatted_address);
-                }
-                if ($("#id_geocode_address")) {
-                    $('#id_geocode_address').val(results[0].formatted_address);
-                }
-                if ($('#nearby_trees')) {
-                    $('#nearby_trees').html("Loading...")
-                    var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_trees=10&distance=.0001'].join('');
-                    $.getJSON(url, function(geojson){
-                        if (geojson.features.length == 0) {
-                            $('#nearby_trees').html("No other trees nearby.")
-                        }
-                        else {
-                            $('#nearby_trees').html("Found " + geojson.features.length + " tree(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
-                            $.each(geojson.features, function(i,f){
-                                var tree = $('#nearby_trees');
-                                if (f.properties.common_name){
-                                    tree.append("<div class='nearby_tree_info'><a href='/trees/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
-                                }
-                                else {
-                                    tree.append("<div class='nearby_tree_info'><a href='/trees/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
-                                }
-                                if (f.properties.current_dbh){
-                                    tree.append("<div class='nearby_tree_diameter'>Diameter: " + f.properties.current_dbh + " inches</div>");
-                                }
-                                
-                            });
-                        }
-                    });
-                }
-                
-                $.each(addy, function(index, value){
-                    if ($.inArray('locality', value.types) > -1) {
-                         if ($('#edit_address_city')) {
-                            $('#edit_address_city').val(value.long_name);
-                            $('#edit_address_city').html(value.long_name);
-                        }
-                        if ($('#id_edit_address_city')) {
-                            $('#id_edit_address_city').val(value.long_name);
-                        }
+    reverse_geocode : function(ll, callback, error_callback){
+        if (tm.local_geocoder) {
+            $.getJSON(tm_static + "/geocode/reverse/", {lat: ll.lat, lng: ll.lon, geocoder_name: tm.local_geocoder}, function(json) {
+                if (json.success == true) {
+                    if (callback) {
+                        var city = json.place.split(", ")[1] + " " + json.place.split(", ")[2];
+                        var zip = json.place.split(", ")[3];
+                        callback(ll, json.place, city, zip)
                     }
-                    else if ($.inArray('postal_code', value.types) > -1) {
-                        if ($('#edit_address_zip')) {
-                            $('#edit_address_zip').val(value.long_name);
-                            $('#edit_address_zip').html(value.long_name);
-                        }
-                        if ($('#id_edit_address_zip')) {
-                            $('#id_edit_address_zip').val(value.long_name);
-                        }
-                    }
-                    
-                });
-                
-
-            } else {
-                if ($("#geocode_address")) {
-                    $("#geocode_address").html("<b>Address Found: </b><br>" + results[0].formatted_address);
-                    var url = ['/trees/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&distance=20'].join('');
-                    $.getJSON(url, function(geojson){
-                        $.each(geojson.features, function(i,f){
-                            alert("trees");
-                            //TODO: add each tree to list
-                        });
-                    });
                 }
                 else {
-                    alert("Reverse Geocode was not successful.");
+                   latlng = new google.maps.LatLng(ll.lat, ll.lon)
+                   tm.geocoder.geocode({
+                        latLng: latlng
+                        }, function(results, status){
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            if (callback) {
+                                var full_address = results[0].formatted_address
+                                var addy = results[0].address_components;
+                                var city = "";
+                                var zip = "";
+                                
+                                for (var i=0; i<addy.length; i++) {
+                                    if ($.inArray('locality', addy[i].types) > -1) {
+                                        city = addy[i].long_name;
+                                    }
+                                    else if ($.inArray('postal_code', addy[i].types) > -1) {    
+                                        zip = addy[i].long_name;
+                                    }
+                                    else if ($.inArray('administrative_area_level_1', addy[i].types) > -1) {
+                                        city += " " + addy[i].short_name;
+                                    }
+                                }
+
+                                callback(ll, full_address, city, zip);
+                            }
+
+                        } else {
+                            if (error_callback) {error_callback(ll);}               
+                        }        
+                    });   
                 }
-            }        
-        });        
+            });
+        }
+        else {
+            latlng = new google.maps.LatLng(ll.lat, ll.lon)
+            tm.geocoder.geocode({
+                    latLng: latlng
+                }, function(results, status){
+                if (status == google.maps.GeocoderStatus.OK) {
+                    if (callback) {
+                        var full_address = results[0].formatted_address
+                        var addy = results[0].address_components;
+                        var city = "";
+                        var zip = "";
+                        
+                        for (var i=0; i<addy.length; i++) {
+                            if ($.inArray('locality', addy[i].types) > -1) {
+                                city = addy[i].long_name;
+                            }
+                            else if ($.inArray('postal_code', addy[i].types) > -1) {    
+                                zip = addy[i].long_name;
+                            }
+                            else if ($.inArray('administrative_area_level_1', addy[i].types) > -1) {
+                                city += " " + addy[i].short_name;
+                            }
+                        }
+
+                        callback(ll, full_address, city, zip);
+                    }
+
+                } else {
+                    if (error_callback) {error_callback(ll);}               
+                }        
+            });   
+        }     
     },    
         
     /*
@@ -1071,27 +1172,27 @@ var tm = {
                 var coords = tree.geometry.coordinates;
                 
                 //remove old markers
-                if (tm.tree_detail_marker) {tm.misc_markers.removeMarker(tm.tree_detail_marker);}
+                if (tm.plot_detail_market) {tm.misc_markers.removeMarker(tm.plot_detail_market);}
                 
                 var AutoSizeFramedCloud = OpenLayers.Class(OpenLayers.Popup.FramedCloud, {
                     'autoSize': true
                 });
                                 
                 //Add tree marker
-                tm.tree_detail_marker = tm.get_tree_marker(coords[1], coords[0]);
-                tm.tree_detail_marker.tree_id = p.id;
-                tm.tree_detail_marker.nhbd_id = p.neighborhood_id;
-                tm.tree_detail_marker.district_id = p.district_id;
-                tm.misc_markers.addMarker(tm.tree_detail_marker);
+                tm.plot_detail_market = tm.get_tree_marker(coords[1], coords[0]);
+                tm.plot_detail_market.plot_id = p.id;
+                tm.plot_detail_market.nhbd_id = p.neighborhood_id;
+                tm.plot_detail_market.district_id = p.district_id;
+                tm.misc_markers.addMarker(tm.plot_detail_market);
                 
                 
-                var ll = tm.tree_detail_marker.lonlat;
+                var ll = tm.plot_detail_market.lonlat;
                 
                 popup = new OpenLayers.Popup.FramedCloud("Tree Info",
                    ll,
                    null,
                    '<div id="max_tree_infowindow">Loading ...</div>',
-                   tm.tree_detail_marker.icon,
+                   tm.plot_detail_market.icon,
                    true);
                 popup.minSize = tm.popup_minSize;
                 popup.maxSize = tm.popup_maxSize;
@@ -1109,27 +1210,27 @@ var tm = {
                         if (status == google.maps.GeocoderStatus.OK) {
                             //TODO: add jsonString here for post
                             var data = {
-                                'tree_id': p.id,
+                                'plot_id': p.id,
                                 'address': results[0].formatted_address.split(", ")[0],
                                 'city': results[0].formatted_address.split(", ")[1]
                             };
                             var jsonString = JSON.stringify(data);
 
                             $.ajax({
-                                url: '/trees/location/update/',
+                                url: tm_static + '/plots/location/update/',
                                 type: 'POST',
                                 data: jsonString,
                                 complete: function(xhr, textStatus) {
-                                    jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                                    jQuery('#max_tree_infowindow').load(tm_static + '/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
                                 }
                             });
                         } else {
-                            jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                            jQuery('#max_tree_infowindow').load(tm_static + '/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
                         }
                     });
                 }
                 else {
-                    jQuery('#max_tree_infowindow').load('/trees/' + tm.tree_detail_marker.tree_id + '/?format=base_infowindow');
+                    jQuery('#max_tree_infowindow').load(tm_static + '/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
                 }
             }
         }
@@ -1152,11 +1253,9 @@ var tm = {
     },
         
     display_summaries : function(summaries){
-        //var callout = ['You selected ', summaries.total_trees, ' trees'].join('');
-        //console.log(summaries);
-        //jQuery('#callout').html(callout);
         jQuery(".tree_count").html(tm.addCommas(parseInt(summaries.total_trees)));
-        if (summaries.total_trees == '0')
+        jQuery(".plot_count").html(tm.addCommas(parseInt(summaries.total_plots)));
+        if (summaries.total_trees == '0' && summaries.total_plots == '0')
         {
             // todo.. http://sftrees.securemaps.com/ticket/148
             jQuery(".moretrees").html("");
@@ -1230,8 +1329,8 @@ var tm = {
         //if (tm.cur_polygon){
         //    tm.map.removeOverlay(tm.cur_polygon);
         //}
-        //if (tm.tree_detail_marker){
-        //tm.map.removeOverlay(tm.tree_detail_marker);
+        //if (tm.plot_detail_market){
+        //tm.map.removeOverlay(tm.plot_detail_market);
         //}
 
         //var myCopyright = new GCopyrightCollection("(c) ");
@@ -1312,7 +1411,7 @@ var tm = {
     // unused?
     select_species : function(species){
         tm.mgr.clearMarkers();
-        jQuery.getJSON('/search/' + species + '/?simple=true', 
+        jQuery.getJSON(tm_static + '/search/' + species + '/?simple=true', 
             tm.display_search_results);
     },
 
@@ -1322,7 +1421,7 @@ var tm = {
         tm.drag_control.activate();
         //TODO:  bounce marker a bit, or change its icon or something
         tm.trackEvent('Edit', 'Location', 'Start');
-        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="/static/images/loading-indicator-trans.gif" width="12" /> Stop editing and save</a>'
+        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="' + tm_static + '/static/images/loading-indicator-trans.gif" width="12" /> Stop Editing and Save</a>'
         $('#edit_tree_location').html(save_html);
         return false;
         },
@@ -1331,7 +1430,7 @@ var tm = {
         //tm.tree_marker.disableDragging();     
         tm.drag_control.activate();
         tm.trackEvent('Edit', 'Location', 'Save');
-        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start editing tree location</a>'
+        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Bed Location</a>'
         $('#edit_tree_location').html(edit_html);
         tm.updateEditableLocation();
         },
@@ -1356,7 +1455,7 @@ var tm = {
             submit: 'Save',
             cancel: 'Cancel',
             cssclass:  'activeEdit',
-            indicator: '<img src="/static/images/loading-indicator.gif" alt="" />',
+            indicator: '<img src="' + tm_static + '/static/images/loading-indicator.gif" alt="" />',
             width: '80%',
             objectId: id,
             model: model,
@@ -1364,10 +1463,73 @@ var tm = {
         };
         if (options) {
             for (var key in options) {
-                editableOptions[key] = options[key];
+                if (key == "loadurl") {
+                    editableOptions[key] = tm_static + "/" + options[key];
+                } else {
+                    editableOptions[key] = options[key];
+                }
             }
         }
-        $('#edit_'+field).editable(tm.updateEditableServerCall, editableOptions);
+
+        if (model == "Plot") {
+            $('#edit_'+field).editable(tm.updatePlotServerCall, editableOptions);
+        } else {
+            $('#edit_'+field).editable(tm.updateEditableServerCall, editableOptions);
+        }
+    },
+
+    coerceFromString: function(value) {
+        if (Number(value) == value) {
+            value = Number(value);
+        }
+        if (value == "true") {
+            value = true;
+        } 
+        if (value == "false") {
+            value = false;
+        }    
+        if (value == "null") {
+            value = null;
+        }            
+
+        return value;
+    },
+
+    updatePlotServerCall: function(value, settings) {
+        var data = {};
+        var plotId = settings.objectId;
+        var field = settings.fieldName;
+        
+        data[field] = tm.coerceFromString(value)
+
+        this.innerHTML = "Saving...";
+        var jsonString = JSON.stringify(data);
+        settings.obj = this;
+        $.ajax({
+            url: tm_static + '/plots/' + plotId + '/update/',
+            type: 'POST',
+            data: jsonString,
+            complete: function(xhr, textStatus) {
+                var response =  JSON.parse(xhr.responseText);
+                if (response['success'] != true) {
+                    settings.obj.className = "errorResponse";
+                    settings.obj.innerHTML = "An error occurred in saving: "
+                    $.each(response['errors'], function(i,err){
+                        settings.obj.innerHTML += err;
+                    });
+                } else {
+                    var value = response['update'][settings.fieldName];
+                    
+                    if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
+                        if (value == 99.0) {value = "15+"}
+                    }
+
+                    settings.obj.innerHTML = value 
+                    tm.trackEvent("Edit", settings.fieldName)
+                }
+            }});
+
+        return "Saving... " + '<img src="' + tm_static + '/static/images/loading-indicator.gif" />';
     },
     updateEditableServerCall: function(value, settings) {
         var data = {
@@ -1439,7 +1601,7 @@ var tm = {
             var jsonString = JSON.stringify(data);
             settings.obj = this;
             $.ajax({
-                url: '/update/',
+                url: tm_static + '/update/',
                 type: 'POST',
                 data: jsonString,
                 complete: function(xhr, textStatus) {
@@ -1471,7 +1633,7 @@ var tm = {
                         tm.trackEvent("Edit", settings.fieldName)
                     }
                 }});
-            return "Saving... " + '<img src="/static/images/loading-indicator.gif" />';
+            return "Saving... " + '<img src="' + tm_static + '/static/images/loading-indicator.gif" />';
         //} 
     },       
     updateEditableLocation: function() {
@@ -1479,8 +1641,8 @@ var tm = {
         var wkt = jQuery('#id_geometry').val();
         var geoaddy = jQuery("#id_geocode_address").val();
         var data = {
-            'model': 'Tree',
-            'id': tm.currentTreeId,
+            'model': 'Plot',
+            'id': tm.currentPlotId,
             'update': {
                 geometry: wkt,
                 geocoded_address: geoaddy
@@ -1488,11 +1650,30 @@ var tm = {
         };
         var jsonString = JSON.stringify(data);
         $.ajax({
-            url: '/update/',
+            url: tm_static +'/update/',
             type: 'POST',
             data: jsonString,
             complete: function(xhr, textStatus) {
-                var response =  JSON.parse(xhr.responseText);
+                var response =  JSON.parse(xhr.responseText);                
+                $("#edit_map_errors")[0].innerHTML = ""
+                $("#edit_map_errors")[0].className = "";
+                if (response['success'] != true) {
+                    $("#edit_map_errors")[0].className = "errorResponse";
+                    $("#edit_map_errors")[0].innerHTML = "An error occurred in saving: ";
+                    var newError = ""
+                    $.each(response['errors'], function(i,err){
+                         newError += err;
+                    });
+
+                    if (newError.indexOf("exclusion zone") >= 0 &&
+                        newError.indexOf("Geometry") >= 0) {
+                        $("#edit_map_errors")[0].innerHTML = "An error occurred in saving the location. Trees may not be placed within the red areas.";
+                    } else {
+                        $("#edit_map_errors")[0].innerHTML = newError;
+                    }
+                } else {                                  
+                    $("#edit_map_errors")[0].innerHTML = "New location saved."
+                }
             }});
     },
     setupAutoComplete: function(field) {
@@ -1755,9 +1936,9 @@ var tm = {
             }
             qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
         }
-        $("#kml_link").attr('href',"/search/kml/"+qstr);
-        $("#csv_link").attr('href', "/search/csv/"+qstr);
-        $("#shp_link").attr('href', "/search/shp/"+qstr);
+        $("#kml_link").attr('href', tm_static + "/search/kml/"+qstr);
+        $("#csv_link").attr('href', tm_static + "/search/csv/"+qstr);
+        $("#shp_link").attr('href', tm_static + "/search/shp/"+qstr);
         return qstr;
     },
     
@@ -1771,7 +1952,7 @@ var tm = {
         jQuery('#displayResults').show();
         //TODO: send a geoserver CQL request also
         $.ajax({
-            url: '/search/'+qs,
+            url: tm_static + '/search/'+qs,
             dataType: 'json',
             success: function(results) {
                 tm.display_search_results(results)
@@ -1802,10 +1983,7 @@ var tm = {
     updateLocationFields: function(loc){
         if (loc){
             $("#location_search_input").val(loc);
-            //var url = '/neighborhoods/?format=json&location=' + loc;
             tm.handleSearchLocation(loc);
-            //tm.geocode(loc, true, tm.display_geography);
-            //jQuery.getJSON(url, tm.display_geography);
         }
         
     },
@@ -1839,7 +2017,7 @@ var tm = {
         $('a.favorite.fave').live('click', function(e) {
             var pk = $(this).attr('id').replace('favorite_', '');
             var url = base_create + pk + '/';
-            $.getJSON(url, function(data, textStatus) {
+            $.getJSON(tm_static + url, function(data, textStatus) {
                 $('#favorite_' + pk).removeClass('fave').addClass('unfave').text('Remove as favorite');
             });
             tm.trackEvent('Favorite', 'Add Favorite', 'Tree', pk);
@@ -1848,7 +2026,7 @@ var tm = {
         $('a.favorite.unfave').live('click', function(e) {
             var pk = $(this).attr('id').replace('favorite_', '');
             var url = base_delete + pk + '/';
-            $.getJSON(url, function(data, textStatus) {
+            $.getJSON(tm_static + url, function(data, textStatus) {
                 $('#favorite_' + pk).removeClass('unfave').addClass('fave').text('Add as favorite');
             });
             tm.trackEvent('Favorite', 'Remove Favorite', 'Tree', pk);
@@ -1862,7 +2040,7 @@ var tm = {
         //possible zipcode 
         tm.geocode_address = search;
         if (tm.isNumber(search)) {
-            jQuery.getJSON('/zipcodes/', {format:'json', name: tm.geocode_address}, function(zips){
+            jQuery.getJSON(tm_static + '/zipcodes/', {format:'json', name: tm.geocode_address}, function(zips){
                 if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
                             
                 if (zips.features.length > 0) {
@@ -1886,7 +2064,7 @@ var tm = {
         }
         else
         {
-            jQuery.getJSON('/neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
+            jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
                 if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
 
                 if (nbhoods.features.length > 0) {
@@ -1906,9 +2084,15 @@ var tm = {
                     tm.updateSearch();
                 } else {                 
                     delete tm.searchParams.geoName;        
-                    tm.geocode(search, true, function(point) {
-                        if (point) {
-                            tm.geocoded_locations[search] = [point.lon, point.lat];
+                    tm.geocode(search, function(lat, lng, place) {
+                        var olPoint = new OpenLayers.LonLat(lng, lat);
+                        var llpoint = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                        tm.map.setCenter(llpoint, tm.add_zoom);
+
+                        tm.add_location_marker(llpoint);
+
+                        if (olPoint) {
+                            tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
                             tm.searchParams['location'] = search;       
                         } else {
                             delete tm.searchParams.location;
@@ -1927,7 +2111,7 @@ var tm = {
         tm.currentDiameter = $(field).html();
         for (var i = 0; i < Math.max(diams.length, 1); i++) {
             var val = '';
-            if (diams[i]) { val = parseFloat(diams[i].toFixed(3)); }
+            if (diams[i]) { val = parseFloat(diams[i]).toFixed(3); }
             html += "<input type='text' size='7' id='dbh"+i+"' name='dbh"+i+"' value='"+val+"' />";
             if (i == 0) {
                 html += "<br /><input type='radio' id='diam' checked name='circum' /><label for='diam'><small>Diameter</small></label><input type='radio' id='circum' name='circum' /><label for='circum'><small>Circumference</small></label>"
@@ -1988,7 +2172,7 @@ var tm = {
             submit: 'Save',
             cancel: 'Cancel',
             cssclass:  'activeEdit',
-            indicator: '<img src="/static/images/loading-indicator.gif" alt="" />',
+            indicator: '<img src="' + tm_static + '/static/images/loading-indicator.gif" alt="" />',
             width: '80%',
             model: 'Tree',
             fieldName:  'dbh',
@@ -2002,7 +2186,7 @@ var tm = {
     },
     approvePend: function(pend_id) {
         $.ajax({
-            url: '/trees/pending/' + pend_id + '/approve/',
+            url: tm_static + '/trees/pending/' + pend_id + '/approve/',
             dataType: 'json',
             type: 'POST',
             success: function(response) {
@@ -2016,7 +2200,7 @@ var tm = {
     },
     rejectPend: function(pend_id) {
         $.ajax({
-            url: '/trees/pending/' + pend_id + '/reject/',
+            url: tm_static + '/trees/pending/' + pend_id + '/reject/',
             dataType: 'json',
             type: 'POST',
             success: function(response) {
@@ -2028,16 +2212,30 @@ var tm = {
             }
         });
     },
+    addTreeToPlot: function(plot_id) {
+        $.ajax({
+            url: tm_static + '/plots/' + plot_id + '/addtree/',
+            dataType: 'json',
+            type: 'POST',
+            success: function(response) {
+                tm.trackEvent('Add', 'New Tree');
+                location = tm_static + "/plots/" + plot_id + "/";
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + plot_id);
+            }
+        });
+    },
     deleteTree: function(tree_id) {
-        if (window.confirm("Are you sure you want to delete this tree permanently from the system?"))
+        if (window.confirm("Are you sure you want to remove this tree permanently from the system?"))
         {
             $.ajax({
-                url: '/trees/' + tree_id + '/delete/',
+                url: tm_static + '/trees/' + tree_id + '/delete/',
                 dataType: 'json',
                 type: 'POST',
                 success: function(response) {
                     tm.trackEvent('Edit', 'Delete');
-                    window.location = "/map/";
+                    location.reload();
                 },
                 error: function(err) {
                 alert("Error: " + err.status + "\nQuery: " + tree_id);
@@ -2045,12 +2243,28 @@ var tm = {
             });
         }
     },
-
+    deletePlot: function(plot_id) {
+        if (window.confirm("Are you sure you want to remove this plot and it's current tree permanently from the system?"))
+        {
+            $.ajax({
+                url: tm_static + '/plots/' + plot_id + '/delete/',
+                dataType: 'json',
+                type: 'POST',
+                success: function(response) {
+                    tm.trackEvent('Edit', 'Delete');
+                    window.location = tm_static + "/map/";
+                },
+                error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + plot_id);
+                }
+            });
+        }
+    },
     deletePhoto: function(tree_id, photo_id) {
         if (window.confirm("Are you sure you want to delete this photo permanently from the system?"))
         {
             $.ajax({
-                url: '/trees/' + tree_id + '/deletephoto/' +  photo_id,
+                url: tm_static + '/trees/' + tree_id + '/deletephoto/' +  photo_id,
                 dataType: 'json',
                 type: 'POST',
                 success: function(response) {
@@ -2067,7 +2281,7 @@ var tm = {
         if (window.confirm("Are you sure you want to delete this photo permanently from the system?"))
         {
             $.ajax({
-                url: '/profiles/' + username + '/deletephoto/',
+                url: tm_static + '/profiles/' + username + '/deletephoto/',
                 dataType: 'json',
                 type: 'POST',
                 success: function(response) {
@@ -2086,7 +2300,7 @@ var tm = {
     
     updateReputation: function(change_type, change_id, rep_dir) {
         $.ajax({
-        url: '/verify/' + change_type + '/' + change_id + '/' + rep_dir,
+        url: tm_static + '/verify/' + change_type + '/' + change_id + '/' + rep_dir,
         dataType: 'json',
         success: function(response) {
             $("#" + response.change_type + "_" + response.change_id).fadeOut();
@@ -2106,7 +2320,7 @@ var tm = {
         var jsonString = JSON.stringify(data);
         
         $.ajax({
-        url: '/users/update/',
+        url: tm_static + '/users/update/',
         dataType: 'json',
         data: jsonString,
         type: 'POST',
@@ -2126,7 +2340,7 @@ var tm = {
             var jsonString = JSON.stringify(data);
             
         $.ajax({
-            url: '/users/update/',
+            url: tm_static + '/users/update/',
             dataType: 'json',
             data: jsonString,
             type: 'POST',
@@ -2147,7 +2361,7 @@ var tm = {
         var jsonString = JSON.stringify(data);
 
         $.ajax({
-            url: '/users/ban/',
+            url: tm_static + '/users/ban/',
             dataType: 'json',
             data: jsonString,
             type: 'POST',
@@ -2168,7 +2382,7 @@ var tm = {
         var jsonString = JSON.stringify(data);
 
         $.ajax({
-            url: '/users/activate/',
+            url: tm_static + '/users/activate/',
             dataType: 'json',
             data: jsonString,
             type: 'POST',
@@ -2185,7 +2399,7 @@ var tm = {
 
     updatePend: function(pend_id, pend_dir) {
         $.ajax({
-        url: '/trees/pending/' + pend_id + '/' + pend_dir,
+        url: tm_static + '/trees/pending/' + pend_id + '/' + pend_dir,
         dataType: 'json',
         success: function(response) {
             $("#" + response.pend_id).hide();
@@ -2203,7 +2417,7 @@ var tm = {
         };
         var jsonString = JSON.stringify(data);      
         $.ajax({
-            url: '/watch/validate/',
+            url: tm_static + '/watch/validate/',
             dataType: 'json',
             data: jsonString,
             type: 'POST',
@@ -2222,7 +2436,7 @@ var tm = {
         };
         var jsonString = JSON.stringify(data);      
         $.ajax({
-            url: '/comments/hide/',
+            url: tm_static + '/comments/hide/',
             dataType: 'json',
             data: jsonString,
             type: 'POST',
@@ -2240,7 +2454,7 @@ var tm = {
         };
         var jsonString = JSON.stringify(data);      
         $.ajax({
-            url: '/comments/unflag/',
+            url: tm_static + '/comments/unflag/',
             dataType: 'json',
             data: jsonString,
             type: 'POST',

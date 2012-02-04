@@ -1,7 +1,11 @@
 import os
 
+GEOSERVER_URL = 'http://207.245.89.246:8081/geoserver/wms?transparent=true'
+TILECACHE_URL = 'http://207.245.89.246:8080/tilecache/tilecache.py/'
+TILECACHE_LAYER = 'PTM_v102'
+
 SITE_LOCATION = 'Philadelphia'
-COMPLETE_ARRAY = ['species','condition','sidewalk_damage','powerline_conflict_potential','canopy_height','canopy_condition','dbh','plot_width','plot_length','plot_type']
+COMPLETE_ARRAY = ['species','condition','sidewalk_damage','powerline_conflict_potential','canopy_height','canopy_condition','dbh','width','length','type']
 REGION_NAME = 'Philadelphia'
 PENDING_ON = False
 MAP_CLICK_RADIUS = .0015 # in decimal degrees
