@@ -83,7 +83,8 @@ def location_map(request):
 def home_feeds(request):
     return HttpResponseRedirect('/map')
     feeds = {}
-    recent_trees = Tree.history.filter(present=True).order_by("-last_updated")[0:3]
+    recent_trees = Tree.history.filter(present=True).order_by("-last_updated")
+    recent_trees = recent_trees.filter(last_updated_by__id__gt=1)[0:3]
     
     feeds['recent_edits'] = unified_history(recent_trees)
     feeds['recent_photos'] = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:7]
@@ -157,7 +158,8 @@ def result_map(request):
         if plot_l[0].plot_length < min_plot: min_plot = plot_l[0].plot_length
         if plot_l[plot_l.count()-1].plot_length > max_plot: max_plot = plot_l[plot_l.count()-1].plot_length
 
-    recent_trees = Tree.history.filter(present=True).order_by("-last_updated")[0:3]
+    recent_trees = Tree.history.filter(present=True).order_by("-last_updated")
+    recent_trees = recent_trees.filter(last_updated_by__id__gt=1)[0:3]
 
     recent_edits = unified_history(recent_trees)
 
@@ -1539,8 +1541,8 @@ from django.core import serializers
 def verify_edits(request, audit_type='tree'):
         
     changes = []
-    trees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
-    newtrees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=1000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
+    trees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=10000).filter(_audit_change_type__exact='U').exclude(_audit_diff__exact='').filter(_audit_verified__exact=0)
+    newtrees = Tree.history.filter(present=True).filter(_audit_user_rep__lt=10000).filter(_audit_change_type__exact='I').filter(_audit_verified__exact=0)
     treeactions = []
     
     if 'username' in request.GET:
@@ -1556,7 +1558,7 @@ def verify_edits(request, audit_type='tree'):
         newtrees = newtrees.filter(geometry__within=n)
     
     
-    for tree in trees:
+    for tree in trees[:100]:
         species = 'no species name'
         if tree.species:
             species = tree.species.common_name
@@ -1570,7 +1572,7 @@ def verify_edits(request, audit_type='tree'):
             'change_id': tree._audit_id,
             'type': 'tree'
         })
-    for tree in newtrees:
+    for tree in newtrees[:100]:
         species = 'no species name'
         if tree.species:
             species = tree.species.common_name
