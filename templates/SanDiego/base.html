@@ -7,6 +7,9 @@
         {% block tophead %}
         {% endblock %}
 
+        <script type="text/javascript">
+            tm_static = "{{ SITE_ROOT }}";
+        </script>
         <script type="text/javascript" src="/static/all_misc.js"></script>
         <script type="text/javascript" src="/static/jquery/jquery.jeditable.min.js"></script>
         <script type="text/javascript" src="/static/jquery/jquery.query-2.1.7.js"></script>
@@ -21,6 +24,7 @@
                 
         {% block js_ready %}
         <script type="text/javascript">
+            tm_static = "{{ SITE_ROOT }}";
             jQuery().ready(tm.baseTemplatePageLoad);
         </script>
         {% endblock %}

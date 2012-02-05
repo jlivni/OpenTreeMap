@@ -1,5 +1,15 @@
 import os
 
+
+GEOSERVER_URL = ''
+GEOSERVER_GEO_LAYER = ''
+GEOSERVER_GEO_STYLE = ''
+TILECACHE_URL = 'sdtrees.beardedmaps.com/tilecache/tilecache.py/'
+TILECACHE_LAYER = 'trees'
+SITE_ROOT = ''
+STATIC_URL = '/static/'
+
+
 SITE_LOCATION = 'SanDiego'
 PENDING_ON = False
 REGION_NAME = 'San Diego'

@@ -39,7 +39,7 @@ from shortcuts import render_to_geojson, get_pt_or_bbox, get_summaries_and_benef
 
 from registration.signals import user_activated
 from django_reputation.models import Reputation, Permission, UserReputationAction, ReputationAction
-from geopy_extensions.geocoders.CitizenAtlas import CitizenAtlas
+#from geopy_extensions.geocoders.CitizenAtlas import CitizenAtlas
 
 try:
     from cStringIO import StringIO
@@ -211,7 +211,7 @@ def result_map(request):
     if min_plot == sys.maxint:
         min_plot = 0
 
-    recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")[0:3]
+    recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")
     recent_trees = recent_trees.filter(last_updated_by__id__gt=1)[0:3]
     recent_plots = Plot.objects.filter(present=True).order_by("-last_updated")[0:3]
     latest_photos = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:8]
@@ -1730,9 +1730,9 @@ def advanced_search(request, format='json'):
         
 
     else:
-        #esj['distinct_species'] = len(trees.values("species").annotate(Count("id")).order_by("species"))
-        #print 'we have %s  ..' % esj
-        #print 'aggregating..'
+        esj['distinct_species'] = len(trees.values("species").annotate(Count("id")).order_by("species"))
+        print 'we have %s  ..' % esj
+        print 'aggregating..'
 
         #Todo Jlivni -- make this a chached AggregateSearchResult
         # check on (last_updated or ensure_recent) and search key 
@@ -1751,8 +1751,10 @@ def advanced_search(request, format='json'):
           
           EXTRAPOLATE_WITH_AVERAGE = True
           #TODO jlivni -- check; does this really do nothing except multiply by .01 [for each benefit?]
-          for f in r._meta.get_all_field_names():
-            if (f.startswith('total') and not f == 'total_trees') or f.startswith('annual'):
+          fields = [f for f in r._meta.get_all_field_names() if f.startswith('total') or f.startswith('annual')]
+          
+          for f in fields:
+            if not (f == 'total_trees' or f == 'total_plots'):
               fn = 'treeresource__' + f
               s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
               # TODO - need to make this logic accesible from shortcuts.get_summaries_and_benefits
@@ -1766,6 +1768,7 @@ def advanced_search(request, format='json'):
               print f,s  #todo jlivni set esj with r stuff later
               esj[f] = s
           r.total_trees = tree_count
+          r.total_plots = tree_count
           r.distinct_species = esj['distinct_species']
           r.save()
         esj['benefits'] = r.get_benefits()

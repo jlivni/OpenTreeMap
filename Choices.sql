@@ -71,9 +71,9 @@ INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (11, 'plot_
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (77, 'powerline_conflict_potential', 'Yes', '1', 'int');
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (78, 'powerline_conflict_potential', 'No', '2', 'int');
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (79, 'powerline_conflict_potential', 'Unknown', '3', 'int');
-INSERT INTO treemap_choices (value, key, key_type) VALUES ('plot_type', 'Residential Yard', '1', 'int');
-INSERT INTO treemap_choices (value, key, key_type) VALUES ('plot_type', 'Park', '2', 'int');
-INSERT INTO treemap_choices (value, key, key_type) VALUES ('plot_type', 'Schoolyard', '3', 'int');
+INSERT INTO treemap_choices (field, value, key, key_type) VALUES ('plot_type', 'Residential Yard', '1', 'int');
+INSERT INTO treemap_choices (field, value, key, key_type) VALUES ('plot_type', 'Park', '2', 'int');
+INSERT INTO treemap_choices (field, value, key, key_type) VALUES ('plot_type', 'Schoolyard', '3', 'int');
 
 ALTER TABLE ONLY treemap_choices
     ADD CONSTRAINT treemap_choices_pkey PRIMARY KEY (id);

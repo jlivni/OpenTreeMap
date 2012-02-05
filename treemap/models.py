@@ -97,6 +97,7 @@ class Choices(models.Model):
     key_type = models.CharField(max_length=15)
     
     def get_field_choices(self, fieldName):
+        #return {}
         li = {}
         for c in Choices.objects.filter(field__exact=fieldName):
 
@@ -585,7 +586,10 @@ class Tree(models.Model):
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)  #save, in order to get ID for the tree
     #owner properties based on wiki/DatabaseQuestions
-    plot = models.ForeignKey(Plot)
+    owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
+    orig_species = models.CharField(max_length=256, null=True, blank=True)
+    datasource = models.CharField(max_length=256, null=True, blank=True)
+    plot = models.ForeignKey(Plot, null=True)
     tree_owner = models.CharField(max_length=256, null=True, blank=True)
     steward_name = models.CharField(max_length=256, null=True, blank=True) #only modifyable by admin
     steward_user = models.ForeignKey(User, null=True, blank=True, related_name="steward") #only modifyable by admin
@@ -1140,7 +1144,7 @@ class TreeResource(ResourceSummaryModel):
 class AggregateSummaryModel(ResourceSummaryModel):
     last_updated = models.DateTimeField(auto_now=True)
     total_trees = models.IntegerField()
-    total_plots = models.IntegerField()
+    total_plots = models.IntegerField(null=True)
     #distinct_species = models.IntegerField()
 
     def ensure_recent(self, current_tree_count = ''):
