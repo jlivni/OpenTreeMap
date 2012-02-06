@@ -604,27 +604,6 @@ class Tree(models.Model):
     date_removed = models.DateField(null=True, blank=True)
     present = models.BooleanField(default=True)
 
-    plot_width = models.FloatField(null=True, blank=True)
-    plot_length = models.FloatField(null=True, blank=True) 
-    plot_type = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('plot_type'))
-            
-    address_street = models.CharField(max_length=256, blank=True, null=True)
-    address_city = models.CharField(max_length=256, blank=True, null=True)
-    address_zip = models.CharField(max_length=30,blank=True, null=True)
-    neighborhood = models.ManyToManyField(Neighborhood, null=True)
-    zipcode = models.ForeignKey(ZipCode, null=True)
-    
-    geocoded_accuracy = models.IntegerField(null=True)
-    geocoded_address = models.CharField(max_length=256, null=True)
-    geocoded_lat = models.FloatField(null=True)
-    geocoded_lon  = models.FloatField(null=True)
-
-    geometry = models.PointField(srid=4326)
-    geocoded_geometry = models.PointField(null=True, srid=4326)
-    owner_geometry = models.PointField(null=True, srid=4326) #should we keep this?
-   
-    region = models.CharField(max_length=256)
-
     last_updated = models.DateTimeField(auto_now=True)
     last_updated_by = models.ForeignKey(User, related_name='updated_by') # TODO set to current user
         
@@ -722,7 +701,7 @@ class Tree(models.Model):
         #calc results and set them
 
         #filter for resource in the proper zone
-        zone = StratumZone.objects.filter(geometry__contains=self.geometry)[0]
+        zone = StratumZone.objects.filter(geometry__contains=self.plot.geometry)[0]
         resource = self.species.resource.filter(stratum_zone=zone.slug)
         #resource = self.species.resource.all()
         if not resource:
@@ -763,34 +742,14 @@ class Tree(models.Model):
             self.save()
 
     def save(self,*args,**kwargs):
-        #save new neighborhood/zip connections if needed
-        #self.photo_count = self.treephoto_set.count()
-        pnt = self.geometry
-                
-        n = Neighborhood.objects.filter(geometry__contains=pnt)
-        #z = ZipCode.objects.filter(geometry__contains=pnt)
-        
-        #self.photo_count = self.treephoto_set.count() #TODO jlivni uncomment
+        self.photo_count = self.treephoto_set.count()
 
-        self.projects = ""
-        #for fl in self.treeflags_set.all():
-        #    self.projects = self.projects + " " + fl.key
+        for fl in self.treeflags_set.all():
+            self.projects = self.projects + " " + fl.key
 
         
         super(Tree, self).save(*args,**kwargs) 
 
-        oldn = self.neighborhood.all()
-        oldz = self.zipcode
-        if n:
-            self.neighborhood.clear()
-            for nhood in n:
-                if nhood:
-                    self.neighborhood.add(nhood)
-        else: 
-            self.neighborhood.clear()
-        #if z: self.zipcode = z[0]
-        #else: self.zipcode = None
-        
         self.set_environmental_summaries()
         #set new species counts
         if hasattr(self,'old_species') and self.old_species:
@@ -798,17 +757,6 @@ class Tree(models.Model):
         if hasattr(self,'species') and self.species:
             self.species.save()
           
-        if n and 0: 
-          for nhood in n:
-            self.update_aggregate(AggregateNeighborhood, nhood)
-        if oldn: 
-            for nhood in oldn:
-                self.update_aggregate(AggregateNeighborhood, nhood)
-         
-        #if z and z[0] != oldz:
-        #    if z: self.update_aggregate(AggregateZipCode, z[0])
-        #    if oldz: self.update_aggregate(AggregateZipCode, oldz)
-        
     
     def quick_save(self,*args,**kwargs):
         super(Tree, self).save(*args,**kwargs) 
