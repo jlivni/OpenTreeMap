@@ -67,7 +67,7 @@ def get_pt_or_bbox(rg):
     return None
 
 
-def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_print=True, excluded_fields=[], simplify='', additional_data=None, model=None, extent=None):
+def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_print=True, excluded_fields=[], simplify='', additional_data=None, model=None, extent=None, maximum=500):
     '''
     
     Shortcut to render a GeoJson FeatureCollection from a Django QuerySet.
@@ -146,7 +146,7 @@ def render_to_geojson(query_set, geom_field=None, mimetype='text/plain', pretty_
 
         #set up special attribs for geographies
         # todo - make more generic?
-        if query_set.model.__name__ in ['Neighborhood','ZipCode']:
+        if model.__name__ in ['Neighborhood','ZipCode']:
             try:
               summaries, benefits = get_summaries_and_benefits(item)
             except:
