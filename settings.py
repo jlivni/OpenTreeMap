@@ -84,7 +84,7 @@ INSTALLED_APPS = (
     'django.contrib.markup',
     'django.contrib.flatpages',
     'django.contrib.messages',
-    'threadedcomments',
+    'django.contrib.comments',
     'treemap',
     'api',
     'registration',
