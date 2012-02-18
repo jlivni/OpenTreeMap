@@ -934,7 +934,7 @@ var tm = {
             var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=' + plots + '&distance=' + distance].join('');
             $.getJSON(tm_static + url, function(geojson){
                 if (geojson.features.length == 0) {
-                    $('#nearby_trees').html("No other trees nearby.")
+                    $('#nearby_trees').html("We'll let you know if our records show any trees near the one you're entering. That way you can check to be sure you're not entering a duplicate.")
                 }
                 else {
                     $('#nearby_trees').html("Found " + geojson.features.length + " tree bed(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
@@ -2271,7 +2271,8 @@ var tm = {
                     window.location.reload(true);
                 },
                 error: function(err) {
-                alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
+                console.log(err)
+                alert("Error: " + err.status )
                 }
             });
         }
