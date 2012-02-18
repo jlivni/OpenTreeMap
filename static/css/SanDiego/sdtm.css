@@ -67,7 +67,7 @@ form, fieldset {
 }
 .logo {
 	width: 258px;
-	height: 59px;
+	height: 82px;
 	text-indent:-9999px;
 	overflow:hidden;
 	float:left;
@@ -1874,7 +1874,7 @@ ul#resultsContainer li#export ul li#firstOption {
 	font-style:normal;
 	color:#666;
 }
-.twocolumns .box-1 h2 { color: #333; }
+.twocolumns .box-1 h2 { color: #663398; }
 .twocolumns .box-2{
 	width:470px;
 	float:right;
@@ -1884,7 +1884,7 @@ ul#resultsContainer li#export ul li#firstOption {
 	overflow:hidden;
 	margin-bottom:2px;
 }
-.box-2 h2, .box-2 .title h2{float:left; color:#333;}
+.box-2 h2, .box-2 .title h2{float:left; color:#663398;}
 .box-2 .title a{
 	font-size:14px;
 	background: url(/static/images/es/bullet03.gif) no-repeat 100% 5px;
