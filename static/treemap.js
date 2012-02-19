@@ -107,10 +107,10 @@ var tm = {
                 tm.speciesDataListeners[i]();
             }    
         });
-        jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
-            tm.locations = nbhoods;
-            tm.setupLocationList();
-        });
+        //jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
+        //    tm.locations = nbhoods;
+        //    tm.setupLocationList();
+        //});
         var adv_active = false;
         $('#advanced').click(function() {
             if (!adv_active) {
@@ -144,7 +144,7 @@ var tm = {
         });
         
         $("#species_search_input").blur(function(evt) {
-            if (!this.value) {
+            if (!this.value || this.value == 'All trees') {
                 $("#species_search_id").val("");
                 $(this).val(tm.initial_species_string);
             }    
@@ -1430,7 +1430,7 @@ var tm = {
         //tm.tree_marker.disableDragging();     
         tm.drag_control.activate();
         tm.trackEvent('Edit', 'Location', 'Save');
-        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Bed Location</a>'
+        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Tree Location</a>'
         $('#edit_tree_location').html(edit_html);
         tm.updateEditableLocation();
         },
@@ -2039,7 +2039,7 @@ var tm = {
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
         //possible zipcode 
         tm.geocode_address = search;
-        if (tm.isNumber(search)) {
+        if (tm.isNumber(search) && 0) { //disabling zipcode search
             jQuery.getJSON(tm_static + '/zipcodes/', {format:'json', name: tm.geocode_address}, function(zips){
                 if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
                             
