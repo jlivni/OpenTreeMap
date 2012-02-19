@@ -396,11 +396,11 @@ class Plot(models.Model):
     last_updated_by = models.ForeignKey(User, related_name='plot_updated_by') # TODO set to current user
 
     history = audit.AuditTrail()
-    import_event = models.ForeignKey(ImportEvent)
+    import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
     objects = models.GeoManager()
 
     #original data to help owners associate back to their own db
-    data_owner = models.ForeignKey(User, related_name="owner", null=True)
+    data_owner = models.ForeignKey(User, related_name="owner", null=True, blank=True)
     owner_orig_id = models.CharField(max_length=256, null=True, blank=True)
     owner_additional_properties = models.TextField(null=True, blank=True, help_text = "Additional Properties (not searchable)")
 
@@ -614,7 +614,7 @@ class Tree(models.Model):
     history = audit.AuditTrail()
     projects = models.CharField(max_length=20, null=True, blank=True)
     
-    import_event = models.ForeignKey(ImportEvent)
+    import_event = models.ForeignKey(ImportEvent, null=True, blank=True)
     
     condition = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('condition'))
     canopy_condition = models.CharField(max_length=256, null=True, blank=True, choices=Choices().get_field_choices('canopy_condition'))
