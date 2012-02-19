@@ -40,7 +40,7 @@
                 <tbody>
                 {% for s in species %}
                 <tr class="{{s.invasive_status}}">
-                    <td><i>{{s.tree_count}}</i></td>
+                    <td><i><a href="/map/?species={{s.id}}">{{s.tree_count}}</a></i></td>
                     <td><a href="{{s.plant_guide}}" target="_none">{{s.common_name}}</a></td> 
                     <td><i>{{s.genus}}</i></td>
                     <td class="{{s.invasive_status}}"><i>{{s.scientific_name}}</i></td>

@@ -4,6 +4,9 @@
 
 {% block extrahead %}
 <script type="text/javascript" src="/static/js/map.js"></script>
+<script type="text/javascript">
+  tm.currentPlotId = tm.currentPlotId || {{plot.id}};
+</script>
 {% endblock %}
 
             {% block content_body_top %}
@@ -260,11 +263,15 @@
                         <ul>
                             <li id="title">Edit the tree location</li>
                             <li id="instructions">Select the start button and move the marker on the map to the correct location.</li>
-                            <li id="buttonEdit"><span id="edit_tree_location"><a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttomSm">Start editing Bed location</a></span></li>
+                            <li id="buttonEdit"><span id="edit_tree_location"><a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttomSm">Start editing Tree location</a></span></li>
                         </ul>
                     </div>
                     <div class="editMap">
-                        <div id="edit_tree_map_wrap"><div id="edit_tree_map"></div></div>
+                        <div id="edit_tree_map_wrap">
+                          <div id="edit_tree_map"></div>
+                          <div id="edit_map_errors"></div>
+                        </div>
+                        
                         <div id="alternate_tree_div"></div>
                         <div id="tree_streetview"></div>
                         <input type="hidden" id ="id_geocode_address" />

@@ -38,7 +38,7 @@
         
         {% for plot in plots %}
             <tr class="treeRow">
-                <td><a href="{% url treemap.views.plot_detail plot.id %}">View Details</a></td>
+                <td><a href="{% url treemap.views.trees plot.current_tree.id %}">View Details</a></td>
                 <td><i>{{plot.current_tree.species.scientific_name|default:""}}</i></td>
                 <td>{{plot.current_tree.species.common_name|default:""}}</td>
                 <td>{{plot.current_tree.dbh|unit_or_empty:'inches'}}</td>

@@ -186,21 +186,21 @@
 
         <tr>
         	<td class="col1Wide">Plot size</td>
-            <td>{% if tree.plot_width > 15.99 %}15+ ft x{% else %}{{tree.plot_width|unit_or_missing:"ft x"}}{% endif %}
-                {% if tree.plot_length > 15.99 %}15+ ft{% else %}{{tree.plot_length|unit_or_empty:"ft"}}{% endif %}
+            <td>{% if tree.plot.width > 15.99 %}15+ ft x{% else %}{{tree.plot.width|unit_or_missing:"ft x"}}{% endif %}
+                {% if tree.plot.length > 15.99 %}15+ ft{% else %}{{tree.plot.length|unit_or_empty:"ft"}}{% endif %}
             </td>
         </tr>
         <tr>
         	<td class="col1Wide">Plot type</td>
-            <td>{{ tree.get_plot_type_display|default:"Missing" }}</td>
+            <td>{{ tree.plot.get_plot_type_display|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Powerlines overhead</td>
-            <td>{{ tree.get_powerline_conflict_potential_display|default:"Missing" }}</td>
+            <td>{{ tree.plot.get_powerline_conflict_potential_display|default:"Missing" }}</td>
         </tr>
         <tr>
         	<td class="col1Wide">Sidewalk damage</td>
-            <td>{{ tree.get_sidewalk_damage_display|default:"Missing" }}</td>
+            <td>{{ tree.plot.get_sidewalk_damage_display|default:"Missing" }}</td>
         </tr>
 
     </tbody>
@@ -328,10 +328,12 @@
                             <div id="edit_tree_map_wrap"><div id="edit_tree_map"></div></div>
                             <div id="alternate_tree_div"></div>
                             <div id="tree_streetview"></div>
+                             {% if tree.geocoded_address %}
                             <div id="tree_address"><div class="wrap"><h2>Nearby Address: *</h2></div>
                                 <div id="tree_address_address">{{tree.geocoded_address}}</div>
                                 <div>*Please note that this address is intended to be a general, not exact, reference to the location.</div>
                             </div>
+                             {% endif %}
                             <div id="tree_comments">
 								<div class="wrap">
 									<h2>Comments</h2>
@@ -461,10 +463,7 @@
                     -->
                        <li>
                          <g:plusone></g:plusone></li>
-<iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Fsandiegotreemap.org&amp;send=false&
-amp;layout=button_count&amp;width=60&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;fo
-nt=arial&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:75px
-; height:21px;" allowTransparency="true"></iframe>
+<iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Fsandiegotreemap.org&amp;send=false&amp;layout=button_count&amp;width=90&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font=arial&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:90px; height:21px;" allowTransparency="true"></iframe>
                 </li>
             </ul>
 
