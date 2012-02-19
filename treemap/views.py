@@ -89,10 +89,10 @@ def home_feeds(request):
     return HttpResponseRedirect('/map')
     feeds = {}
     recent_trees = Tree.history.filter(present=True).order_by("-last_updated")
-    recent_trees = recent_trees.filter(last_updated_by__id__gt=1)[0:3]
+    recent_trees = recent_trees.filter(last_updated_by__id__gt=1)[0:5]
     
     feeds['recent_edits'] = unified_history(recent_trees)
-    feeds['recent_photos'] = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:7]
+    feeds['recent_photos'] = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:4]
     feeds['species'] = Species.objects.order_by('-tree_count')[0:4]
     
     #TODO: change from most populated neighborhood to most updates in neighborhood
@@ -212,8 +212,8 @@ def result_map(request):
         min_plot = 0
 
     recent_trees = Tree.objects.filter(present=True).order_by("-last_updated")
-    recent_trees = recent_trees.filter(last_updated_by__id__gt=1)[0:3]
-    recent_plots = Plot.objects.filter(present=True).order_by("-last_updated")[0:3]
+    recent_trees = recent_trees.filter(last_updated_by__id__gt=1)[0:5]
+    recent_plots = Plot.objects.filter(present=True).order_by("-last_updated")[0:5]
     latest_photos = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:8]
 
     return render_to_response('treemap/results.html',RequestContext(request,{
@@ -285,7 +285,8 @@ def plot_location_search(request):
                              'geocoded_lon',
                              'type'],
                              model=Plot,
-                             extent=extent)
+                             extent=extent,
+                             maximum = max_plots)
 
 #@cache_page(60*60*4)
 def species(request, selection='all', format='html'):
@@ -404,7 +405,7 @@ def plot_detail(request, plot_id=''):
     plot = plots[0]
 
     if request.GET.get('format','') == 'popup':
-        return render_to_response('treemap/plot_detail_infowindow.html',RequestContext(request,{
+        return render_to_response('treemap/tree_detail_infowindow.html',RequestContext(request,{
             'plot': plot,
             'tree': plot.current_tree()
         }))
@@ -548,7 +549,7 @@ def tree_edit(request, tree_id = ''):
     #    return render_to_response("not_allowed.html", {'user' : request.user, "error_message":"You are not the owner of this tree."})
     
     reputation = {        
-        "base_edit": Permission.objects.get(name = 'can_edit_condition'),
+        #"base_edit": Permission.objects.get(name = 'can_edit_condition')#TODO jlivni
         "user_rep": Reputation.objects.reputation_for_user(request.user)    
     }
 
@@ -601,10 +602,12 @@ def plot_delete(request, plot_id):
         content_type = 'text/plain'
     )
 
+@csrf_view_exempt
+@login_required
 def photo_delete(request, tree_id, photo_id):    
-    if request.method == 'POST':
+    if request.method == 'GET':
       rep = Reputation.objects.reputation_for_user(request.user)
-      if rep < 1000 or not request.user.is_superuser:
+      if not (rep > 1000 or request.user.is_superuser):
           return HttpResponse(
             simplejson.dumps({'success':False, 'message' : 'unauthorized'}, sort_keys=True, indent=4),
             content_type = 'text/plain'
@@ -1145,7 +1148,7 @@ def update_plot(request, plot_id):
 
             # finally save the instance...
             plot._audit_diff = simplejson.dumps(post)
-            plot.save()
+            plot.quick_save()
 
             Reputation.objects.log_reputation_action(request.user, request.user, 
                                                      "edit plot", rep_gained_by_editing_field, plot)
@@ -1232,6 +1235,7 @@ def added_today_list(request, user_id=None, format=None):
     plots = []
     for plot in new_plots:
         plots.append(Plot.objects.get(pk=plot.id))
+    plots = plots[:100]
     if format == 'geojson':        
         plot_json = [{
            'id':plot.id, 
@@ -1291,20 +1295,22 @@ def _build_tree_search_result(request):
             else:   
                 coords = map(float,loc.split(','))
                 pt = Point(coords)
-                ns = ns.filter(plot__geometry__contains=pt)
+                ns = ns.filter(geometry__contains=pt)
 
             if ns.count():   
-                trees = trees.filter(plot__neighborhood = ns[0])
-		plots = plots.filter(neighborhood = ns[0])
+                #trees = trees.filter(plot__neighborhood = ns[0])
+                trees = trees.filter(plot__geometry__intersects=ns[0].geometry) #inefficient, but above doesnt work
+                print 'filtered down to %s trees in %s' % (trees.count(), ns[0])
+                plots = plots.filter(geometry__intersects = ns[0].geometry)
                 geog_obj = ns[0]
                 tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
-        else:
-            z = ZipCode.objects.filter(zip=loc)
-            if z.count():
-                trees = trees.filter(plot__zipcode = z[0])
-		plots = plots.filter(zipcode = z[0])
-                geog_obj = z[0]
-                tile_query.append("zipcode_id = " + z[0].id.__str__())
+        #else:
+        #    z = ZipCode.objects.filter(zip=loc)
+        #    if z.count():
+        #        trees = trees.filter(plot__zipcode = z[0])
+        #        plots = plots.filter(zipcode = z[0])
+        #        geog_obj = z[0]
+        #        tile_query.append("zipcode_id = " + z[0].id.__str__())
     elif 'hood' in request.GET:
         ns = Neighborhood.objects.filter(name__icontains = request.GET.get('hood'))
         if ns:
@@ -1545,7 +1551,7 @@ def _build_tree_search_result(request):
 
     if not geog_obj:
         q = request.META['QUERY_STRING'] or ''
-        print '!!!',q
+        print 'QSTRING: ',q
         print 'TREES COUNT',trees.count()
         cached_search_agg = AggregateSearchResult.objects.filter(key=q)
         print 'CSA',cached_search_agg
@@ -1697,7 +1703,6 @@ def advanced_search(request, format='json'):
     elif format == "csv":
         return ogr_conversion('CSV', str(trees.query))
         
-        
     geography = None
     summaries, benefits = None, None
     if geog_obj:
@@ -1778,25 +1783,24 @@ def advanced_search(request, format='json'):
         
         print esj
 
-        #print 'aggregated...'
+        print 'aggregated...'
     
     
     if tree_count > maximum_trees_for_display:   
          trees = []
          response.update({'tile_query' : tile_query})
         
-  
-    tj = [{
-          'id': t.id,
-          'lon': '%.12g' % t.plot.geometry.x, 
-          'lat' : '%.12g' % t.plot.geometry.y,
-          'cmplt' : t.is_complete()
-          } for t in trees]
-    pj = [{
-          'id': p.id,
-          'lon': '%.12g' % p.geometry.x,
-          'lat' : '%.12g' % p.geometry.y
-          } for p in plots]
+    tj = [{}]
+    #      'id': t.id,
+    #      'lon': '%.12g' % t.plot.geometry.x, 
+    #      'lat' : '%.12g' % t.plot.geometry.y,
+    #      'cmplt' : t.is_complete()
+    #      } for t in trees]
+    pj = [{}]
+    #      'id': p.id,
+    #      'lon': '%.12g' % p.geometry.x,
+    #      'lat' : '%.12g' % p.geometry.y
+    #      } for p in plots]
 
 
     response.update({'trees' : tj, 'plots': pj, 'summaries' : esj, 'geography' : geography, 'initial_tree_count' : tree_count, 'full_tree_count': full_count, 'full_plot_count': full_plot_count})
@@ -1943,16 +1947,17 @@ def verify_edits(request, audit_type='tree'):
     for plot in plots:
         species = 'no species name'
         actual_plot = Plot.objects.get(pk=plot.id)
-        if actual_plot.current_tree():
-            species = actual_plot.current_tree().species.common_name
+        ptree = actual_plot.current_tree()
+        if ptree and ptree.species:
+            species = ptree.species.common_name
         changes.append({
             'id': actual_plot.current_tree().id,
             'species': species,
-            'address_street': actual_tree.plot.address_street,
-            'last_updated_by': tree.last_updated_by.username,
-            'last_updated': tree.last_updated,
-            'change_description': clean_key_names(tree._audit_diff),
-            'change_id': tree._audit_id,
+            'address_street': actual_plot.address_street,
+            'last_updated_by': actual_plot.last_updated_by.username,
+            'last_updated': actual_plot.last_updated,
+            'change_description': clean_key_names(plot._audit_diff),
+            'change_id': plot._audit_id,
             'type': 'plot'
         })
     for tree in trees[:100]:
