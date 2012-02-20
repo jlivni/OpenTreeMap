@@ -1275,15 +1275,16 @@ def _build_tree_search_result(request):
     cur_species_count = species.count()
 
     if max_species_count == cur_species_count:
-        trees = Tree.objects.filter(present=True)
+        pass
     else:
-        trees = Tree.objects.filter(species__in=species, present=True)
+        trees = trees.filter(species__in=species)
+        plots = plots.filter(tree__species__in=species)
         species_list = []
         for s in species:
             species_list.append("species_id = " + s.id.__str__())
         tile_query.append("(" + " OR ".join(species_list) + ")")
     #filter by nhbd or zipcode if location was specified
-
+    print 'and now at %s trees' % trees.count()
     geog_obj = None
     if 'location' in request.GET:
         loc = request.GET['location']
@@ -1293,14 +1294,15 @@ def _build_tree_search_result(request):
                 geoname = request.GET['geoName']
                 ns = ns.filter(name=geoname)
             else:   
+                print 'getting nhbd by location (%s) instead of name' % loc
                 coords = map(float,loc.split(','))
                 pt = Point(coords)
                 ns = ns.filter(geometry__contains=pt)
 
-            if ns.count():   
+            if ns.count():
                 #trees = trees.filter(plot__neighborhood = ns[0])
                 trees = trees.filter(plot__geometry__intersects=ns[0].geometry) #inefficient, but above doesnt work
-                print 'filtered down to %s trees in %s' % (trees.count(), ns[0])
+                print 'filtered down to %s trees in %s (%d)' % (trees.count(), ns[0], ns[0].id)
                 plots = plots.filter(geometry__intersects = ns[0].geometry)
                 geog_obj = ns[0]
                 tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
@@ -1330,7 +1332,6 @@ def _build_tree_search_result(request):
         if v:
             attrib = tree_criteria[k]
             trees = trees.filter(treeflags__key__exact=attrib)
-            plots = Plot.objects.none()
             print 'filtered trees by %s = %s' % (tree_criteria[k],v)
             print '  .. now we have %d trees' % len(trees)
             tile_query.append("projects LIKE '%" + tree_criteria[k] + "%'")
@@ -1339,7 +1340,6 @@ def _build_tree_search_result(request):
     missing_species = request.GET.get('missing_species','')
     if missing_species:
         trees = trees.filter(species__isnull=True)
-        plots = Plot.objects.none()
         print 'filtered trees by missing species only - %s - %s' % (tree_criteria[k],v)
         print '  .. now we have %d trees' % len(trees)
         tile_query.append("species_id IS NULL")
@@ -1350,7 +1350,6 @@ def _build_tree_search_result(request):
     missing_current_dbh = request.GET.get('missing_diameter','')
     if missing_current_dbh:
         trees = trees.filter(Q(dbh__isnull=True) | Q(dbh=0))
-        plots = Plot.objects.none()
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
         #species_list = [s.id for s in species]
@@ -1359,7 +1358,6 @@ def _build_tree_search_result(request):
     if not missing_current_dbh and 'diameter_range' in request.GET:
         min, max = map(float,request.GET['diameter_range'].split("-"))
         trees = trees.filter(dbh__gte=min)
-        plots = Plot.objects.none()
         if max != 50: # TODO: Hardcoded in UI, may need to change
             trees = trees.filter(dbh__lte=max)
         tile_query.append("dbh BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
@@ -1367,7 +1365,6 @@ def _build_tree_search_result(request):
     missing_current_height = request.GET.get('missing_height','')
     if missing_current_height:
         trees = trees.filter(Q(height__isnull=True) | Q(height=0))
-        plots = Plot.objects.none()
         # TODO: What about ones with 0 dbh?
         print '  .. now we have %d trees' % len(trees)
         #species_list = [s.id for s in species]
@@ -1376,7 +1373,6 @@ def _build_tree_search_result(request):
     if not missing_current_height and 'height_range' in request.GET:
         min, max = map(float,request.GET['height_range'].split("-"))
         trees = trees.filter(height__gte=min)
-        plots = Plot.objects.none()
         if max != 200: # TODO: Hardcoded in UI, may need to change
             trees = trees.filter(height__lte=max)
         tile_query.append("height BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
@@ -1425,7 +1421,6 @@ def _build_tree_search_result(request):
     missing_condition = request.GET.get("missing_condition", '')
     if missing_condition: 
         trees = trees.filter(condition__isnull=True)
-        plots = Plot.objects.none()
         #species_list = [s.id for s in species]
         tile_query.append("condition IS NULL")
     else: 
@@ -1441,7 +1436,6 @@ def _build_tree_search_result(request):
         if len(c_cql) > 0:
             tile_query.append("(" + " OR ".join(c_cql) + ")")
             trees = trees.filter(condition__in=c_list)
-            plots = Plot.objects.none()
 
     missing_sidewalk = request.GET.get("missing_sidewalk", '')
     if missing_sidewalk: 
@@ -1489,19 +1483,16 @@ def _build_tree_search_result(request):
     missing_photos = request.GET.get("missing_photos", '')
     if missing_photos:
         trees = trees.filter(treephoto__isnull=True)
-        plots = Plot.objects.none()
         #species_list = [s.id for s in species]
         tile_query.append("(photo_count IS NULL OR photo_count = 0)")
     if not missing_photos and 'photos' in request.GET:
         trees = trees.filter(treephoto__isnull=False)
-        plots = Plot.objects.none()
         tile_query.append("photo_count > 0")
 
     steward = request.GET.get("steward", "")
     if steward:    
         users = User.objects.filter(username__icontains=steward)
         trees = trees.filter(steward_user__in=users)
-        plots = Plot.objects.none()
         user_list = []
         for u in users:
             user_list.append("steward_user_id = " + u.id.__str__())
@@ -1538,7 +1529,6 @@ def _build_tree_search_result(request):
         min = "%i-01-01" % min
         max = "%i-12-31" % max
         trees = trees.filter(date_planted__gte=min, date_planted__lte=max)
-        plots = Plot.objects.none()
         tile_query.append("date_planted AFTER " + min + "T00:00:00Z AND date_planted BEFORE " + max + "T00:00:00Z")   
  
     if 'updated_range' in request.GET:
@@ -1577,7 +1567,8 @@ def _build_tree_search_result(request):
                 pass
 
     #return trees, geog_obj, ' AND '.join(tile_query)
-    return trees, plots, geog_obj, ' AND '.join(tile_query)
+    tile_query = request.META['QUERY_STRING']
+    return trees, plots, geog_obj, tile_query
 
 
 
@@ -1787,8 +1778,8 @@ def advanced_search(request, format='json'):
     
     
     if tree_count > maximum_trees_for_display:   
-         trees = []
-         response.update({'tile_query' : tile_query})
+      trees = []
+    response.update({'tile_query' : tile_query})
         
     tj = [{}]
     #      'id': t.id,
