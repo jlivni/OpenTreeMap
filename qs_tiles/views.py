@@ -68,7 +68,7 @@ def get_tile(request, version, layername, z, x, y, extension='png'):
                  'foo',# mapfile skipped as we dynamically assign map object
                  spherical_mercator = 'true',
                  extension = "png",
-                 tms_type = 'tms',
+                 tms_type = 'google', # tms or google
                  paletted = 'true',
                  debug=False
                  )
@@ -92,7 +92,7 @@ def get_tile(request, version, layername, z, x, y, extension='png'):
         m = query_hash.get(name)
         if not m:
             trees, plots, agg_search_result, str_tile_query = _build_tree_search_result(request)
-            trees = trees.only('geometry')
+            trees = plots.only('geometry')
             styles=[{'name':'style','obj':style}]
             m = qs_to_map(trees,styles=styles)
             #print mapnik.save_map_to_string(m)
