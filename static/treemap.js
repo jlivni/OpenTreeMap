@@ -133,7 +133,7 @@ var tm = {
         });
         
         $("#location_search_input").blur(function(evt) {
-            if (!this.value) {
+            if (!this.value || this.value == 'San Diego County') {
                 $("#location_search_input").val("");
                 $(this).val(tm.initial_location_string);
             }    
@@ -156,6 +156,8 @@ var tm = {
         $("#species_search_id").change(function(evt) {
             if (this.value) {
                 tm.searchParams['species'] = this.value;
+            } else {
+                delete tm.searchParams.species;
             }
         });
         $("#location_go").click(function(evt) {
@@ -517,27 +519,6 @@ var tm = {
 
         tm.misc_markers = new OpenLayers.Layer.Markers('MarkerLayer2');
         tm.vector_layer = new OpenLayers.Layer.Vector('Vectors');
-
-        tm.tree_layer = new OpenLayers.Layer.WMS(
-                    "treemap_tree - Tiled", tm_urls['geo_url'],
-                    {
-                        transparent: 'true',
-                        width: '256',
-                        srs: 'EPSG:4326',
-                        layers: tm_urls.geo_layer,
-                        height: '256',
-                        styles: tm_urls.geo_style,
-                        format: 'image/png',
-                        tiled: 'true',
-                        tilesOrigin : tm.map.maxExtent.left + ',' + tm.map.maxExtent.bottom
-                    },
-                    {
-                        buffer: 0,
-                        displayOutsideMaxExtent: true,
-                        visibility: false,
-                        tileOptions: {maxGetUrlLength: 2048}
-                    } 
-                );
 
         
         tm.map.addLayers([tm.vector_layer, tm.misc_markers]);
@@ -1137,17 +1118,12 @@ var tm = {
         
                 
     highlight_geography : function(geometry, geog_type){        
+         console.log(geometry, geog_type)
         if (tm.vector_layer){
             tm.vector_layer.destroyFeatures();
         }
-        if (geometry.coordinates.length == 1) {            
-            var feature = tm.getFeatureFromCoords(geometry.coordinates[0]);
-            tm.vector_layer.addFeatures(feature);
-        }
-        for (var i=0; i<geometry.coordinates.length;i++) {
-            var feature = tm.getFeatureFromCoords(geometry.coordinates[i][0])
-            tm.vector_layer.addFeatures(feature);
-        }
+        var feature = tm.getFeatureFromCoords(geometry.coordinates[0]);
+        tm.vector_layer.addFeatures(feature);
     },
 
     getFeatureFromCoords : function (coords) {
@@ -1284,113 +1260,30 @@ var tm = {
         //set geog name or selected trees 
         },
 
-    //UNUSED?    
-    display_geography : function(geojson){
-        if (geojson) {
-            alert(1);
-            if (geojson.features){
-                feats = geojson.features;   
-                geog = feats[0];
-                if (geog) {
-                    summaries = geog.properties.summaries;
-                    benefits = geog.properties.benefits;
-                    $('#summary_subset').html(geog.properties.name);
-                    //$('#location').val(geog.properties.name);
-                    tm.highlight_geography(geog, 'neighborhood')
-        
-                    if (summaries){tm.display_summaries(summaries)}
-                    if (benefits){tm.display_benefits(benefits)}
-                    var ew = $('#search_location_infowindow');
-                    if (ew){
-                        var addy = ew.html();
-                        ew.html(addy + ' is in ' + geog.properties.name);
-                        }
-                    //todo - else display boundary, etc
-                }
-            }
-        } 
-    
-        },
-        
-    get_selected_tile : function(a,b){
-        // either "Map","Hybrid", or "Terrain"
-        //var layer_name = tm.map.getCurrentMapType().getName();
-        //var u = tm_urls.tc_url + layer_name + '/' + tm.map.getZoom() + '/' + a.x  + '/' + a.y + '.png';
-        var u = tm_urls.qs_tile_url + tm.map.getZoom() + '/' + a.x  + '/' + a.y + '.png?' + tm.selected_tile_query;
-        console.log(u);
-        return u;
-        },
-    
-    set_selected_tile_overlay : function(){
-        //if (tm.current_selected_tile_overlay)
-        //{
-        //    tm.map.removeOverlay(tm.current_selected_tile_overlay);
-        //}
-        //if (tm.cur_polygon){
-        //    tm.map.removeOverlay(tm.cur_polygon);
-        //}
-        //if (tm.plot_detail_market){
-        //tm.map.removeOverlay(tm.plot_detail_market);
-        //}
-
-        //var myCopyright = new GCopyrightCollection("(c) ");
-        //myCopyright.addCopyright(new GCopyright('Urban Forest Map',
-        //  new GLatLngBounds(new GLatLng(-90,-180), new GLatLng(90,180)),
-        //  0,'bar'));
-
-        //tm.selected_tree_layer = new GTileLayer(myCopyright);
-        //tm.selected_tree_layer.getTileUrl = tm.get_selected_tile;
-        //tm.selected_tree_layer.isPng = function() { return true;};
-        /*
-        if (navigator.appName != 'Microsoft Internet Explorer')
-        {
-            tm.tree_layer.getOpacity = function() { return .75; }
-        }
-        */
-    
-        //tm.current_selected_tile_overlay = new GTileLayerOverlay(tm.selected_tree_layer);
-        //tm.map.addOverlay(tm.current_selected_tile_overlay);
-    },
             
-    cqlizeIds: function(trees) {
-        var cql_ids = [];
-        if (trees.length == 1) {return trees[0].id}
-        for(var i=0; i < trees.length; i++) {
-            cql_ids.push(trees[i].id);
-        }
-        return  cql_ids.join();
-    },
     display_search_results : function(results){
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
         //if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
         jQuery('#displayResults').hide();
-        //if (tm.current_selected_tile_overlay)
-        //{
-        //    tm.map.removeOverlay(tm.current_selected_tile_overlay);
-        //}
+
+        //remove old tile overlay
+        var existing_qs_layer = tm.map.getLayersByName('qsLayer')[0]
+        if (existing_qs_layer) {
+          tm.map.removeLayer(existing_qs_layer);
+        }
         if (results) {
             tm.display_summaries(results.summaries);
             
-            if (results.initial_tree_count != results.full_tree_count && results.initial_tree_count != 0) {
-                if (results.trees.length > 0) {
-                    var cql = tm.cqlizeIds(results.trees);
-                    delete tm.tree_layer.params.CQL_FILTER;
-                    tm.tree_layer.mergeNewParams({'FEATUREID':cql});
-                    tm.tree_layer.setVisibility(true);     
-                }
-                else if (results.tile_query) {
-                    var cql = results.tile_query;
-                    delete tm.tree_layer.params.FEATUREID;
-                    tm.tree_layer.mergeNewParams({'CQL_FILTER':cql});
-                    tm.tree_layer.setVisibility(true);     
-                }    
-                else {
-                    tm.tree_layer.setVisibility(false);
-                }                
-            }            
-            else {
-                tm.tree_layer.setVisibility(false);
-            }
+            if (results.tile_query) {
+                console.log('tile query: ' + results.tile_query)
+                //add new xyz overlay
+                tm.xyz = new OpenLayers.Layer.XYZ('qsLayer',
+                   tm_urls.qs_tile_url +  "${z}/${x}/${y}.png?" + results.tile_query,
+                   {sphericalmercator : false, isBaseLayer: false}
+                );
+                tm.xyz.setVisibility(true);
+                tm.map.addLayer(tm.xyz);
+            }    
 
             if (results.geography) {
                 var geog = results.geography;
@@ -2037,71 +1930,46 @@ var tm = {
     handleSearchLocation: function(search) {
         if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
-        //possible zipcode 
+
         tm.geocode_address = search;
-        if (tm.isNumber(search) && 0) { //disabling zipcode search
-            jQuery.getJSON(tm_static + '/zipcodes/', {format:'json', name: tm.geocode_address}, function(zips){
-                if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
-                            
-                if (zips.features.length > 0) {
-                    var olPoint = OpenLayers.Bounds.fromArray(zips.bbox).getCenterLonLat();
-                    var bbox = OpenLayers.Bounds.fromArray(zips.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-                    tm.map.zoomToExtent(bbox, true);
 
-                   // if (zips.features[0].properties.name == 'Philadelphia'){                    
-                   //     delete tm.searchParams.location;
-                   //     delete tm.searchParams.geoName;
-                    //}else {  
-                        tm.add_location_marker(bbox.getCenterLonLat());
-                        tm.geocoded_locations[tm.geocode_address] = tm.geocode_address;
-                        tm.searchParams['location'] = tm.geocode_address;  
-                        tm.searchParams['geoName'] = zips.features[0].properties.name;
-                    //}
+        jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
+            if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
+
+            if (nbhoods.features.length > 0) {
+                var olPoint = OpenLayers.Bounds.fromArray(nbhoods.bbox).getCenterLonLat();
+                var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                tm.map.zoomToExtent(bbox, true);
+
+                //if (nbhoods.features[0].properties.name == 'Philadelphia'){                    
+                //    delete tm.searchParams.location; 
+                //    delete tm.searchParams.geoName;
+                //} else {  
+                    tm.add_location_marker(bbox.getCenterLonLat());
+                    tm.geocoded_locations[tm.geocode_address] = [olPoint.lon, olPoint.lat];
+                    tm.searchParams['location'] = tm.geocode_address;
+                    tm.searchParams['geoName'] = nbhoods.features[0].properties.name;
+                //}
+                tm.updateSearch();
+            } else {                 
+                delete tm.searchParams.geoName;        
+                tm.geocode(search, function(lat, lng, place) {
+                    var olPoint = new OpenLayers.LonLat(lng, lat);
+                    var llpoint = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                    tm.map.setCenter(llpoint, tm.add_zoom);
+
+                    tm.add_location_marker(llpoint);
+
+                    if (olPoint) {
+                        tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
+                        tm.searchParams['location'] = search;       
+                    } else {
+                        delete tm.searchParams.location;
+                    }
                     tm.updateSearch();
-                }
-                
-            });
-        }
-        else
-        {
-            jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
-                if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
-
-                if (nbhoods.features.length > 0) {
-                    var olPoint = OpenLayers.Bounds.fromArray(nbhoods.bbox).getCenterLonLat();
-                    var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-                    tm.map.zoomToExtent(bbox, true);
-
-                    //if (nbhoods.features[0].properties.name == 'Philadelphia'){                    
-                    //    delete tm.searchParams.location; 
-                    //    delete tm.searchParams.geoName;
-                    //} else {  
-                        tm.add_location_marker(bbox.getCenterLonLat());
-                        tm.geocoded_locations[tm.geocode_address] = [olPoint.lon, olPoint.lat];
-                        tm.searchParams['location'] = tm.geocode_address;
-                        tm.searchParams['geoName'] = nbhoods.features[0].properties.name;
-                    //}
-                    tm.updateSearch();
-                } else {                 
-                    delete tm.searchParams.geoName;        
-                    tm.geocode(search, function(lat, lng, place) {
-                        var olPoint = new OpenLayers.LonLat(lng, lat);
-                        var llpoint = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-                        tm.map.setCenter(llpoint, tm.add_zoom);
-
-                        tm.add_location_marker(llpoint);
-
-                        if (olPoint) {
-                            tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
-                            tm.searchParams['location'] = search;       
-                        } else {
-                            delete tm.searchParams.location;
-                        }
-                        tm.updateSearch();
-                    });
-                }
-            });
-        }
+                });
+            }
+        });
     },
     editDiameter: function(field, diams) {
         tm.editingDiameter = true;
