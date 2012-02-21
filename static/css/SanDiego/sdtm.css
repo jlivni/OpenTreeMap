@@ -3081,6 +3081,7 @@ table.addet .update p{
 	font-size:12px;
 	font-weight:bold;
 	color:#888;
+  list-style:none;
 }
 .ad{float:left;}
 .ad strong{
