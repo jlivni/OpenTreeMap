@@ -14,6 +14,7 @@
         <script type="text/javascript" src="/static/jquery/jquery.jeditable.min.js"></script>
         <script type="text/javascript" src="/static/jquery/jquery.query-2.1.7.js"></script>
         <script type="text/javascript" src="/static/treemap.js"></script>
+        <script type="text/javascript" src="/static/v3map.js"></script>
         <link rel="stylesheet" href="/static/css/treemap.css" type="text/css"/>
         <link rel="stylesheet" href="/static/jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
         <link rel="stylesheet" type="text/css" href="/static/jquery/jquery.autocomplete.css" />
@@ -80,9 +81,9 @@ s.parentNode.insertBefore(po, s);
                     </li>
                     <li id="searchJoiner">near</li>
                     <li id="searchLocationBox">
-                        <input type="text"  name="location" onFocus="this.value=''" id="location_search_input" value="San Diego, CA" />
+                        <input type="text"  name="location" onFocus="this.value=''" id="location_search_input" value="San Diego County" />
                     </li>
-                    <li id="searchButton"><input class="go" id="location_go" type="button" value="Search San Diego" /></li>
+                    <li id="searchButton"><input class="go" id="location_go" type="button" value="Search" /></li>
                 </form>
                 </ul>
                 <ul id="searchSuggest">
@@ -95,9 +96,9 @@ s.parentNode.insertBefore(po, s);
                     
                     <li id="searchLocationSuggest">Examples: 
                     
-                        <a onclick='$("#location_search_input").val("8690 Balboa Ave"); $("#location_search_input").change(); return false;' href="#">8690 Balboa Ave.</a>, 
-                        <a onclick='$("#location_search_input").val("Kearny Mesa"); $("#location_search_input").change(); return false;' href="#">Kearny Mesa</a>,
-                        <a onclick='$("#location_search_input").val("92123"); $("#location_search_input").change(); return false;' href="#">92123</a>
+                        <a onclick='$("#location_search_input").val("5700 La Jolla Blvd."); $("#location_search_input").change(); return false;' href="#">5700 La Jolla Blvd.</a> or 
+                        <a onclick='$("#location_search_input").val("Mission Beach"); $("#location_search_input").change(); return false;' href="#">Mission Beach</a> or 
+                        <a onclick='$("#location_search_input").val("Vista"); $("#location_search_input").change(); return false;' href="#">Vista</a>
                     </li>
                     <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="close-filters">Show advanced filters</span></em><img id="arrow" src="/static/images/v2/arrow1.gif" /></a> </li>
                 </ul>
