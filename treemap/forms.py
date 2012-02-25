@@ -147,36 +147,30 @@ class TreeAddForm(forms.Form):
         condition = self.cleaned_data.get('condition')
         canopy_condition = self.cleaned_data.get('canopy_condition')
 
-        #TODO: fix this
-        if species or height or canopy_height or dbh or condition or canopy_condition:
-           # print species, height, canopy_height, dbh, condition, canopy_condition
-            if species:
-                spp = Species.objects.filter(symbol=species)
-                if spp:
-                    new_tree = Tree(species=spp[0])
-                else:
-                    new_tree = Tree()
-            else:
-                new_tree = Tree()
+        new_tree = Tree()
+        if species:
+            spp = Species.objects.filter(symbol=species)
+            if spp:
+              new_tree.species=spp[0]
 
-            if height:
-                new_tree.height = height
-            if canopy_height:
-                new_tree.canopy_height = canopy_height
-            if dbh:
-                if dbh_type == 'circumference':
-                    dbh = dbh / math.pi
-                new_tree.dbh = dbh
-            if condition:
-                new_tree.condition = condition
-            if canopy_condition:
-                new_tree.canopy_condition = canopy_condition
-            
-            new_tree.import_event = import_event            
-            new_tree.last_updated_by = request.user
-            new_tree.plot = plot
-            new_tree.save()
-            #print new_tree.__dict__
+        if height:
+            new_tree.height = height
+        if canopy_height:
+            new_tree.canopy_height = canopy_height
+        if dbh:
+            if dbh_type == 'circumference':
+                dbh = dbh / math.pi
+            new_tree.dbh = dbh
+        if condition:
+            new_tree.condition = condition
+        if canopy_condition:
+            new_tree.canopy_condition = canopy_condition
+        
+        new_tree.import_event = import_event            
+        new_tree.last_updated_by = request.user
+        new_tree.plot = plot
+        new_tree.save()
+        #print new_tree.__dict__
         
         return plot
      
