@@ -12,7 +12,7 @@ tm.start_zoom = 12;
 tm.add_start_zoom = 11;
 tm.add_zoom = 18;
 tm.edit_zoom = 18;
-tm.initial_location_string = "San Diego, CA";
+tm.initial_location_string = "San Diego County";
 tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
 tm.popup_maxSize = new OpenLayers.Size(450,450);
@@ -75,15 +75,10 @@ tm.init_base_map = function(div_id, controls){
     );
     tm.tms.buffer = 0;
 
-    tm.xyz = new OpenLayers.Layer.XYZ('TreeLayer',
-         //tm_urls.qs_tile_url + "${z}/${x}/${y}.png?", 
-         tm_urls.qs_tile_url + tm.map.getZoom() + "/${x}/${y}.png?" + tm.selected_tile_query,
-         {sphericalmercator : true}
-     );
 
     tm.baseLayer.buffer = 0;
     tm.aerial.buffer = 0;
-    tm.map.addLayers([tm.baseLayer, tm.aerial, tm.tms, tm.xyz]);
+    tm.map.addLayers([tm.baseLayer, tm.aerial, tm.tms]);
     tm.map.setBaseLayer(tm.baseLayer);
     tm.baseLayer.mapObject.setTilt(0);
     tm.aerial.mapObject.setTilt(0);
