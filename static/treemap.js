@@ -107,10 +107,10 @@ var tm = {
                 tm.speciesDataListeners[i]();
             }    
         });
-        //jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
-        //    tm.locations = nbhoods;
-        //    tm.setupLocationList();
-        //});
+        jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
+            tm.locations = nbhoods;
+            tm.setupLocationList();
+        });
         var adv_active = false;
         $('#advanced').click(function() {
             if (!adv_active) {
