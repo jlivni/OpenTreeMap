@@ -119,7 +119,7 @@ var tm = {
                 }
                 adv_active = true;
                 $('#arrow').attr('src',tm_static + '/static/images/v2/arrow2.gif');
-                //$('#filter_name')[0].innerHTML = 'Hide advanced filters';
+                $('#close-filters').html( 'Hide advanced filters');
             }    
             else {
                 if (location.pathname == "/map/") {
@@ -127,15 +127,16 @@ var tm = {
                 }
                 adv_active = false;
                 $('#arrow').attr('src',tm_static + '/static/images/v2/arrow1.gif');
-                //$('#filter_name')[0].innerHTML = 'Show advanced filters';          
+                $('#close-filters').html( 'Show advanced filters');          
             }
             return false;
         });
         
         $("#location_search_input").blur(function(evt) {
-            if (!this.value || this.value == 'San Diego County') {
+            if (!this.value || this.value == tm.initial_location_string || this.value == 'San Diego County') {
                 $("#location_search_input").val("");
                 $(this).val(tm.initial_location_string);
+                delete tm.searchParams.location;
             }    
         }).keydown(function(evt) {
             if (evt.keyCode == 13) {
