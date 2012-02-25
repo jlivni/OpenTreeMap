@@ -146,6 +146,8 @@ class Neighborhood(models.Model):
     """
     name = models.CharField(max_length=255)
     geometry = models.MultiPolygonField(srid=4326)
+    priority = models.IntegerField(blank=True,null=True)
+    source = models.CharField(max_length=255, blank=True,null=True)
     objects=models.GeoManager()
     
     def __unicode__(self): return '%s' % self.name
@@ -499,9 +501,7 @@ class Plot(models.Model):
         self.validate()
 
         pnt = self.geometry
-
         n = Neighborhood.objects.filter(geometry__contains=pnt)
-        z = ZipCode.objects.filter(geometry__contains=pnt)
         
         if n:
             oldns = self.neighborhoods
@@ -515,23 +515,15 @@ class Plot(models.Model):
                 
         if self.id:
             oldn = self.neighborhood.all()
-            oldz = self.zipcode
         else:
             oldn = []
-            oldz = None
 
         super(Plot, self).save(*args,**kwargs) 
+        self.neighborhood.clear()
         if n:
-            self.neighborhood.clear()
             for nhood in n:
                 if nhood:
                     self.neighborhood.add(nhood)
-        else: 
-            self.neighborhood.clear()
-        if z: self.zipcode = z[0]
-        else: self.zipcode = None
-
-        super(Plot, self).save(*args,**kwargs) 
 
         if self.neighborhoods != oldns:
             done = []
@@ -552,10 +544,6 @@ class Plot(models.Model):
                         self.update_aggregate(AggregateNeighborhood, nhood)
                     done.append(nhood.id)
              
-        if self.current_tree() and z and z[0] != oldz:
-            if z: self.current_tree().update_aggregate(AggregateZipCode, z[0])
-            if oldz: self.current_tree().update_aggregate(AggregateZipCode, oldz)
-
     def update_aggregate(self, ag_model, location):        
         agg =  ag_model.objects.filter(location=location)
         if agg:
