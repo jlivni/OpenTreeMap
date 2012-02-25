@@ -10,7 +10,7 @@ import subprocess
 from operator import itemgetter, attrgetter
 from itertools import chain
 import simplejson 
-
+import urllib
 from django.conf import settings
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
@@ -354,10 +354,10 @@ def trees(request, tree_id=''):
     trees = Tree.objects.all()
     if tree_id:
         trees = trees.filter(pk=tree_id)
-        
+
         if trees.count() == 0:
             raise Http404
-        
+
         if trees[0].present == False:
             plot = tree.plot
             if plot.present == False:
@@ -367,21 +367,35 @@ def trees(request, tree_id=''):
 
         # get the last 5 edits to each tree piece
         history = trees[0].history.order_by('-last_updated')[:5]
-        
+
         recent_edits = unified_history(history)
-    
+
         if request.user.is_authenticated():
             favorite = TreeFavorite.objects.filter(user=request.user,
                 tree=trees[0], tree__present=True).count() > 0
     else:
 	#TODO: do we ever call this w/o id???
         trees = Tree.objects.filter(present=True)
-    
+
     if request.GET.get('format','') == 'json':
         return render_to_geojson(trees, geom_field='geometry')
     first = None
     if trees.exists():
         first = trees[0]
+        #update geocode for tree if it does not exist
+        tp = first.plot
+        if not tp.address_street:
+          url = 'http://maps.googleapis.com/maps/api/geocode/json?latlng=%s,%s&sensor=true' % (tp.geometry.y, tp.geometry.x)
+          js = simplejson.loads(urllib.urlopen(url).read())
+          res = js['results']
+          if res:
+            print res
+            addy = res[0]['formatted_address']
+            tp.address_street = addy.split(',')[0]
+            tp.geocoded_address = addy.split(',')[0]
+            tp.address_city = addy.split(',')[1]
+            tp.quick_save()
+
     else:
         raise Http404
     if request.GET.get('format','') == 'base_infowindow':
@@ -606,18 +620,19 @@ def plot_delete(request, plot_id):
 @login_required
 def photo_delete(request, tree_id, photo_id):    
     if request.method == 'GET':
+      #TODO(jlivni): ensure only auth'd and admin or owner can delete
+      tree = Tree.objects.get(pk=tree_id)
+      photo = TreePhoto.objects.get(pk=photo_id)
+    
       rep = Reputation.objects.reputation_for_user(request.user)
-      if not (rep > 1000 or request.user.is_superuser):
+      if not (rep > 1000 or request.user.is_superuser or request.user == photo.reported_by):
           return HttpResponse(
             simplejson.dumps({'success':False, 'message' : 'unauthorized'}, sort_keys=True, indent=4),
             content_type = 'text/plain'
           )
   
-      #TODO(jlivni): ensure only auth'd and admin or owner can delete
-      tree = Tree.objects.get(pk=tree_id)
-      photo = TreePhoto.objects.get(pk=photo_id)
       photo.delete()
-    
+
       return HttpResponse(
         simplejson.dumps({'success':True}, sort_keys=True, indent=4),
         content_type = 'text/plain'
@@ -1697,6 +1712,7 @@ def advanced_search(request, format='json'):
     geography = None
     summaries, benefits = None, None
     if geog_obj:
+        print 'geog obj', geog_obj.id
         summaries, benefits = get_summaries_and_benefits(geog_obj)
         if hasattr(geog_obj, 'geometry'):
             geography = simplejson.loads(geog_obj.geometry.simplify(.0001).geojson)
@@ -1734,7 +1750,8 @@ def advanced_search(request, format='json'):
         # check on (last_updated or ensure_recent) and search key 
         q = request.META['QUERY_STRING'] or ''
         r = AggregateSearchResult.objects.filter(key='json_' + q)
-        if r and r.exists() and r[0].ensure_recent(tree_count):
+        if r and r.exists() and r[0].ensure_recent(tree_count) and r[0].ensure_recent():
+          print 'using cached agg result, %s' % r[0].id
           r=r[0]
         else:
           r = AggregateSearchResult(key = 'json_' + q)
@@ -1753,10 +1770,12 @@ def advanced_search(request, format='json'):
             if not (f == 'total_trees' or f == 'total_plots'):
               fn = 'treeresource__' + f
               s = trees.aggregate(Sum(fn))[fn + '__sum'] or 0.0
+                
               # TODO - need to make this logic accesible from shortcuts.get_summaries_and_benefits
               # which is also a location where summaries are calculated
               # also add likely to treemap/update_aggregates.py (not really sure how this works)
               if EXTRAPOLATE_WITH_AVERAGE and resources:
+                  print 'extrapolate with average and resources'
                   avg = float(s)/resources
                   s += avg * with_out_resources
                       
