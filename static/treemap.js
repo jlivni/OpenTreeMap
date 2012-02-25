@@ -137,6 +137,7 @@ var tm = {
                 $("#location_search_input").val("");
                 $(this).val(tm.initial_location_string);
                 delete tm.searchParams.location;
+                delete tm.searchParams.geoName;
             }    
         }).keydown(function(evt) {
             if (evt.keyCode == 13) {
