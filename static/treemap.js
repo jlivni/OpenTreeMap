@@ -222,7 +222,7 @@ var tm = {
         //$("#search_form").submit(triggerSearch);    
         $("#advanced").click(function() {
             tm.advancedClick = true;
-            triggerSearch();
+            tm.updateSearch();
             });   
             
             
@@ -1845,7 +1845,6 @@ var tm = {
         if (qs === false) { return; }
         tm.trackPageview('/search/' + qs);
         jQuery('#displayResults').show();
-        //TODO: send a geoserver CQL request also
         $.ajax({
             url: tm_static + '/search/'+qs,
             dataType: 'json',
