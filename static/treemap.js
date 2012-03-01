@@ -108,8 +108,7 @@ var tm = {
             }    
         });
         jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
-            tm.locations = nbhoods;
-            tm.setupLocationList();
+            tm.setupLocationList(nbhoods);
         });
         var adv_active = false;
         $('#advanced').click(function() {
@@ -448,28 +447,14 @@ var tm = {
         
     },
     
-    setupLocationList: function() {
+    setupLocationList: function(nbhoods) {
         var ul = $("<ul id='n_list' style='max-height:180px; overflow:auto;'></ul>");
         $("#searchNBList").append(ul).hide();
-        var states = {}
-        for(var i=0; i<tm.locations.features.length;i++) {
-            var feature = tm.locations.features[i];
-            var st_co = '';
-            if (!states[st_co])
-            {
-                states[st_co] = []
-            }
-            states[st_co].push(feature);
-        }
-
-        for(var state in states) {
-            var entries = states[state];
-            for(i=0;i<entries.length;i++) {
-                var c = "ac_odd";
-                if (i%2 == 0) {c = 'ac-even';}
-                var name = entries[i].properties.name;
-                ul.append("<li id='" + name + "' class='" + c + "'>" + name + "</li>")
-            }
+        for(i=0;i<nbhoods.length;i++) {
+            var c = "ac_odd";
+            if (i%2 == 0) {c = 'ac-even';}
+            var name = nbhoods[i].name;
+            ul.append("<li id='" + name + "' class='" + c + "'>" + name + "</li>")
         }
 
         $("#n_list > li").hover(function(evt) {
@@ -484,13 +469,9 @@ var tm = {
         
         if ($("#s_nhood")) {
             select_nh = $("#s_nhood");
-            for(var state in states) {
-                select_nh.append("<option class='header' disabled='disabled'>" + state + " County</li>")
-                var entries = states[state];
-                for(i=0;i<entries.length;i++) {
-                    var name = entries[i].properties.name;
-                    select_nh.append("<option value='" + name + "' >" + name + "</li>")
-                }
+            for(i=0;i<nbhoods.length;i++) {
+                var name = nbhoods[i].name;
+                select_nh.append("<option value='" + name + "' >" + name + "</li>")
             }
         }    
     },

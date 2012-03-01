@@ -1857,6 +1857,10 @@ def geographies(request, model, id=''):
         #print ns
     if list:        
         ns = ns.exclude(aggregates__total_plots=0)
+        ns = ns.filter(source='incorp_places')
+        return render_to_response('treemap/basic.json', {
+         'json':simplejson.dumps([{'name' : n.name} for n in ns])
+        })
     if format.lower() == 'names':
       pass
     if format.lower() == 'json':
