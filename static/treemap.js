@@ -454,7 +454,7 @@ var tm = {
         var states = {}
         for(var i=0; i<tm.locations.features.length;i++) {
             var feature = tm.locations.features[i];
-            var st_co = feature.properties.state + "-" + feature.properties.county;
+            var st_co = '';
             if (!states[st_co])
             {
                 states[st_co] = []
@@ -463,7 +463,6 @@ var tm = {
         }
 
         for(var state in states) {
-            ul.append("<li class='header'>" + state + " County</li>")
             var entries = states[state];
             for(i=0;i<entries.length;i++) {
                 var c = "ac_odd";
