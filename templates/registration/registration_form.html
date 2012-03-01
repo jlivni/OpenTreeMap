@@ -14,7 +14,7 @@
                  <span id="smError2">{{ error }}</span>
              {% endfor %}
         {% else %}
-        <span id="smError2">Create your username</span>
+        <span id="smError2">Letters, numbers, or underscores only.</span>
         {% endif %}
     </label>
     <input type="text" id="username" class="required" onchange="check_username(this.value)" name="username" maxlength="30" />
