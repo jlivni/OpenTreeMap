@@ -1750,7 +1750,7 @@ def advanced_search(request, format='json'):
         # check on (last_updated or ensure_recent) and search key 
         q = request.META['QUERY_STRING'] or ''
         r = AggregateSearchResult.objects.filter(key='json_' + q)
-        if r and r.exists() and r[0].ensure_recent(tree_count) and r[0].ensure_recent():
+        if r and r.exists() and r[0].ensure_recent(tree_count):
           print 'using cached agg result, %s' % r[0].id
           r=r[0]
         else:
@@ -1763,7 +1763,8 @@ def advanced_search(request, format='json'):
           #print 'have resourcesums:', resources
           
           EXTRAPOLATE_WITH_AVERAGE = True
-          #TODO jlivni -- check; does this really do nothing except multiply by .01 [for each benefit?]
+
+          #TODO cache this also
           fields = [f for f in r._meta.get_all_field_names() if f.startswith('total') or f.startswith('annual')]
           
           for f in fields:
@@ -1856,6 +1857,8 @@ def geographies(request, model, id=''):
         #print ns
     if list:        
         ns = ns.exclude(aggregates__total_plots=0)
+    if format.lower() == 'names':
+      pass
     if format.lower() == 'json':
         #print ns
         return render_to_geojson(ns, simplify=.0005)
