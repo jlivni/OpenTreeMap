@@ -160,7 +160,6 @@ form, fieldset {
 	background: url(/static/images/es/sidebar_gradient.png) repeat-y #fde9bd ;
 	width:920px;
 	height:90px;
-	border-top:1px solid #a0be31;
 
         margin: 0 auto;
 	border-bottom:1px solid #bfd769;
@@ -271,12 +270,14 @@ ul#searchBoxes li#searchSpeciesBox input#location_search_input {
 }
 ul#searchBoxes  li#searchButton {
 	float:left;
-	width:170px;
+	width:135px;
 	list-style-type: none;
 	text-align:right;
+  margin-left:50px;
 }
 ul#searchBoxes li#searchButton .go {
 	height:30px;
+  width:135px;
 	background: #fff url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;
 	border:2px solid #663397;
 	text-align:center;
@@ -286,8 +287,8 @@ ul#searchBoxes li#searchButton .go {
 	font-weight:bold;
 	cursor: pointer;
 	padding-bottom:3px;
-	padding-right:5px;
-	padding-left:5px;
+	padding-right:26px;
+	padding-left:27px;
 	vertical-align: middle;
 }
 ul#searchBoxes li#searchButton .go:hover {
@@ -308,7 +309,7 @@ ul#searchSuggest li#searchSpeciesSuggest {
 }
 ul#searchSuggest li#searchLocationSuggest {
 	float:left;
-	width:355px;
+	width:385px;
 	list-style-type: none;
 	margin-left:60px;
 	padding-left:0;
