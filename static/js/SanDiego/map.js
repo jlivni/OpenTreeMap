@@ -83,3 +83,21 @@ tm.init_base_map = function(div_id, controls){
     tm.baseLayer.mapObject.setTilt(0);
     tm.aerial.mapObject.setTilt(0);
 };
+
+function fav_click(evt) {
+    var pk = $('a.favorite').attr('id').replace('favorite_', '');
+    var url = '/trees/favorites/create/' + pk + '/';
+    var url2 = '/trees/favorites/delete/' + pk + '/';
+    if ($('a.favorite').hasClass('fave')) {
+      $.getJSON(url, function(data, textStatus) {        $('#favorite_' + pk).removeClass('fave').addClass('unfave').text('Remove as favorite');
+      });
+    }
+    else
+    {
+      $.getJSON(url2, function(data, textStatus) {        $('#favorite_' + pk).removeClass('unfave').addClass('fave').text('Add as favorite');
+      });
+    }
+
+    return false;
+  }
+

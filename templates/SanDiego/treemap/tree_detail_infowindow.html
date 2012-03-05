@@ -5,7 +5,7 @@
 <script type="text/javascript">
 	jQuery().ready(function() {
 		if (jQuery("#address").html() == "Missing") {
-			latlng = new google.maps.LatLng({{ tree.geometry.y }}, {{ tree.geometry.x }})
+			latlng = new google.maps.LatLng({{ tree.plot.geometry.y }}, {{ tree.plot.geometry.x }})
 			tm.geocoder.geocode({
 				latLng: latlng
 			}, function(results, status){
@@ -15,24 +15,6 @@
 			});
 		}
 	});
-	function fav_click(evt) {
-		var pk = $('a.favorite').attr('id').replace('favorite_', '');
-		var url = '/trees/favorites/create/' + pk + '/';
-		var url2 = '/trees/favorites/delete/' + pk + '/';
-		if ($('a.favorite').hasClass('fave')) {
-			$.getJSON(url, function(data, textStatus) {
-				$('#favorite_' + pk).removeClass('fave').addClass('unfave').text('Remove as favorite');
-			});
-		}
-		else
-		{
-			$.getJSON(url2, function(data, textStatus) {
-				$('#favorite_' + pk).removeClass('unfave').addClass('fave').text('Add as favorite');
-			});
-		}
-
-		return false;
-	}
 </script>
 {% endblock %}
 
@@ -60,7 +42,7 @@
         </tr>
         <tr>
         	<td class="col1">Nearby address</td>
-            <td>{{ tree.address_street }}</td>
+            <td>{{ tree.plot.address_street }}</td>
         </tr>
         <tr>
         	<td class="col1">Trunk diameter</td>
