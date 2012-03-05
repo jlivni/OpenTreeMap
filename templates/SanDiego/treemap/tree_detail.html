@@ -308,7 +308,7 @@
         </tr>
         <tr>
         	<td class="col1Wide">Tree entered by</td>
-            <td>{{tree.data_owner|default:"Missing"}}</td>
+            <td>{{tree.datasource|default:"Missing"}}</td>
             <td></td>
         </tr>
 
@@ -328,9 +328,9 @@
                             <div id="edit_tree_map_wrap"><div id="edit_tree_map"></div></div>
                             <div id="alternate_tree_div"></div>
                             <div id="tree_streetview"></div>
-                             {% if tree.geocoded_address %}
+                             {% if tree.plot.address_street %}
                             <div id="tree_address"><div class="wrap"><h2>Nearby Address: *</h2></div>
-                                <div id="tree_address_address">{{tree.geocoded_address}}</div>
+                                <div id="tree_address_address">{{tree.plot.address_street}}</div>
                                 <div>*Please note that this address is intended to be a general, not exact, reference to the location.</div>
                             </div>
                              {% endif %}
