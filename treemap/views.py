@@ -580,7 +580,14 @@ def plot_edit(request, plot_id = ''):
     return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'tree': plot.current_tree(), 'plot': plot, 'reputation': reputation, 'user': request.user}))   
 
 
+@login_required
 def tree_delete(request, tree_id):
+    rep = Reputation.objects.reputation_for_user(request.user)
+    if not (rep > 1000 or request.user.is_superuser or request.user == photo.reported_by):
+          return HttpResponse(
+            simplejson.dumps({'success':False, 'message' : 'unauthorized'}, sort_keys=True, indent=4),
+            content_type = 'text/plain'
+          )
     tree = Tree.objects.get(pk=tree_id)
     tree.present = False
     tree.save()
@@ -595,7 +602,14 @@ def tree_delete(request, tree_id):
     )
 
 @csrf_view_exempt
+@login_required
 def plot_delete(request, plot_id):
+    rep = Reputation.objects.reputation_for_user(request.user)
+    if not (rep > 1000 or request.user.is_superuser or request.user == photo.reported_by):
+          return HttpResponse(
+            simplejson.dumps({'success':False, 'message' : 'unauthorized'}, sort_keys=True, indent=4),
+            content_type = 'text/plain'
+          )
     plot = Plot.objects.get(pk=plot_id)
     plot.present = False
     plot.save()
@@ -619,7 +633,7 @@ def plot_delete(request, plot_id):
 @csrf_view_exempt
 @login_required
 def photo_delete(request, tree_id, photo_id):    
-    if request.method == 'GET':
+    if request.method == 'POST':
       #TODO(jlivni): ensure only auth'd and admin or owner can delete
       tree = Tree.objects.get(pk=tree_id)
       photo = TreePhoto.objects.get(pk=photo_id)
@@ -1243,14 +1257,15 @@ def added_today_list(request, user_id=None, format=None):
     past_date = timedelta(hours=24)
     start_date = datetime.now() - past_date
     end_date = datetime.now()
-    new_plots = Plot.history.filter(present=True).filter(_audit_change_type__exact='I').filter(_audit_timestamp__range=(start_date, end_date))
+    new_plots = Plot.history.filter(present=True).filter(_audit_change_type__exact='I').filter(_audit_timestamp__range=(start_date, end_date)).order_by('-_audit_timestamp')
     if user_id:
         user = User.objects.get(pk=user_id)
         new_plots = new_plots.filter(last_updated_by=user)
     plots = []
-    for plot in new_plots:
-        plots.append(Plot.objects.get(pk=plot.id))
-    plots = plots[:100]
+    for plot in new_plots[:100]:
+      actual_plot = Plot.objects.get(pk=plot.id)
+      if actual_plot.current_tree():
+        plots.append(actual_plot)
     if format == 'geojson':        
         plot_json = [{
            'id':plot.id, 
