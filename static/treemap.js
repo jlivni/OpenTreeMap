@@ -2010,7 +2010,7 @@ var tm = {
         }
         var total = Math.sqrt(sum);
         
-        if (total > 100) {
+        if (total > 200) {
             $("#edit_dbh").append("<br/><span class='error'>Total diameter too large.</span>")
             tm.editingDiameter = false;
             return;
