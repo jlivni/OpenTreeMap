@@ -45,7 +45,7 @@ CACHE_SEARCH_DISK_PATH =  '/tmp/local_tiles/'
 MAPNIK_STYLESHEET = os.path.join(os.path.dirname(__file__), 'mapserver/stylesheet.xml')
 
 # sorl thumbnail settings
-THUMBNAIL_DEBUG = True
+THUMBNAIL_DEBUG = False
 THUMBNAIL_SUBDIR = '_thumbs'
 #THUMBNAIL_EXTENSION = 'png'
 #THUMBNAIL_QUALITY = 95 # if not using png

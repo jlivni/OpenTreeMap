@@ -1100,7 +1100,7 @@ var tm = {
         
                 
     highlight_geography : function(geometry, geog_type){        
-         console.log(geometry, geog_type)
+         //console.log(geometry, geog_type)
         if (tm.vector_layer){
             tm.vector_layer.destroyFeatures();
         }
@@ -1257,7 +1257,7 @@ var tm = {
             tm.display_summaries(results.summaries);
             
             if (results.tile_query) {
-                console.log('tile query: ' + results.tile_query)
+                //console.log('tile query: ' + results.tile_query)
                 //add new xyz overlay
                 tm.xyz = new OpenLayers.Layer.XYZ('qsLayer',
                    tm_urls.qs_tile_url +  "${z}/${x}/${y}.png?" + results.tile_query,

@@ -97,9 +97,13 @@ class Choices(models.Model):
     key_type = models.CharField(max_length=15)
     
     def get_field_choices(self, fieldName):
-        #return {}
         li = {}
-        for c in Choices.objects.filter(field__exact=fieldName):
+        try:
+          choices = Choices.objects.filter(field__exact=fieldName)
+        except:
+          print 'unable to get choices for %s !!!' % fieldName
+          return li.items()
+        for c in choices:
 
             if c.key_type == 'int':
                 key =  int(c.key)
@@ -1084,7 +1088,8 @@ class AggregateSummaryModel(ResourceSummaryModel):
     #distinct_species = models.IntegerField()
 
     def ensure_recent(self, current_tree_count = ''):
-      if current_tree_count and current_tree_count == self.total_trees:
+      #if current_tree_count and current_tree_count == self.total_trees:
+      if current_tree_count and abs(current_tree_count - self.total_trees) < 5:
           tm = True
       else:
           tm = False

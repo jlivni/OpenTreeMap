@@ -18,7 +18,7 @@ from settings_sandiego import *
 OTM_VERSION = "1.2"
 API_VERSION = "0.1"
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 # sorl thumbnail settings
