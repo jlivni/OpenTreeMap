@@ -320,7 +320,7 @@ class Species(models.Model):
     cultivar_name = models.CharField(max_length=255, null=True, blank=True)
     common_name = models.CharField(max_length=255, null=True, blank=True)
     
-    native_status = models.CharField(max_length=255, null=True, blank=True)
+    native_status = models.NullBooleanField()
     bloom_period = models.CharField(max_length=255, null=True, blank=True)
     fruit_period = models.CharField(max_length=255, null=True, blank=True)
     fall_conspicuous = models.NullBooleanField()
