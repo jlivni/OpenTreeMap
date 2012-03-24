@@ -92,6 +92,7 @@ def get_tile(request, version, layername, z, x, y, extension='png'):
         m = query_hash.get(name)
         if not m:
             trees, plots, agg_search_result, str_tile_query = _build_tree_search_result(request)
+            plots = plots.filter(tree__in=trees)
             trees = plots.only('geometry')
             styles=[{'name':'style','obj':style}]
             m = qs_to_map(trees,styles=styles)
