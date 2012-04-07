@@ -157,6 +157,17 @@ class Neighborhood(models.Model):
     def __unicode__(self): return '%s' % self.name
  
 
+class SunsetZone(models.Model):
+    """
+    not used currently
+    """
+    zone = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True,null=True)
+    geometry = models.MultiPolygonField(srid=4326)
+    objects=models.GeoManager()
+
+    def __unicode__(self): return '%s' % self.zone
+
     
 class ZipCode(models.Model):
     """
@@ -387,6 +398,7 @@ class Plot(models.Model):
     neighborhood = models.ManyToManyField(Neighborhood, null=True)
     neighborhoods = models.CharField(max_length=150, null=True, blank=True) # Really this should be 'blank=True' and null=False
     zipcode = models.ForeignKey(ZipCode, null=True, blank=True) # Because it is calculated in the save method
+    sunset_zone = models.ForeignKey(SunsetZone, null=True, blank=True)
     
     geocoded_accuracy = models.IntegerField(null=True, blank=True)
     geocoded_address = models.CharField(max_length=256, null=True, blank=True)
