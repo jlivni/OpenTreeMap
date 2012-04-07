@@ -1,6 +1,7 @@
 import os
 import time
 import sys
+import logging
 from time import mktime, strptime
 from datetime import timedelta
 import tempfile
@@ -1388,7 +1389,7 @@ def _build_tree_search_result(request):
     if not missing_current_dbh and 'diameter_range' in request.GET:
         min, max = map(float,request.GET['diameter_range'].split("-"))
         trees = trees.filter(dbh__gte=min)
-        if max != 50: # TODO: Hardcoded in UI, may need to change
+        if max != 150: # TODO: Hardcoded in UI, may need to change
             trees = trees.filter(dbh__lte=max)
         tile_query.append("dbh BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
 
@@ -1872,7 +1873,7 @@ def geographies(request, model, id=''):
         #print ns
     if list:        
         ns = ns.exclude(aggregates__total_plots=0)
-        ns = ns.filter(source='incorp_places')
+        ns = ns.filter(priority=2)
         return render_to_response('treemap/basic.json', {
          'json':simplejson.dumps([{'name' : n.name} for n in ns])
         })
@@ -2011,17 +2012,21 @@ def verify_edits(request, audit_type='tree'):
         species = 'no species name'
         if tree.species:
             species = tree.species.common_name
-        actual_tree = Tree.objects.get(pk=tree.id)
-        changes.append({
-            'id': tree.id,
-            'species': species,
-            'address_street': actual_tree.plot.address_street,
-            'last_updated_by': tree.last_updated_by,
-            'last_updated': tree.last_updated,
-            'change_description': 'New Tree',
-            'change_id': tree._audit_id,
-            'type': 'tree'
-        })
+        actual_tree_list = Tree.objects.filter(pk=tree.id)
+        if actual_tree_list:
+          actual_tree = actual_tree_list[0]
+          changes.append({
+              'id': tree.id,
+              'species': species,
+              'address_street': actual_tree.plot.address_street,
+              'last_updated_by': tree.last_updated_by,
+              'last_updated': tree.last_updated,
+              'change_description': 'New Tree',
+              'change_id': tree._audit_id,
+              'type': 'tree'
+          })
+        else:
+          logging.warning('no tree found while verifying tree id %s' % tree.id)
         
     changes.sort(lambda x,y: cmp(x['last_updated'], y['last_updated']))
     return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes}))
