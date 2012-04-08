@@ -305,7 +305,7 @@ class Resource(models.Model):
                 #print "short resource"
         return results
         
-    def __unicode__(self): return '%s' % (self.meta_species)
+    def __unicode__(self): return '%s (%s)' % (self.meta_species, self.stratum_zone)
     
     
 
@@ -515,9 +515,11 @@ class Plot(models.Model):
 
     def save(self, *args, **kwargs):
         self.validate()
-
         pnt = self.geometry
         n = Neighborhood.objects.filter(geometry__contains=pnt)
+        sunset_zone = SunsetZone.objects.filter(geometry__contains=pnt)
+        if sunset_zone:
+          self.sunset_zone = sunset_zone[0]
         
         if n:
             oldns = self.neighborhoods
@@ -541,11 +543,15 @@ class Plot(models.Model):
                 if nhood:
                     self.neighborhood.add(nhood)
 
+        oldns = oldns or []
         if self.neighborhoods != oldns:
+            print self.neighborhoods, '!!!',oldns
             done = []
             if n: 
                 for nhood in n:
-                    if nhood.id in done: continue
+                    print nhood
+                    if nhood.id in done or str(nhood.id) in oldns:
+                      continue
                     if self.current_tree():
                         self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
                     else:
@@ -553,6 +559,7 @@ class Plot(models.Model):
                     done.append(nhood.id)
             if oldn: 
                 for nhood in oldn:
+                    print nhood,2
                     if nhood.id in done: continue
                     if self.current_tree():
                         self.current_tree().update_aggregate(AggregateNeighborhood, nhood)
@@ -705,7 +712,10 @@ class Tree(models.Model):
         #calc results and set them
 
         #filter for resource in the proper zone
-        zone = StratumZone.objects.filter(geometry__contains=self.plot.geometry)[0]
+        try:zone = StratumZone.objects.filter(geometry__contains=self.plot.geometry)[0]
+        except:
+          print 'Woah, not stratum zone containing %s with geom %s' % (self.id, self.plot.geometry.geojson)
+          return
         resource = self.species.resource.filter(stratum_zone=zone.slug)
         #resource = self.species.resource.all()
         if not resource:

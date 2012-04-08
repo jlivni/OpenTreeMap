@@ -22,7 +22,7 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 # sorl thumbnail settings
-THUMBNAIL_DEBUG = True
+THUMBNAIL_DEBUG = DEBUG
 THUMBNAIL_SUBDIR = '_thumbs'
 
 AUTH_PROFILE_MODULE = 'profiles.userprofile'
