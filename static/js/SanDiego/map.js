@@ -49,6 +49,7 @@ tm.init_base_map = function(div_id, controls){
             displayProjection: new OpenLayers.Projection("EPSG:4326"),
             controls: controls
         });
+
     }
     
 
@@ -82,6 +83,7 @@ tm.init_base_map = function(div_id, controls){
     tm.map.setBaseLayer(tm.baseLayer);
     tm.baseLayer.mapObject.setTilt(0);
     tm.aerial.mapObject.setTilt(0);
+    $('.olLayerGoogleV3.gmnoprint').hide()
 };
 
 function fav_click(evt) {
