@@ -1,0 +1,1 @@
+[{"pk": 1, "model": "treemap.benefitvalues", "fields": {"co2": 0.01, "pm10": 0.01, "area": "Unknown", "electricity": 0.01, "voc": 0.01, "ozone": 0.01, "natural_gas": 0.01, "nox": 0.01, "stormwater": 0.01, "sox": 0.01, "bvoc": 0.01}}]
