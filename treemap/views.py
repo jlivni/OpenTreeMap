@@ -1352,6 +1352,14 @@ def _build_tree_search_result(request):
              geog_obj = ns[0]
              tile_query.append("neighborhoods LIKE '%" + geog_obj.id.__str__() + "%'")
 
+    zones = '7,11,13,18,19,20,21,22,23,24'.split(',')
+    zone_criteria = [{'a' + z : z} for z in zones]
+    #for k in zone_criteria.keys():
+    #    v = request.GET.get(k,'')
+        
+
+
+
     #import pdb;pdb.set_trace()
     tree_criteria = {'project1' : '1',
                      'project2' : '2',
