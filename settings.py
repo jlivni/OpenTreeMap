@@ -8,12 +8,13 @@ sys.path.insert(0, os.path.join(PROJECT_ROOT, "apps"))
 SITE_ROOT = ''
 
 #from settings_philadelphia import *
-from settings_sandiego import *
+#from settings_sandiego import *
 #from settings_greenprint import *
 #from settings_dctreekit import *
 #from settings_sanfrancisco import *
 #from settings_greenprint import *
 #from settings_dctreekit import *
+from settings_oakland import *
 
 OTM_VERSION = "1.2"
 API_VERSION = "0.1"
