@@ -159,8 +159,8 @@ form, fieldset {
 #searchBox{
 	width:920px;
 	height:90px;
-
   margin: 0 auto;
+  margin-top:100px;
 	border-bottom:1px solid #e7eddf;
 	padding: 10px;
   position:relative;
@@ -187,9 +187,9 @@ ul#searchTitles li#searchSpecies {
 }
 ul#searchTitles li#searchLocation {
 	float:left;
-	width:120px;
+	width:500px;
 	list-style-type: none;
-	margin-left:60px;
+	margin-left:50px;
 	padding-left:0;
 }
 ul#searchBoxes {
@@ -205,6 +205,7 @@ ul#searchBoxes li#searchSpeciesBox {
 	list-style-type: none;
 }
 #searchLocationBrowse, #searchSpeciesBrowse {
+  display:none;
 	height:24px;
 	width:30px;
 	background: #e16f25;
@@ -250,17 +251,20 @@ ul#searchBoxes  li#searchJoiner {
 }
 ul#searchBoxes  li#searchLocationBox {
 	float:left;
-	width:340px;
+	width:380px;
+  margin-left:50px;
 	list-style-type: none;
 }
 ul#searchBoxes li#searchLocationBox input#location_search_input {
-	width:280px;
+	width:295px;
 	height:16px;
 	padding:5px;
 	margin:0;
 	font-size:15px;
 	color:#afafaf;
 }
+
+
 ul#searchBoxes li#searchSpeciesBox input#location_search_input {
 	width:380px;
 	padding:10px;
@@ -268,15 +272,15 @@ ul#searchBoxes li#searchSpeciesBox input#location_search_input {
 	color:#afafaf;
 }
 ul#searchBoxes  li#searchButton {
-	float:left;
-	width:135px;
+	float:right;
+	width:195px;
 	list-style-type: none;
 	text-align:right;
   margin-left:50px;
 }
 ul#searchBoxes li#searchButton .go {
 	height:30px;
-  width:135px;
+  width:195px;
 	background: #e16f25;
 	text-align:center;
 	line-height:24px;
@@ -313,7 +317,7 @@ ul#searchSuggest li#searchLocationSuggest {
 	padding-left:0;
 }
 ul#searchSuggest li#searchFilter {
-	float:left;
+	float:right;
 	width:153px;
 	list-style-type: none;
 	text-align:left;
