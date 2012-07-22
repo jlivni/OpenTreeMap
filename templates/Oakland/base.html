@@ -9,6 +9,7 @@
 
   <script type="text/javascript">
     tm_static = "{{ SITE_ROOT }}";
+    tm_site = "{{SITE}}";
   </script>
   <script type="text/javascript" src="/static/all_misc.js"></script>
   <script type="text/javascript" src="/static/jquery/jquery.jeditable.min.js"></script>
@@ -25,7 +26,6 @@
     
   {% block js_ready %}
   <script type="text/javascript">
-    tm_static = "{{ SITE_ROOT }}";
     jQuery().ready(tm.baseTemplatePageLoad);
   </script>
   {% endblock %}
@@ -53,7 +53,12 @@ s.parentNode.insertBefore(po, s);
     <li>
       {% if user.is_authenticated %}
 
-        Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b> <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a></span> <br/>{{user.reputation.reputation}} rep 
+        Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>
+        {% if user.username != 'museum' %}
+         <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> 
+        {% endif %}
+          <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a></span> 
+<br/>{{user.reputation.reputation}} rep 
       {% else %}
       <a href="/accounts/login/">Login</a> or <a href="/accounts/register/">Sign up</a> <a href="/trees/add/" class="buttomSm globalAdd">Add a tree</a>
       {% endif %}
@@ -116,7 +121,7 @@ s.parentNode.insertBefore(po, s);
           </div> 
           <div style="width:200px; height:10px;" id="diameter_slider"></div>
         </li> 
-        <li> 
+        <li class="hidden"> 
           <div class="title"> 
           <strong>Height</strong> 
           <em><span id="min_height">0</span> feet - <span id="max_height">200</span> feet</em> 
@@ -124,7 +129,7 @@ s.parentNode.insertBefore(po, s);
           <div style="width:200px; height:10px;" id="height_slider"></div>
         </li> 
 
-        <li> 
+        <li class="hidden"> 
           <div class="title"> 
           <strong>Plant Date</strong> 
           <em><span id="min_planted">1700</span> - 
@@ -140,7 +145,7 @@ s.parentNode.insertBefore(po, s);
           </div> 
           <div style="width:200px; height:10px;" id="updated_slider"></div>
         </li> 
-        <li> 
+        <li class="hidden"> 
           <div class="title"> 
           <strong>Plot Size</strong> 
           <em><span id="min_plot">0</span> feet - <span id="max_plot">15+</span> feet</em> 
@@ -152,7 +157,7 @@ s.parentNode.insertBefore(po, s);
       </div> 
       <form id="options_form" action="#" class="options"> 
         <fieldset> 
-        <div class="characteristics"> 
+        <div class="characteristics hidden"> 
           <strong>Characteristics</strong> 
           <ul> 
           <li> 
@@ -191,7 +196,7 @@ s.parentNode.insertBefore(po, s);
           </li> 
           </ul> 
         </div> 
-        <div class="project_trees">
+        <div class="project_trees hidden">
           <strong>Project trees</strong> 
           <ul> 
            <li> 
@@ -235,7 +240,7 @@ s.parentNode.insertBefore(po, s);
           </li> 
           </ul> 
         </div> 
-        <div class="plot_type"> 
+        <div class="plot_type hidden"> 
           <strong>Sunset Zones</strong> 
           <ul> 
           <li> 
@@ -284,36 +289,12 @@ s.parentNode.insertBefore(po, s);
           <strong>Missing Data</strong> 
           <ul> 
           <li> 
-            <input type="checkbox" id="missing_species" /> 
-            <label for="missing">Species</label> 
-          </li> 
-          <li> 
             <input type="checkbox" id="missing_diameter" /> 
             <label for="diameter">Trunk diameter</label> 
           </li> 
           <li> 
-            <input type="checkbox" id="missing_height" /> 
-            <label for="missing_height">Tree height</label> 
-          </li> 
-          <li> 
-            <input type="checkbox" id="missing_plot_size" /> 
-            <label for="missing_plot_size">Plot size</label> 
-          </li> 
-          <li> 
-            <input type="checkbox" id="missing_plot_type" /> 
-            <label for="missing_plot_type">Plot type</label> 
-          </li> 
-          <li> 
-            <input type="checkbox" id="missing_sidewalk" /> 
-            <label for="missing_sidewalk">Sidewalk damage</label> 
-          </li> 
-          <li> 
-            <input type="checkbox" id="missing_powerlines" /> 
-            <label for="missing_powerlines">Powerlines</label> 
-          </li> 
-          <li> 
-            <input type="checkbox" id="missing_condition" /> 
-            <label for="missing_condition">Condition</label> 
+            <input type="checkbox" id="crown_width" /> 
+            <label for="crown_width">Crown Width</label> 
           </li> 
           <li> 
             <input type="checkbox" id="missing_photos" /> 
@@ -327,12 +308,6 @@ s.parentNode.insertBefore(po, s);
         </fieldset> 
       </form> 
       </div> 
-      <div class="wrap2">
-      <div class="input-box"><strong><label for="steward">Tree Steward</label></strong><br><input id="steward" /></div>
-      <div class="input-box"><strong><label for="owner">Tree Entered By</label></strong><br><input id="owner" /></div>
-      <div class="input-box"><strong><label for="updated_by">Last Updated By</label></strong><br><input id="updated_by" /></div>
-      <div class="input-box"><strong><label for="funding">Sponsor</label></strong><br><input id="funding" /></div>
-      </div>
     </div> 
     
     <!-- end search-box -->
@@ -372,7 +347,7 @@ s.parentNode.insertBefore(po, s);
      {% endblock %}  
     
     
-    
+  {% if user.username != 'museum' %}    
      {% block global_footer %}
     <!-- Start Global footer --> 
     <div id="footer"> 
@@ -408,7 +383,7 @@ s.parentNode.insertBefore(po, s);
     </div> 
     <!-- End Global footer --> 
     {% endblock global_footer %}
-    
+  {% endif %} 
   </div>
 
 
