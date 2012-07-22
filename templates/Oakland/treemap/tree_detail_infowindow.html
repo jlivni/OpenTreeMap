@@ -87,8 +87,10 @@
 <ul id="optionList">
 	<li id="details"><a href="{% url treemap_tree_detail tree.id %}">View all details</a></li>
 	<li id="note">Tree's profile page</li>
+  {% if user.username != 'museum' %}
 	<li id="edit"><a href="{% url treemap_tree_edit tree.id %}">Edit details</a></li>
 	<li id="note">Tree's edit page</li>
+   {% endif %}
     {% if tree.s_order > 1 %}{{tree.s_order}}{% endif %}
     {% if user.is_authenticated %}
 

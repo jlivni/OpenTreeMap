@@ -16,6 +16,7 @@
                                     <li><a href="/trees/add/">Add a tree!</a></li>
                                 </ul>
                             </li>
+                          {% if user.username != 'museum' %}
                             <li id="export">
                                 <ul>
                                     <li id="title">Export options:</li>
@@ -25,6 +26,8 @@
                                     <li><a id="shp_link" href="/search/shp/">Shapefile</a></li> 
                                 </ul>
                             </li>
+                           {% endif %}
+
                         </ul>
                     </div>
                 </div>
@@ -34,50 +37,9 @@
     
 
         {% block top_left_panel %}
-        {% comment %}
-          - the following summary variables are available to the template -
-            annual_air_quality_improvement
-            annual_stormwater_management
-            annual_natural_gas_conserved
-            last_updated
-            distinct_species
-            total_co2_stored
-            annual_co2_sequestered
-            annual_electricity_conserved
-            total_trees
-        {% endcomment %}
         
             <div id="results_aside" class="aside">
-            <h2>Yearly Eco Impact</h2>
-            <div id="summary_subset">Selected trees in <span id="summary_subset_val">..</span></div>
-              <!-- <strong class="sub-title">Based on select data. <a href="/trees/add/">Add a tree &raquo;</a></strong> -->
-            
-            <div id="results_wrapper" style="display:none;">
-                <ul id="messageStats">
-                    <li class="impact" id="cost">Total Benefits</li>
-                    <li class="impactStat">$<span id="benefits_total"></span><span class="subnote"> saved</span></li>
-                </ul>
-                <ul id="messageStats">
-                    <li class="impact" id="gas">Greenhouse Gas Benefits</li>
-                    <li class="impactStat"><span id="annual_co2_reduced"> </span> lbs CO2 <span class="subnote">reduced</span></li>
-                    <li class="impactStat">$<span id="benefits_greenhouse"> </span><span class="subnote"> saved</span></li>
-                </ul>
-                <ul id="messageStats">
-                    <li class="impact" id="water">Water Benefits</li>
-                    <li class="impactStat"><span id="annual_stormwater_management"></span> gallons <span class="subnote">conserved</span></li>
-                    <li class="impactStat">$<span id="benefits_water"> </span><span class="subnote"> saved</span></li>
-                </ul>
-                <ul id="messageStats">
-                    <li class="impact" id="energy">Energy Benefits</li>
-                    <li class="impactStat"><span id="annual_energy_conserved"> </span> kWh <span class="subnote">conserved</span></li>
-                    <li class="impactStat">$<span id="benefits_energy"> </span><span class="subnote"> saved</span></li>
-                </ul>
-                <ul id="messageStats">
-                    <li class="impact" id="air">Air Quality Benefits</li>
-                    <li class="impactStat"><span id="annual_air_quality_improvement"></span> lbs pollutants <span class="subnote">reduced</span></li>
-                    <li class="impactStat">$<span id="benefits_air_quality"> </span><span class="subnote"> saved</span></li>
-                </ul>
-            </div>
+  static content goes here
             </div>
         
         {% endblock %}
