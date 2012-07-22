@@ -8,6 +8,7 @@ TILECACHE_URL = 'sdtrees.beardedmaps.com/tilecache/tilecache.py/'
 TILECACHE_LAYER = 'trees'
 SITE_ROOT = ''
 STATIC_URL = '/static/'
+SITE = 'Oakland'
 
 
 SITE_LOCATION = 'Oakland'
@@ -68,14 +69,14 @@ EMAIL_PORT = 587
 #http://sftrees.securemaps.com/ticket/236
 CONTACT_EMAILS = ['joshlivni@gmail.com']#,'admins@urbanforestmap.org']
 
-CACHE_BACKEND = 'file:///tmp/sandiego_cache'
+CACHE_BACKEND = 'file:///tmp/oakland_cache'
 
 DATABASES = {
     'default': {
-        'NAME': 'sdtrees',
+        'NAME': 'oaktrees',
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'USER': 'sftrees',
-        'PASSWORD': 'sftrees05',
+        'USER': 'oaktrees',
+        'PASSWORD': 'oaktrees07',
         'PORT': '5432',
     }
 }
@@ -105,7 +106,7 @@ ADMIN_MEDIA_PREFIX = '/admin_media/'
 ADMIN_MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'admin_media/')
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'insecure'
+SECRET_KEY = 'insecurxe'
 
 TEMPLATE_DIRS = (
     os.path.join(os.path.dirname(__file__), 'templates/Oakland'),

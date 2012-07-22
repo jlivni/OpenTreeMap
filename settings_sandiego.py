@@ -7,6 +7,7 @@ GEOSERVER_GEO_STYLE = ''
 TILECACHE_URL = 'sdtrees.beardedmaps.com/tilecache/tilecache.py/'
 TILECACHE_LAYER = 'trees'
 SITE_ROOT = ''
+SITE = 'San Diego'
 STATIC_URL = '/static/'
 
 

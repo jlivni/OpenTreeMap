@@ -6,18 +6,18 @@ var tm_urls = {
     qs_tile_url : '/qs_tiles/1.0.0/foo/' // layername is pulled from request.GET, can remove 'foo' eventually
 };
 
-tm.map_center_lon = -117.13;
-tm.map_center_lat = 32.75;
+tm.map_center_lon = -122.2;
+tm.map_center_lat = 37.8;
 tm.start_zoom = 12;
 tm.add_start_zoom = 11;
 tm.add_zoom = 18;
 tm.edit_zoom = 18;
-tm.initial_location_string = "San Diego County";
+tm.initial_location_string = "Oakland";
 tm.initial_species_string = "All trees";
 tm.popup_minSize = new OpenLayers.Size(450,200);
 tm.popup_maxSize = new OpenLayers.Size(450,450);
 
-tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(32.0,-118.0), new google.maps.LatLng(33.0,-116.0));
+tm.google_bounds = new google.maps.LatLngBounds(new google.maps.LatLng(36.0,-123.0), new google.maps.LatLng(39.0,-121.0));
 tm.geo_layer = "sf:sf_treemap_tree"
 tm.geo_layer_style = "sanfrancisco_tree_highlight"
 tm.panoAddressControl = false;
@@ -67,7 +67,7 @@ tm.init_base_map = function(div_id, controls){
     tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 
         tm_urls.tc_url,
         {
-            layername: 'SanDiego',
+            layername: 'Oakland',
             type: 'png',
             isBaseLayer: false,
             wrapDateLine: true,

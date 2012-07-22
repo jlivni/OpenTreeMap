@@ -160,7 +160,7 @@ LAYER
     TYPE POLYGON
     #TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION " dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION " dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     DATA 'geometry from (select * from treemap_neighborhood) as foo using unique id using srid=4326'
       CLASS
         #STYLE
@@ -183,7 +183,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION "dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     DATA "geometry from (select * from treemap_plot where geocoded_accuracy >= 7 or geocoded_accuracy is null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -267,7 +267,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION "dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     DATA "geometry from (select * from treemap_plot where geocoded_accuracy >= 8 or geocoded_accuracy is null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -350,7 +350,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION "dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     DATA "geometry from (select * from treemap_plot where geocoded_accuracy >= 8 or geocoded_accuracy is null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -435,7 +435,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION "dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     # dane - not sure why ilike paved is in there, so commenting
     #DATA "geometry from (select * from treemap_plot where (geocoded_accuracy >= 8 or geocoded_accuracy is null) and (species_id is null) and  orig_species not ilike '%paved%' ) as foo using unique id using srid=4326"
     DATA "geometry from (select * from treemap_plot where (geocoded_accuracy >= 8 or geocoded_accuracy is null)and species_id is null ) as foo using unique id using srid=4326"
@@ -508,7 +508,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION "dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     DATA "geometry from (select * from treemap_plot where (geocoded_accuracy >= 8 or geocoded_accuracy is null) and species_id is not null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -578,7 +578,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION "dbname=oaktrees password=oaktrees07 user=oaktrees port=5432"
     DATA 'geometry from (select * from treemap_tree where species_id = %SPECIES_ID%) as foo using unique id using srid=4326'
     #CLASSITEM 'species_id'
       CLASS 

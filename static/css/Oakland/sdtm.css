@@ -1,3 +1,4 @@
+
 html {
 	background:#fff;
 }
@@ -171,8 +172,8 @@ form, fieldset {
 	position: relative;
 }
 ul#searchTitles {
-        color:#d9541e;
-        font-size:2em;
+  color:#fff;
+  font-size:2em;
 	display: inline;
 	margin-top:18px;
 	margin-bottom:0;
@@ -3757,4 +3758,8 @@ div.clearer {
 
 ui-state-active, .ui-widget-content .ui-state-active {
   color:purple;
+}
+
+.hidden{
+  display:none;
 }

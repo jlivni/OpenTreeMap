@@ -19,7 +19,7 @@ from settings_oakland import *
 OTM_VERSION = "1.2"
 API_VERSION = "0.1"
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 # sorl thumbnail settings
