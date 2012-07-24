@@ -610,6 +610,7 @@ class Tree(models.Model):
     orig_species = models.CharField(max_length=256, null=True, blank=True)
     dbh = models.FloatField(null=True, blank=True) #gets auto-set on save
     height = models.FloatField(null=True, blank=True)
+    crown_width = models.FloatField(null=True, blank=True)
     canopy_height = models.FloatField(null=True, blank=True)
     date_planted = models.DateField(null=True, blank=True) 
     date_removed = models.DateField(null=True, blank=True)

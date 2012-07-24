@@ -37,7 +37,7 @@ class TreeAddForm(forms.Form):
     species_name = forms.CharField(required=False, initial="Enter a Species Name")
     species_id = forms.CharField(widget=forms.HiddenInput, required=False)
     dbh = forms.FloatField(required=False, label="Trunk size")
-    crown = forms.FloatField(required=False, label="Crown Diameter")
+    crown_width = forms.FloatField(required=False, label="Crown Diameter")
     dbh_type = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=[('diameter', 'Diameter'), ('circumference', 'Circumference')])
     height = forms.FloatField(required=False, label="Tree height")
     canopy_height = forms.IntegerField(required=False)
@@ -144,6 +144,7 @@ class TreeAddForm(forms.Form):
         height = self.cleaned_data.get('height')
         canopy_height = self.cleaned_data.get('canopy_height')
         dbh = self.cleaned_data.get('dbh')
+        crown_width = self.cleaned_data.get('crown_width')
         dbh_type = self.cleaned_data.get('dbh_type')
         condition = self.cleaned_data.get('condition')
         canopy_condition = self.cleaned_data.get('canopy_condition')
@@ -154,6 +155,8 @@ class TreeAddForm(forms.Form):
             if spp:
               new_tree.species=spp[0]
 
+        if crown_width:
+            new_tree.crown_width = crown_width
         if height:
             new_tree.height = height
         if canopy_height:

@@ -3,7 +3,6 @@
 {% block body_load %}class="contact"{% endblock %}
 
 {% block tophead %}
-  <script src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2&mkt=en-us"></script>
   <script type="text/javascript" src="/static/openlayers/proj4js-compressed.js"></script>
   <script type="text/javascript" src="/static/openlayers/defs/EPSG102100.js"></script>
   <script type="text/javascript" src="/static/openlayers/defs/EPSG4326.js"></script>
@@ -148,11 +147,20 @@
           <label class="required steps">Step 4 </label>
           <span class="value"><a href="javascript:void(0);" id="opt_field_toggle">Enter Other Optional Data</a></span>
             <div id="opt_field_group">
+
+                <span class="small">Enter Crown width in inches.  Enter only a number.
+                  {%for e in form.crown_width.errors %}<span class="smError">{{e}}</span>{% endfor %}
+                </span>
+                <label class="opt_fields">{{form.crown_width.label}}</label>{{ form.crown_width }}
+                <div class="clearLeft"></div>
+
                 <span class="small">Enter tree height in feet.  Enter only a number.
                   {%for e in form.height.errors %}<span class="smError">{{e}}</span>{% endfor %}
                 </span>
                 <label class="opt_fields">{{form.height.label}}</label>{{ form.height }}
                 <div class="clearLeft"></div>
+
+
                 <span class="small">
                   <a href="http://www.sandiegotreemap.org/resources/#plottype"><br>More info on these options</a>
                 </span>
