@@ -39,8 +39,18 @@
           }
         });
         jQuery("#id_edit_address_city").focus(function() {
-          if(jQuery("#id_edit_address_city")[0].value == "Enter a City") {
+          if(jQuery("#id_edit_address_city")[0].value == "Latitude") {
             jQuery("#id_edit_address_city")[0].value = "";
+          }
+        });
+        jQuery("#id_edit_latitude").focus(function() {
+          if(jQuery("#id_edit_latitude")[0].value == "Latitude") {
+            jQuery("#id_edit_latitude")[0].value = "";
+          }
+        });
+        jQuery("#id_edit_longitude").focus(function() {
+          if(jQuery("#id_edit_longitude")[0].value == "Longitude") {
+            jQuery("#id_edit_longitude")[0].value = "";
           }
         });
         jQuery("#id_species_name").focus(function() {
@@ -101,6 +111,8 @@
     </div>
     <div id="step1">
     {{ form.edit_address_city }}
+    &nbsp;{{ form.edit_latitude }}
+    {{ form.edit_longitude }}
   <a href="javascript:void(0)" id="update_map" class="buttonMed">Show on Map</a>
   </div>
 
