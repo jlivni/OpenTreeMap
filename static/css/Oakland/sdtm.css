@@ -83,7 +83,8 @@ form, fieldset {
 .buttonMed {
 	font-size: 17px;
     border:2px solid #d9541e;
-    background: #fff url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;    	
+    /*background: #fff url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;    	*/
+  background:#e16f25;
 	height: 30px;
 	line-height: 24px;
 	padding-bottom: 3px;
@@ -3517,7 +3518,8 @@ padding: 15px 0 0 0;
 	clear:both;
 	margin-left:210px;
 	height:26px;
-	background: #fff url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;
+	/*background: #fff url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;*/
+  background:#e16f25;
 	border:2px solid #d9541e;
 	text-align:center;
 	line-height:18px;

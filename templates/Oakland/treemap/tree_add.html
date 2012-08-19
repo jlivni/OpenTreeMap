@@ -53,11 +53,6 @@
             jQuery("#id_edit_longitude")[0].value = "";
           }
         });
-        jQuery("#id_species_name").focus(function() {
-          if(jQuery("#id_species_name")[0].value == "Enter a Species Name") {
-            jQuery("#id_species_name")[0].value = "";
-          }
-        });
         jQuery("#opt_field_group input").focus(function() {
           if(this.value == "inches" || this.value == "feet") {
             this.value = "";
@@ -91,7 +86,7 @@
 {% endif %}
 <div id="register" class="add">
 
-    <h1>Add a New Tree <span class="note"></span></h1>
+    <h1>Add a Coast Live Oak found in the East Bay<span class="note"></span></h1>
 
     {% if form.errors %}
     <div id="genError"><b>Oops!</b> There was a problem.<br />
@@ -139,10 +134,9 @@
 
       <div class="clearLeft" id="step3">
           <label class="required steps">Step 3 </label>
-          <span class="value"><a href="javascript:void(0);" id="opt_field_toggle">Enter Data Required for Calculating Eco Benefits (optional)</a></span>
+          <span class="value"><a href="javascript:void(0);" id="opt_field_toggle">Enter Other Data (optional)</a></span>
             <div id="opt_field_group">
                 <span class="small"><a id="treekey" href="/resources#howto" target="_blank">Not sure what kind of tree it is?</a></span>
-                <label class="opt_fields">{{form.species_name.label}}</label>{{ form.species_name }}
                 <div class="clearLeft"></div>
                 <span class="small">Enter trunk size 54" aboveground in inches (number only). 
                   <a href="http://www.sandiegotreemap.org/resources/#howto"><br>More Info on Measuring</a>
@@ -153,12 +147,6 @@
                 <label class="opt_fields"> </label><div id="dbh_type">{{ form.dbh_type }}</div>
                 <div class="clearLeft"></div>
             </div>
-            <div class="clearLeft"></div>
-      </div>
-      <div class="clearLeft" id="step4">
-          <label class="required steps">Step 4 </label>
-          <span class="value"><a href="javascript:void(0);" id="opt_field_toggle">Enter Other Optional Data</a></span>
-            <div id="opt_field_group">
 
                 <span class="small">Enter Crown width in inches.  Enter only a number.
                   {%for e in form.crown_width.errors %}<span class="smError">{{e}}</span>{% endfor %}
@@ -166,44 +154,7 @@
                 <label class="opt_fields">{{form.crown_width.label}}</label>{{ form.crown_width }}
                 <div class="clearLeft"></div>
 
-                <span class="small">Enter tree height in feet.  Enter only a number.
-                  {%for e in form.height.errors %}<span class="smError">{{e}}</span>{% endfor %}
-                </span>
-                <label class="opt_fields">{{form.height.label}}</label>{{ form.height }}
-                <div class="clearLeft"></div>
-
-
-                <span class="small">
-                  <a href="http://www.sandiegotreemap.org/resources/#plottype"><br>More info on these options</a>
-                </span>
-                <label class="opt_fields">Where is the tree planted?</label>{{ form.plot_type }}
-                <div class="clearLeft"></div>
-
-                  
-                <span class="small">
-                  <a href="http://www.sandiegotreemap.org/resources/#plotsize"><br>More info on how to measure</a>
-                </span>
-                <label class="opt_fields">{{form.plot_length.label}}</label>{{ form.plot_length }}{{ form.plot_length_in }}
-                <div class="clearLeft"></div>
-                <label class="opt_fields">{{form.plot_width.label}}</label>{{ form.plot_width }}{{ form.plot_width_in }}
-                <div class="clearLeft"></div>
-                <label class="opt_fields" id="power_lines">Is there a powerline overhead?</label>{{ form.power_lines }}
-                <div class="clearLeft"></div>
-
-                <span class="small">
-                  <a href="http://www.sandiegotreemap.org/resources/#condition"><br>More info on these options</a>
-                </span>
-                <label class="opt_fields">What is the tree's condition?</label>{{ form.condition }}
-                <div class="clearLeft"></div>
-                <label class="opt_fields">{{form.status.label}}</label>{{ form.status }}
-                <div class="clearLeft"></div>
-            </div>
-            <div class="clearLeft"></div>
-      </div>
-      <div class="clearLeft" id="step5">
-        <label class="required steps">Step 5</label>
-            <span class="value">After I add this tree... </span>
-        <div class="clearLeft">
+        <div class="clearLeft" style"display:none;">
                 {{ form.target }} 
             </div>
             <div class="clearLeft"></div>
