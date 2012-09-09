@@ -551,6 +551,7 @@ var tm = {
     },
     
     update_add_address: function(ll, full_address, city, zip) {
+console.log(ll, full_address, city, zip)
         if ($("#geocode_address")) {
             $("#geocode_address").html("<b>Address Found: </b><br>" + full_address);
         }
@@ -628,47 +629,7 @@ var tm = {
                 }
             }
         });
-        jQuery('#id_edit_address_city').keydown(function(evt){
-            if (evt.keyCode == 13) {                
-                evt.preventDefault();
-                evt.stopPropagation();
-                jQuery('#update_map').click();
-            }
-        });
         
-        jQuery('#update_map').click(function(evt) {
-            var address = jQuery('#id_edit_address_street').val();
-            var city = jQuery('#id_edit_address_city').val();
-            if (city == "Enter a City") {
-               city = ""
-            }
-            if (!address || address == "Enter an Address or Intersection") {return;}
-            geo_address = address + " " + city
-            tm.geocode(geo_address, function (lat, lng, place) {
-                var olPoint = new OpenLayers.LonLat(lng, lat);
-                var zoom = tm.add_zoom;
-                if (tm.map.getZoom() > tm.add_zoom) {zoom = tm.map.getZoom();}
-                tm.map.setCenter(new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
-                
-                if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
-                if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
-                
-                tm.load_nearby_trees(olPoint);
-                tm.add_new_tree_marker(olPoint, true);
-                
-                tm.drag_control.activate();
-                
-                jQuery('#id_lat').val(olPoint.lat);
-                jQuery('#id_lon').val(olPoint.lon);
-                jQuery('#id_geocode_address').val(place)
-                
-                jQuery('#update_map').html("Update Map");
-                jQuery("#mapHolder").show();
-                jQuery("#calloutContainer").show();
-                tm.trackEvent('Add', 'View Map');
-            });
-            
-        });
     },
         
     //initializes map on the profile page; shows just favorited trees
