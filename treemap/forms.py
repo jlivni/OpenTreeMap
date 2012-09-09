@@ -30,9 +30,9 @@ class TreeEditPhotoForm(forms.ModelForm):
 class TreeAddForm(forms.Form):
     edit_address_street = forms.CharField(max_length=200, required=True, initial="Enter an Address or Intersection")
     geocode_address = forms.CharField(widget=forms.HiddenInput, max_length=255, required=True)
-    edit_address_city = forms.CharField(max_length=200, required=False, initial="Enter a City")
-    edit_latitude = forms.CharField(max_length=200, required=False, initial="Latitude")
-    edit_longitude = forms.CharField(max_length=200, required=False, initial="Longitude")
+    edit_address_city = forms.CharField(max_length=100, required=False, initial="Enter a City")
+    edit_latitude = forms.CharField(max_length=100, required=False, initial="Latitude")
+    edit_longitude = forms.CharField(max_length=100, required=False, initial="Longitude")
     edit_address_zip = USZipCodeField(widget=forms.HiddenInput, required=False)
     lat = forms.FloatField(widget=forms.HiddenInput,required=True)
     lon = forms.FloatField(widget=forms.HiddenInput,required=True)

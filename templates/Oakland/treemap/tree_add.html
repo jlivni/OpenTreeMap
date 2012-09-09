@@ -7,7 +7,7 @@
   <script type="text/javascript" src="/static/openlayers/defs/EPSG102100.js"></script>
   <script type="text/javascript" src="/static/openlayers/defs/EPSG4326.js"></script>
   <script type="text/javascript" src="/static/openlayers/OpenLayers.js"></script>
-  <script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=false"></script>
+  <script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=false&libraries=places"></script>
 
 {% endblock %}
 
@@ -16,6 +16,7 @@
 {% block extrahead %}
  <style type="text/css">
     .smError {color:red; font-weight:bold;}
+    #id_edit_address_city{display:none;}
   </style>
 <script type="text/javascript" src="/static/js/map.js"></script>
     <script type="text/javascript">
@@ -33,6 +34,7 @@
         jQuery("#addTree").submit(function(evt) {
           tm.trackEvent("Add", "Add Tree");
         });
+  /*
         jQuery("#id_edit_address_street").focus(function() {
           if(jQuery("#id_edit_address_street")[0].value == "Enter an Address or Intersection") {
             jQuery("#id_edit_address_street")[0].value = "";
@@ -43,6 +45,26 @@
             jQuery("#id_edit_address_city")[0].value = "";
           }
         });
+
+*/
+      //hack css
+      var input = $('#id_edit_latitude').css('width','100px');
+      var input = $('#id_edit_longitude').css('width','100px');
+
+      var input = $('#id_edit_address_street')[0];
+      input.value = '';
+      var autocomplete = new google.maps.places.Autocomplete(input);
+      autocomplete.setBounds(new google.maps.LatLngBounds(
+        new google.maps.LatLng(37.6,-122.4),
+        new google.maps.LatLng(38.0,-122.0)
+      ));
+/*
+      google.maps.event.addListener(autocomplete, 'place_changed', function() {
+          var place = autocomplete.getPlace();
+          var loc = place.geometry.location;
+          console.log(place)
+      })
+*/
         jQuery("#id_edit_latitude").focus(function() {
           if(jQuery("#id_edit_latitude")[0].value == "Latitude") {
             jQuery("#id_edit_latitude")[0].value = "";

@@ -61,19 +61,20 @@ form, fieldset {
 }
 #header {
 	width:940px;
-	background: #fff url(/static/images/es/bg_header.png) no-repeat right top;
+	background: #fff url(/static/images/es/bg_header_orange.png) no-repeat right top;
 	overflow:hidden;
 	margin:0 auto;
 	position:relative;
+  height:210px;
 }
 .logo {
 	width: 440px;
-	height: 62px;
+	height: 44px;
 	text-indent:-9999px;
 	overflow:hidden;
 	float:left;
 	background:url(/static/images/es/transparent.png) no-repeat;
-	margin-top:40px;
+	margin-top:45px;
 }
 .logo a {
 	display:block;
@@ -163,8 +164,6 @@ form, fieldset {
 	height:90px;
   margin: 0 auto;
   margin-top:100px;
-	border-bottom:1px solid #e7eddf;
-	padding: 10px;
   position:relative;
 }
 #searchBoxContainer {
@@ -191,8 +190,8 @@ ul#searchTitles li#searchLocation {
 	float:left;
 	width:500px;
 	list-style-type: none;
-	margin-left:50px;
-	padding-left:0;
+	margin-left:30px;
+	margin-top:-5px;
 }
 ul#searchBoxes {
 	float:left;
@@ -261,7 +260,7 @@ ul#searchBoxes li#searchLocationBox input#location_search_input {
 	width:295px;
 	height:16px;
 	padding:5px;
-	margin:0;
+	margin-left:-20px;
 	font-size:15px;
 	color:#afafaf;
 }
@@ -301,8 +300,13 @@ ul#searchBoxes li#searchButton .go:hover {
 ul#searchSuggest {
 	clear:both;
 	display: inline;
-	color:#666;
+	color:#fff;
 }
+
+ul#searchSuggest a { 
+  color:#fff;
+}
+
 ul#searchSuggest li#searchSpeciesSuggest {
 	float:left;
 	width:305px;
@@ -315,7 +319,7 @@ ul#searchSuggest li#searchLocationSuggest {
 	float:left;
 	width:385px;
 	list-style-type: none;
-	margin-left:60px;
+	margin-left:30px;
 	padding-left:0;
 }
 ul#searchSuggest li#searchFilter {
