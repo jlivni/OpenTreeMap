@@ -624,9 +624,6 @@ console.log(ll, full_address, city, zip)
             if (evt.keyCode == 13) {                
                 evt.preventDefault();
                 evt.stopPropagation();
-                if (jQuery('#id_edit_address_street').val() != "") {
-                    jQuery('#update_map').click();
-                }
             }
         });
         

@@ -97,21 +97,21 @@
         </td>
     </tr>   
 	<tr>
-    	<td class="col1 activeEditRowLabel">Alerts</td>
-        <td colspan="2" class="activeEditRowValue" id="edit_hazards"><span id="hazardCount">{{ tree.treealert_set.count }} </span> reported <span class="viewAddSep"><a href="#" onclick="$('#hazardList').show();tm.newHazard();return false;" class="viewAdd">{% if field.value.count > 0 %}View and add alerts{% else %}Add an alert{% endif %}</a></span></td>
+    	<td class="col1 activeEditRowLabel">Animal Sightings</td>
+        <td colspan="2" class="activeEditRowValue" id="edit_faunas"><span id="faunaCount">{{ tree.treefauna_set.count }} </span> reported <span class="viewAddSep"><a href="#" onclick="$('#faunaList').show();tm.newFauna();return false;" class="viewAdd">{% if field.value.count > 0 %}View and add animals{% else %}Add an animal{% endif %}</a></span></td>
     </tr>
     <tr>
         <td colspan="3" id="dropSpace">
-            <div id="hazardList">
-            <table id="hazardTable" width="100%">
+            <div id="faunaList">
+            <table id="faunaTable" width="100%">
              <tr>
-               <td><b>Alert type</b></td>
+               <td><b>Animal Sighting type</b></td>
                <td><b>Date</b></td>
                <td><b>Resolved?</b></td>
                <td></td>
              </tr>
-            {% if tree.treealert_set.count > 0 %}
-                {% for h in tree.treealert_set.all %}
+            {% if tree.treefauna_set.count > 0 %}
+                {% for h in tree.treefauna_set.all %}
                   <tr>
                     <td>
                       {{ h.get_key_display }}
@@ -123,7 +123,7 @@
                       {{ h.solved|default:"no" }}
                     </td>
                     <td>
-                      <a href="#" onclick="tm.deleteHazard('{{h.key}}', '{{h.value}}', this); return false;">Delete</a>
+                      <a href="#" onclick="tm.deleteFauna('{{h.key}}', '{{h.value}}', this); return false;">Delete</a>
                     </td>  
                   </tr>  
                 {% endfor %}
@@ -131,7 +131,7 @@
             </table>
             </div>
           <script>
-          $("#hazardList").hide();
+          $("#faunaList").hide();
           </script>
         </td>
     </tr>  

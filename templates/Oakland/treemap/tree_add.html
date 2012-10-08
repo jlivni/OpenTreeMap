@@ -20,6 +20,7 @@
   </style>
 <script type="text/javascript" src="/static/js/map.js"></script>
     <script type="text/javascript">
+    var museum_user_confirmed = false;
     jQuery().ready(function() {
         tm.init_add_map();
         //jQuery("#mapHolder").hide();
@@ -33,20 +34,23 @@
         });
         jQuery("#addTree").submit(function(evt) {
           tm.trackEvent("Add", "Add Tree");
-        });
-  /*
-        jQuery("#id_edit_address_street").focus(function() {
-          if(jQuery("#id_edit_address_street")[0].value == "Enter an Address or Intersection") {
-            jQuery("#id_edit_address_street")[0].value = "";
-          }
-        });
-        jQuery("#id_edit_address_city").focus(function() {
-          if(jQuery("#id_edit_address_city")[0].value == "Latitude") {
-            jQuery("#id_edit_address_city")[0].value = "";
-          }
-        });
+          //if museum user, double check they want to add a tree
+          if (1) {
+             if (museum_user_confirmed) {
+               return true;
+             } else {
 
-*/
+              $("#submitButton").fadeOut(500)
+                .delay(600)
+                .queue(function(n) {
+                    $(this).html("Yes, Really, I want to Add this tree to the Database!"),
+                    n();
+                }).fadeIn(500);
+             museum_user_confirmed = true;
+             return false;
+            }
+          } 
+        });
       //hack css
       var input = $('#id_edit_latitude').css('width','100px');
       var input = $('#id_edit_longitude').css('width','100px');
@@ -55,8 +59,8 @@
       input.value = '';
       var autocomplete = new google.maps.places.Autocomplete(input);
       autocomplete.setBounds(new google.maps.LatLngBounds(
-        new google.maps.LatLng(37.6,-122.4),
-        new google.maps.LatLng(38.0,-122.0)
+        new google.maps.LatLng(37.75,-122.33),
+        new google.maps.LatLng(37.88,-122.15)
       ));
 
       google.maps.event.addListener(autocomplete, 'place_changed', function() {
@@ -89,14 +93,33 @@
 
         jQuery("#id_edit_latitude").focus(function() {
           if(jQuery("#id_edit_latitude")[0].value == "Latitude") {
-            jQuery("#id_edit_latitude")[0].value = "";
-          }
-        });
-        jQuery("#id_edit_longitude").focus(function() {
-          if(jQuery("#id_edit_longitude")[0].value == "Longitude") {
-            jQuery("#id_edit_longitude")[0].value = "";
-          }
-        });
+              jQuery("#id_edit_latitude")[0].value = "";
+            }
+          })
+          .change(function(e) {
+            var lat = $(this).val();
+            if (lat < 39 && lat > 35) {
+              $('#id_lat').val(lat);
+            } else {
+              alert(lat + ': invalid latitude');
+              $(this).val('');
+            }
+          })
+        jQuery("#id_edit_longitude")
+          .focus(function() {
+            if(jQuery("#id_edit_longitude")[0].value == "Longitude") {
+              jQuery("#id_edit_longitude")[0].value = "";
+            }
+          })
+          .change(function(e) {
+            var lng = $(this).val();
+            if (lng < -120 && lng > -125) {
+              $('#id_lon').val(lng);
+            } else {
+              alert(lng + ': invalid longitude');
+              $(this).val('');
+            }
+          })
         jQuery("#opt_field_group input").focus(function() {
           if(this.value == "inches" || this.value == "feet") {
             this.value = "";
@@ -198,7 +221,7 @@
                 {{ form.target }} 
             </div>
             <div class="clearLeft"></div>
-            <button type="submit" class="buttonMed">Add this Tree!</button>
+            <button type="submit" class="buttonMed" id="submitButton">Add this Tree!</button>
       </div>
 
   </div>

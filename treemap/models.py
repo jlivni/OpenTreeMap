@@ -43,14 +43,15 @@ status_choices = (
     )
     
 choices_choices = ( 
-    ('factoid', 'Factoid'), 
-    ('plot_type', 'Plot'), 
-    ('alert', 'Alert'), 
-    ('action', 'Action'), 
-    ('local', 'Local'),
-    ('sidewalk_damage', 'Sidewalk Damage'),
-    ('condition', 'Condition'),
-    ('canopy_condition', 'Canopy Condition')
+    #('factoid', 'Factoid'), 
+    #('plot_type', 'Plot'), 
+    #('alert', 'Alert'), 
+    #('action', 'Action'), 
+    #('local', 'Local'),
+    #('sidewalk_damage', 'Sidewalk Damage'),
+    #('condition', 'Condition'),
+    #('canopy_condition', 'Canopy Condition'),
+    ('fauna','Animal Sightings'),
 )
 watch_choices = {
     "height_dbh": "Height to DBH Ratio",
@@ -287,8 +288,8 @@ class Resource(models.Model):
         #print 'idx,interp',index, interp
         results = {}
         for resource in resource_list:
-            #print 'resrc' , resource
             fname = "%s_dbh" % resource.lower().replace(' ','_')
+            print 'resrc' , resource, fname
             #get two values of interest - TODO FIX for sketchy eval
             dbhs= (eval(getattr(self, fname)))
             if len(dbhs) > 9:
@@ -676,6 +677,9 @@ class Tree(models.Model):
     def get_action_count(self):
         return len(self.treeaction_set.all())
 
+    def get_fauna_count(self):
+        return len(self.treefauna_set.all())
+        
     def get_alert_count(self):
         return len(self.treealert_set.all())
         
@@ -899,6 +903,10 @@ class Tree(models.Model):
         if self.height > self.species.v_max_height:
             return self.height + " (species max: " + self.species.v_max_height + ")"
         return None
+
+    def is_heritage(self):
+      if self.dbh > 28.6:
+        return True
         
     def __unicode__(self): 
         if self.species:
@@ -1041,6 +1049,10 @@ class TreeAlert(TreeItem):
     value = models.DateTimeField()
     solved = models.BooleanField(default=False)    
     
+class TreeFauna(TreeItem): 
+    key = models.CharField(max_length=256, choices=Choices().get_field_choices('fauna'))
+    value = models.DateTimeField()
+      
     
 class TreeAction(TreeItem): 
     key = models.CharField(max_length=256, choices=Choices().get_field_choices('action'))
