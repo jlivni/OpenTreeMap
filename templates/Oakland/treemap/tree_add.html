@@ -26,12 +26,6 @@
         //jQuery("#mapHolder").hide();
         jQuery("#calloutContainer").hide();
         //jQuery("#opt_field_group").hide();
-        jQuery.getJSON('/species/json/', function(species){
-            tm.speciesData = species;
-            tm.setupAutoComplete($('#id_species_name')).result(function(event, item) {
-                $("#id_species_id").val(item.symbol).change();
-            });
-        });
         jQuery("#addTree").submit(function(evt) {
           tm.trackEvent("Add", "Add Tree");
           //if museum user, double check they want to add a tree
@@ -228,8 +222,7 @@
 
 
   <!-- Hidden fields -->
-
-    {{ form.species_id }}
+    <input type="hidden" name="species_id" id="id_species_id" value="QUAG"/>
     {{ form.lat }}
     {{ form.lon }}
     {{ form.edit_address_zip }}
