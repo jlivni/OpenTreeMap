@@ -55,47 +55,7 @@
         	<th scope="col" colspan="4">Status</th>
         </tr>
     </thead>
-	<tr>
-    	<td class="col1 activeEditRowLabel">Tree condition</td>
-        <td class="activeEditRowValue" id="edit_condition">{{ tree.get_condition_display|default:"Click to edit"  }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_condition').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("condition", "Tree", {{tree.id}}, {'type':'select', 'loadurl':'../trees/{{tree.id}}/edit/choices/condition/' });</script>
-    </tr>
-	    <tr>
-        	<td class="col1 activeEditRowLabel">Actions</td>
-            <td colspan="2" class="activeEditRowValue" id="edit_actions"><span id="actionCount">{{ tree.treeaction_set.count }} </span> actions <span class="viewAddSep"><a href="#" onclick="$('#actionList').show();tm.newAction(); return false" class="viewAdd">{% if field.value.count > 0 %}View and add actions{% else %}Add an action{% endif %}</a></span></td>
-        </tr>
-        <tr>
-        <td colspan="3" id="dropSpace">
-            <div id="actionList">
-            <table id="actionTable" width="100%">
-             <tr>
-               <td><b>Action type</b></td>
-               <td><b>Date</b></td>
-               <td></td>
-             </tr>  
-             {% if tree.treeaction_set.count > 0 %}
-                {% for h in tree.treeaction_set.all %}
-                  <tr>
-                    <td>
-                      {{ h.get_key_display }}
-                    </td>
-                    <td>
-                        {{ h.value|date }}
-                    </td>
-                    <td>
-                      <a href="#" onclick="tm.deleteAction('{{h.key}}', '{{h.value}}', this); return false;">Delete</a>
-                    </td>  
-                  </tr>  
-                {% endfor %}
-            {% endif %} 
-            </table>
-            </div>
-          <script>
-          $("#actionList").hide();
-          </script>
-        </td>
-    </tr>   
+
 	<tr>
     	<td class="col1 activeEditRowLabel">Animal Sightings</td>
         <td colspan="2" class="activeEditRowValue" id="edit_faunas"><span id="faunaCount">{{ tree.treefauna_set.count }} </span> reported <span class="viewAddSep"><a href="#" onclick="$('#faunaList').show();tm.newFauna();return false;" class="viewAdd">{% if field.value.count > 0 %}View and add animals{% else %}Add an animal{% endif %}</a></span></td>
@@ -139,6 +99,8 @@
     <input id="id_geometry" type="hidden"/>
     </tbody>
 </table>
+
+
 
 {% if perms.treemap.delete_tree %}
 <table class="box-table-a">
