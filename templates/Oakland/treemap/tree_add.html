@@ -21,6 +21,19 @@
 <script type="text/javascript" src="/static/js/map.js"></script>
     <script type="text/javascript">
     var museum_user_confirmed = false;
+
+    function updateAddTreeMarkerLocation(lng, lat){
+      var olPoint = new OpenLayers.LonLat(lng, lat);
+      var zoom = tm.add_zoom;
+      if (tm.map.getZoom() > tm.add_zoom) {zoom = tm.map.getZoom();}
+      tm.map.setCenter(new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
+
+      if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
+      if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
+      tm.load_nearby_trees(olPoint);
+      tm.add_new_tree_marker(olPoint, false);
+    }
+
     jQuery().ready(function() {
         tm.init_add_map();
         //jQuery("#mapHolder").hide();
@@ -62,22 +75,14 @@
           var loc = place.geometry.location;
           var lng = loc.lng();
           var lat = loc.lat();
-          var olPoint = new OpenLayers.LonLat(lng, lat);
-          var zoom = tm.add_zoom;
-          if (tm.map.getZoom() > tm.add_zoom) {zoom = tm.map.getZoom();}
-          tm.map.setCenter(new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
 
-          if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
-          if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
-          tm.load_nearby_trees(olPoint);
-          tm.add_new_tree_marker(olPoint, false);
-
+          updateAddTreeMarkerLocation(lng, lat);
           tm.drag_control.activate();
 
-          jQuery('#id_lat').val(olPoint.lat);
-          jQuery('#id_lon').val(olPoint.lon);
-          jQuery('#id_edit_latitude').val(olPoint.lat);
-          jQuery('#id_edit_longitude').val(olPoint.lon);
+          jQuery('#id_lat').val(lat);
+          jQuery('#id_lon').val(lng);
+          jQuery('#id_edit_latitude').val(lat);
+          jQuery('#id_edit_longitude').val(lng);
           jQuery('#id_geocode_address').val(place)
 
           jQuery("#mapHolder").show();
@@ -94,8 +99,12 @@
             var lat = $(this).val();
             if (lat < 39 && lat > 35) {
               $('#id_lat').val(lat);
+              var lng = $("#id_edit_longitude").val()
+              if (lng){ 
+                updateAddTreeMarkerLocation(lng, lat);
+              }
             } else {
-              alert(lat + ': invalid latitude');
+              alert(lat + ': invalid latitude for Oakland');
               $(this).val('');
             }
           })
@@ -109,8 +118,12 @@
             var lng = $(this).val();
             if (lng < -120 && lng > -125) {
               $('#id_lon').val(lng);
+              var lat = $("#id_edit_latitude").val();
+              if (lat){ 
+                updateAddTreeMarkerLocation(lng, lat);
+              }
             } else {
-              alert(lng + ': invalid longitude');
+              alert(lng + ': invalid longitude for Oakland');
               $(this).val('');
             }
           })
