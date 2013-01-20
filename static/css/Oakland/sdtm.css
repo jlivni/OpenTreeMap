@@ -293,6 +293,9 @@ ul#searchBoxes li#searchButton .go {
 	padding-right:26px;
 	padding-left:27px;
 	vertical-align: middle;
+  position:absolute;
+  top:35px;
+  right:0px;
 }
 ul#searchBoxes li#searchButton .go:hover {
 	background: #d9541e;
@@ -3768,4 +3771,14 @@ ui-state-active, .ui-widget-content .ui-state-active {
 
 .hidden{
   display:none;
+}
+
+/* Oakland Overrides */
+#addTreeButton{
+position:absolute;
+top:-00px;
+right: 10px;
+width: 170px;
+height: 20px;
+font-size: 1.5em;
 }
