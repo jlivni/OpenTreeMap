@@ -46,9 +46,9 @@
     </tr> 
 	<tr>
     	<td class="col1 activeEditRowLabel">Crown</td>
-        <td class="activeEditRowValue" id="edit_crown">{{ tree.crown|default:"Click to edit"  }}</td>
+        <td class="activeEditRowValue" id="edit_crown">{{ tree.crown_width|default:"Click to edit"  }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_crown').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("crown", "Tree", {{tree.id}});</script>
+            <script>tm.setupEdit("crown_width", "Tree", {{tree.id}});</script>
     </tr> 
     <thead>
     	<tr>
@@ -67,7 +67,6 @@
              <tr>
                <td><b>Animal Sighting type</b></td>
                <td><b>Date</b></td>
-               <td><b>Resolved?</b></td>
                <td></td>
              </tr>
             {% if tree.treefauna_set.count > 0 %}
@@ -80,9 +79,6 @@
                         {{ h.value|date:"Y-m-d" }}
                     </td>
                     <td>
-                      {{ h.solved|default:"no" }}
-                    </td>
-                    <td>
                       <a href="#" onclick="tm.deleteFauna('{{h.key}}', '{{h.value}}', this); return false;">Delete</a>
                     </td>  
                   </tr>  
@@ -90,9 +86,6 @@
             {% endif %}
             </table>
             </div>
-          <script>
-          $("#faunaList").hide();
-          </script>
         </td>
     </tr>  
 

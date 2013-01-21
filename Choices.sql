@@ -72,11 +72,26 @@ INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (77, 'power
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (78, 'powerline_conflict_potential', 'No', '2', 'int');
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (79, 'powerline_conflict_potential', 'Unknown', '3', 'int');
 
-INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (2, 'fauna', 'Animal2', '2', 'int');
-INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (3, 'fauna', 'Animal3 ', '3', 'int');
-INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (4, 'fauna', 'Anbnimal4', '4', 'int');
-INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (5, 'fauna', 'Animal5', '5', 'int');
-
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (80, 'fauna', 'Squirrel', '80', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (81, 'fauna', 'Raccoon', '81', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (82, 'fauna', 'Opossum', '82', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (83, 'fauna', 'Housecat', '83', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (84, 'fauna', 'Human', '84', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (85, 'fauna', 'California Scrub Jay', '85', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (86, 'fauna', 'Anna’s Hummingbird', '86', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (87, 'fauna', 'Hutton’s Vireo', '87', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (88, 'fauna', 'American Crow', '88', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (89, 'fauna', 'American Robin', '89', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (90, 'fauna', 'California Towhee', '90', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (91, 'fauna', 'Rufous-backed Chickadee', '91', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (92, 'fauna', 'Bushtit', '92', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (93, 'fauna', 'Mourning Dove', '93', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (94, 'fauna', 'Northern Mockingbird', '94', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (95, 'fauna', 'Calfornia Sister butterfly', '95', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (96, 'fauna', 'Western Fence Lizard', '96', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (97, 'fauna', 'Arboreal Salamander', '97', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (98, 'fauna', 'Red-backed Jumping Spider', '98', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (99, 'fauna', 'Orb-weaving Spider', '99', 'int');
 ALTER TABLE ONLY treemap_choices
     ADD CONSTRAINT treemap_choices_pkey PRIMARY KEY (id);
 

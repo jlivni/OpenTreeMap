@@ -1,5 +1,5 @@
 from django import forms
-from models import Tree, Plot, Species, TreePhoto, TreeAlert, TreeAction, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
+from models import Tree, Plot, Species, TreePhoto, TreeAlert, TreeFauna, TreeAction, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
@@ -52,6 +52,7 @@ class TreeAddForm(forms.Form):
     sidewalk_damage = forms.ChoiceField(choices=Choices().get_field_choices('sidewalk_damage'), required=False)
     condition = forms.ChoiceField(choices=Choices().get_field_choices('condition'), required=False)
     canopy_condition = forms.ChoiceField(choices=Choices().get_field_choices('canopy_condition'), required=False)
+    fauna = forms.MultipleChoiceField(choices=Choices().get_field_choices('fauna'), required=False)
     target = forms.ChoiceField(required=False, choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit', 'I\'m done!')], initial='edit', widget=forms.RadioSelect)        
 
     def __init__(self, *args, **kwargs):
@@ -177,6 +178,18 @@ class TreeAddForm(forms.Form):
         new_tree.plot = plot
         new_tree.save()
         #print new_tree.__dict__
+        fauna = self.cleaned_data.get('fauna')
+        if fauna:
+            print 'fauna',fauna
+            fauna_dict = dict(Choices().get_field_choices('fauna'))
+            for f in fauna:
+              fauna = TreeFauna()
+              fauna.reported_by = request.user
+              fauna.key = f
+              fauna.value = datetime.now()
+              fauna.fauna = fauna_dict[f] # or random string
+              fauna.tree = new_tree
+              fauna.save()
         
         return plot
      

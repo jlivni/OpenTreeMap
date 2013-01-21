@@ -1251,6 +1251,7 @@ def tree_add(request, tree_id = ''):
         form = TreeAddForm()
     return render_to_response('treemap/tree_add.html', RequestContext(request,{
         'user' : request.user, 
+        'fauna' : Choices().get_field_choices('fauna'),
         'form' : form }))
 
 def added_today_list(request, user_id=None, format=None):

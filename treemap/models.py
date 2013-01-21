@@ -1052,6 +1052,7 @@ class TreeAlert(TreeItem):
 class TreeFauna(TreeItem): 
     key = models.CharField(max_length=256, choices=Choices().get_field_choices('fauna'))
     value = models.DateTimeField()
+    fauna = models.CharField(max_length=256)
       
     
 class TreeAction(TreeItem): 

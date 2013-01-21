@@ -218,11 +218,29 @@
                 <div class="clearLeft"></div>
             </div>
 
-                <span class="small">Enter Crown width in inches.  Enter only a number.
+                <span class="small">Estimate size of the tree crown.
                   {%for e in form.crown_width.errors %}<span class="smError">{{e}}</span>{% endfor %}
                 </span>
-                <label class="opt_fields">{{form.crown_width.label}}</label>{{ form.crown_width }}
+                <label class="opt_fields">{{form.crown_width.label}}</label>
+                  <select name="crown_width" id="id_crown_width">
+                    <option value=''>Select an estimate</option>
+                    <option value=30>.5-5 ft</option>
+                    <option value=100>5-10 ft</option>
+                    <option value=180>10-20 ft</option>
+                    <option value=300>20-30 ft</option>
+                    <option value=420>30-40 ft</option>
+                    <option value=540>40-50 ft</option>
+                    <option value=700>50-100+ ft</option>
+                  </select>
                 <div class="clearLeft"></div>
+
+
+                <span class="small">Select which Fauna you have seen in this tree
+                  {%for e in form.fauna.errors %}<span class="smError">{{e}}</span>{% endfor %}
+                </span>
+                <label class="opt_fields">{{form.fauna.label}}</label>
+                {{form.fauna}}
+  
 
         <div class="clearLeft" style"display:none;">
                 {{ form.target }} 
