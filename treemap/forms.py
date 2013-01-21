@@ -53,7 +53,7 @@ class TreeAddForm(forms.Form):
     condition = forms.ChoiceField(choices=Choices().get_field_choices('condition'), required=False)
     canopy_condition = forms.ChoiceField(choices=Choices().get_field_choices('canopy_condition'), required=False)
     fauna = forms.MultipleChoiceField(choices=Choices().get_field_choices('fauna'), required=False)
-    target = forms.ChoiceField(required=False, choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit', 'I\'m done!')], initial='edit', widget=forms.RadioSelect)        
+    target = forms.ChoiceField(required=False, choices=[('add', 'I want to add another tree'), ('edit', 'I\'m done!')], initial='edit', widget=forms.RadioSelect)        
 
     def __init__(self, *args, **kwargs):
         super(TreeAddForm, self).__init__(*args, **kwargs)
