@@ -120,6 +120,7 @@
               $('#id_lon').val(lng);
               var lat = $("#id_edit_latitude").val();
               if (lat){ 
+                tm.drag_control.activate();
                 updateAddTreeMarkerLocation(lng, lat);
               }
             } else {
