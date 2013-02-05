@@ -163,12 +163,13 @@ LAYER
     CONNECTION " dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     DATA 'geometry from (select * from treemap_neighborhood) as foo using unique id using srid=4326'
       CLASS
-        #STYLE
-          ##WIDTH 3
+        STYLE
+          WIDTH 150
           OUTLINECOLOR 150 50 50
-          #SYMBOL "circle"
-          #ANTIALIAS true
-        #END
+     
+          SYMBOL "circle"
+          ANTIALIAS true
+        END
     END
 END 
 

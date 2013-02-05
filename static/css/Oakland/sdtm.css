@@ -3766,7 +3766,7 @@ div.clearer {
 /* JQUERY OVERRIDE */
 
 ui-state-active, .ui-widget-content .ui-state-active {
-  color:purple;
+  color:#D9541E;
 }
 
 .hidden{
