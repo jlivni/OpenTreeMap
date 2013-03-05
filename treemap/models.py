@@ -7,7 +7,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Sum, Q
 from django.contrib.gis.measure import D
 from django.contrib.auth.models import User, Group
-from sorl.thumbnail.fields import ImageWithThumbnailsField
+from sorl.thumbnail import ImageField
 from classfaves.models import FavoriteBase
 import logging
 import audit
@@ -1025,7 +1025,7 @@ class TreePhoto(TreeItem):
         return path
 
     title = models.CharField(max_length=256,null=True,blank=True)
-    photo = ImageWithThumbnailsField(upload_to=get_photo_path, thumbnail={'size': (50, 50)})
+    photo = ImageField(upload_to=get_photo_path)
 
     def __unicode__(self):
         return '%s, %s, %s' % (self.reported, self.tree, self.title)
