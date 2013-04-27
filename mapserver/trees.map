@@ -164,11 +164,8 @@ LAYER
     DATA 'geometry from (select * from treemap_neighborhood) as foo using unique id using srid=4326'
       CLASS
         STYLE
-          WIDTH 150
+          WIDTH 3.0
           OUTLINECOLOR 150 50 50
-     
-          SYMBOL "circle"
-          ANTIALIAS true
         END
     END
 END 

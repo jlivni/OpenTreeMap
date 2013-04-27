@@ -34,24 +34,41 @@
                     {% endif %}
             </div> 
             <div class="tab-content" id="tab-1">
-                <ul id="progress">
-                    <!-- TODO -->
-                    <!--<li id="progressBar"><img src="/static/images/v2/progressbar.gif" width="470" /></li>-->
-                    <li id="progressStatus">{{ tree.percent_complete|floatformat }}%&nbsp;complete</li>
-					<div class="progressBar"><div class="progressBarMask" style="left: {{ tree.percent_complete|floatformat }}%"></div></div>
-                    {% if user.username != 'museum' %}
-                    <li id="edit"><a href="./edit">Edit this tree &raquo;</a></li>
-                    {% endif %}
-                </ul>
-                <div class="wrap">
-        {% endblock %}
+              <div class="wrap">
+          {% endblock %}
 
 
-            {% block middle_panel %}
+          {% block middle_panel %}
     <!-- start t2_middle_panel  -->
     <div class="data">
 
                         
+
+<table class="box-table-a">
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">General tree information</th>
+        </tr>
+    </thead>
+    <tbody>
+    	<tr>
+        	<td class="col1Wide">Tree number</td>
+            <td>#{{tree.id}}</td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Trunk diameter</td>
+            <td>{{tree.dbh|unit_or_missing:"inches"}}</td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Crown diameter</td>
+            <td>{{tree.crown_width|unit_or_missing:"inches"}}</td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
 <table class="box-table-a">
     <thead>
     	<tr>
@@ -68,55 +85,17 @@
         </tr>
     </tbody>
 </table>
-<table class="box-table-a">
 
-
-
-    <thead>
-    	<tr>
-        	<th scope="col" colspan="4">General tree information</th>
-        </tr>
-    </thead>
-    <tbody>
-    	<tr>
-        	<td class="col1Wide">Tree number</td>
-            <td>#{{tree.id}}</td>
-            <td></td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Scientific name</td>
-            <td><i>{{tree.species.genus}} {{tree.species.species}}</i> {{tree.species.cultivar_name}}</td>
-            <td></td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Common name</td>
-            <td>{{tree.get_common_name}}</td>
-            <td></td>
-        </tr>
-    	<tr>
-        	<td class="col1Wide">Trunk diameter</td>
-            <td>{{tree.dbh|unit_or_missing:"inches"}}</td>
-            <td></td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Crown width</td>
-            <td>{{tree.crown_width|unit_or_missing:"inches"}}</td>
-            <td></td>
-        </tr>
-        <tr>
-        	<td class="col1Wide">Date planted</td>
-            <td>{{tree.date_planted|date|default:"Missing"}}</td>
-            <td></td>
-        </tr>
-    </tbody>
-</table>
 
 <table class="box-table-a">
     <thead>
     	<tr>
-        	<th scope="col" colspan="2">Yearly ecosystem services</th>
-        	<th scope="col">Value</th>
-        </tr>
+        <th scope="col" colspan="2">Nature's Benefits</th>
+        <th scope="col">Value</th>
+      </tr>
+      <tr>
+        <th scope="col" colspan="2" style="color:#aaa;">Calculated Annually</th>
+      </tr>
     </thead>
     <tbody>
 {% if tree.species %} {% if tree.dbh %}
@@ -141,9 +120,9 @@
             <td>${{tree.treeresource.benefits.co2_reduced|unit_or_empty:''}}</td>
         </tr>
         <tr>
-        	<td class="col1Wide">Total Co2 stored to date</td>
-            <td>{{tree.treeresource.total_co2_stored|unit_or_empty:'lbs'}} </td>
-            <td>${{tree.treeresource.benefits.co2_stored|unit_or_empty:''}}</td>
+        	<td class="col1Wide link-color">Total Co2 stored to date</td>
+            <td class="link-color">{{tree.treeresource.total_co2_stored|unit_or_empty:'lbs'}} </td>
+            <td class="link-color">${{tree.treeresource.benefits.co2_stored|unit_or_empty:''}}</td>
         </tr>
 {% else %}
         <tr>
@@ -221,7 +200,7 @@
 											<input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
 										</div>
 									</form>
-                                    <div id="comment_disclaimer">The comment system on UrbanForestMap does not serve as a way to report problems with a tree.</div>
+                                    <div id="comment_disclaimer">The comment system on Oak Tree Map does not serve as a way to report problems with a tree.</div>
 								{% else %}
 									<div>Please login to add comments</div>
 								{% endif %}
