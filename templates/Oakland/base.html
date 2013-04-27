@@ -49,29 +49,34 @@ s.parentNode.insertBefore(po, s);
 <!-- start: header -->
   <div id="header">
     <h1 class="logo"><a href="/">SanDiego TreeMap</a></h1>
-    <ul id="nav">
-    <li>
-      {% if user.is_authenticated %}
+    <div id="navContainer">
+      <ul id="nav">
+      <li style="float:right;margin-right:25px;">
+        {% if user.is_authenticated %}
 
-        Hello, <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>
-        {% if user.username != 'museum' %}
-         <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> 
+          <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>
+          {% if user.username != 'museum' %}
+           <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> 
+          {% endif %}
+        {% else %}
+        <a href="/accounts/login/">Login</a> or <a href="/accounts/register/">Sign up</a> 
         {% endif %}
-        <br/>
-        {{user.reputation.reputation}} rep 
-      {% else %}
-      <a href="/accounts/login/">Login</a> or <a href="/accounts/register/">Sign up</a> 
-      {% endif %}
-    </li>
-    </ul>
+      </li>
+  <br>
+  <br>
+        <li>
+         <a href="/trees/add/" class="buttomSm globalAdd" id="addTreeButton">Add a tree</a>
+        </li>
+        <li>
+         <a href="/about" class="buttomSm globalAdd" id="aboutButton">About</a>
+        </li>
+       </ul>
+      </div> <!-- end: navContainer div -->
 
 <!-- start: search box -->
   
   <div id="searchBox">
     <div id="searchBoxContainer">
-    <ul id="searchTitles">
-      <li id="searchLocation">Search for Trees by Location</li>
-    </ul>
     <ul id="searchBoxes">
     <form method="get" action="/map/" name="address" class="address" id="search_form">
       <li id="searchSpeciesBox" style="display:none;">
@@ -81,10 +86,9 @@ s.parentNode.insertBefore(po, s);
       <input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
       </li>
       <li id="searchLocationBox">
-      <div id="searchLocationBrowse"></div>
-      <input type="text"  name="location" onFocus="this.value=''" id="location_search_input" value="Oakland" />
+        <div id="searchLocationBrowse"></div>
+        <input type="text"  name="location" onFocus="this.value=''" id="location_search_input" value="Oakland" />
       </li>
-       <a href="/trees/add/" class="buttomSm globalAdd" id="addTreeButton">Add a tree</a>
       <li id="searchButton"><input class="go" id="location_go" type="button" value="Search" /></li>
     </form>
     </ul>
@@ -94,11 +98,13 @@ s.parentNode.insertBefore(po, s);
       
       <li id="searchLocationSuggest">Examples: 
       
-      <a onclick='$("#location_search_input").val("1000 Oak St."); $("#location_search_input").change(); return false;' href="#">1000 Oak St.</a> or 
-      <a onclick='$("#location_search_input").val("RockRidge"); $("#location_search_input").change(); return false;' href="#">RockRidge</a> or 
+      <a onclick='$("#location_search_input").val("1000 Oak St."); $("#location_search_input").change(); return false;' href="#">1000 Oak St.</a> / 
+      <a onclick='$("#location_search_input").val("RockRidge"); $("#location_search_input").change(); return false;' href="#">RockRidge</a> / 
       <a onclick='$("#location_search_input").val("94612"); $("#location_search_input").change(); return false;' href="#">94612</a>
-      </li>
-      <li id="searchFilter"><a href="#" id="advanced" class="advanced"><em><span id="close-filters">Show advanced filters</span></em><img id="arrow" src="/static/images/v2/arrow1.gif" /></a> </li>
+        <a href="#" id="advanced" class="advanced">
+          <span id="close-filters">Show advanced filters</span>
+       </a> 
+     </li>
     </ul>
     <div id="searchSpeciesList" class="ac_results" style=""><h2>Species</h2><a class="floatRight" href="http://www.urbantreekey.org/key/What-kind-of-leaves-does-the-tree-have/" target="_blank">View Tree Key for More Detail</a></div>
     <div id="searchNBList" class="ac_results" style=""><h2>Municipalities</h2></div>

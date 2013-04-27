@@ -60,7 +60,7 @@ form, fieldset {
 	padding:10px 20px;
 }
 #header {
-	width:940px;
+	width:1010px;
 	background: #fff url(/static/images/es/bg_header_orange.png) no-repeat right top;
 	overflow:hidden;
 	margin:0 auto;
@@ -116,13 +116,13 @@ form, fieldset {
 }
 	
 .buttomSm { 
+  letter-spacing:1.2px;
 	clear:both;
 	border:2px solid #d76c23;
 	background: #d76c23;
 	text-align:center;
 	color:#fff;
 	font-size:13px;
-	font-weight:bold;
 	padding:2px 5px;
 	margin-left:2px;
 }
@@ -139,19 +139,22 @@ form, fieldset {
 ** _____________________________________________________________________________
 */
 
-
-#nav{
+#navContainer{
 	float:right;
+  margin-top:140px;
+  width:240px;
+}
+#nav {
+  display:inline;
 	list-style:none;
-	margin-top:42px;
 }
 #nav li{
-	float:left;
+  display:inline;
 	font-size:12px;
 	color:#666;
 }
 #nav li a {
-	font-weight:bold;
+  display:inline;
 }
 
 
@@ -160,45 +163,13 @@ form, fieldset {
 */
 
 #searchBox{
-	width:920px;
-	height:90px;
-  margin: 0 auto;
-  margin-top:100px;
-  position:relative;
+  margin-top:140px;
 }
 #searchBoxContainer {
-	width:940px;
-	margin:0 auto;
 	position: relative;
 }
-ul#searchTitles {
-  color:#fff;
-  font-size:2em;
-	display: inline;
-	margin-top:18px;
-	margin-bottom:0;
-	padding-bottom:0;
-}
-ul#searchTitles li#searchSpecies {
-	float:left;
-	width:300px;
-	list-style-type: none;
-	margin-right:0;
-	padding-right:0;
-}
-ul#searchTitles li#searchLocation {
-	float:left;
-	width:500px;
-	list-style-type: none;
-	margin-left:30px;
-	margin-top:-5px;
-}
 ul#searchBoxes {
-	float:left;
-	width:940px;
-	display: inline;
-	margin:0 0 10px 0;
-	padding:0;
+	width:510px;
 }
 ul#searchBoxes li#searchSpeciesBox {
 	float:left;
@@ -252,7 +223,7 @@ ul#searchBoxes  li#searchJoiner {
 }
 ul#searchBoxes  li#searchLocationBox {
 	float:left;
-	width:380px;
+	width:150px;
   margin-left:50px;
 	list-style-type: none;
 }
@@ -260,7 +231,7 @@ ul#searchBoxes li#searchLocationBox input#location_search_input {
 	width:295px;
 	height:16px;
 	padding:5px;
-	margin-left:-20px;
+	margin-left:-10px;
 	font-size:15px;
 	color:#afafaf;
 }
@@ -273,29 +244,17 @@ ul#searchBoxes li#searchSpeciesBox input#location_search_input {
 	color:#afafaf;
 }
 ul#searchBoxes  li#searchButton {
-	float:right;
-	width:195px;
 	list-style-type: none;
 	text-align:right;
-  margin-left:50px;
 }
 ul#searchBoxes li#searchButton .go {
 	height:30px;
-  width:195px;
 	background: #d76c23;
 	text-align:center;
-	line-height:24px;
 	color:#fff;
 	font-size:17px;
-	font-weight:bold;
+	letter-spacing:1.2px;
 	cursor: pointer;
-	padding-bottom:3px;
-	padding-right:26px;
-	padding-left:27px;
-	vertical-align: middle;
-  position:absolute;
-  top:35px;
-  right:0px;
 }
 ul#searchBoxes li#searchButton .go:hover {
 	background: #d76c23;
@@ -303,11 +262,12 @@ ul#searchBoxes li#searchButton .go:hover {
 ul#searchSuggest {
 	clear:both;
 	display: inline;
-	color:#fff;
+	color:#273a1e;
+  font-weight:bold;
 }
 
-ul#searchSuggest a { 
-  color:#fff;
+ul#searchSuggest a {
+	color:#273a1e;
 }
 
 ul#searchSuggest li#searchSpeciesSuggest {
@@ -320,20 +280,19 @@ ul#searchSuggest li#searchSpeciesSuggest {
 }
 ul#searchSuggest li#searchLocationSuggest {
 	float:left;
-	width:385px;
+	width:510;
 	list-style-type: none;
-	margin-left:30px;
+	margin-left:80px;
 	padding-left:0;
 }
 ul#searchSuggest li#searchFilter {
-	float:right;
-	width:153px;
 	list-style-type: none;
 	text-align:left;
 }
-ul#searchSuggest li#searchFilter a#advanced em span {
+#advanced  span {
     font-style: normal;
-    padding-right:5px;
+    margin-left:85px;
+    color:#d76c23;
 }
 ul#searchSuggest li#searchFilter a#advanced #arrow {
     vertical-align:center;
@@ -3777,11 +3736,7 @@ ui-state-active, .ui-widget-content .ui-state-active {
 }
 
 /* Oakland Overrides */
-#addTreeButton{
-position:absolute;
-top:-00px;
-right: 10px;
-width: 170px;
+#addTreeButton, #aboutButton{
 height: 20px;
 font-size: 1.5em;
 }
