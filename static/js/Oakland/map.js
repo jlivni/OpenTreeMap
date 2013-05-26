@@ -63,7 +63,7 @@ tm.init_base_map = function(div_id, controls){
         sphericalMercator: true,
         numZoomLevels: 21
     });
-    
+/*
     tm.tms = new OpenLayers.Layer.TMS('TreeLayer', 
         tm_urls.tc_url,
         {
@@ -74,6 +74,19 @@ tm.init_base_map = function(div_id, controls){
             attribution: "(c) UrbanForestMap.org"
         }
     );
+    tm.map.addLayer(tm.tms);
+*/
+    tm.tms = new OpenLayers.Layer.XYZ('TreeLayer',
+       tm_urls.qs_tile_url +  "${z}/${x}/${y}.png",
+        {
+            layername: 'Oakland',
+            type: 'png',
+            isBaseLayer: false,
+            wrapDateLine: true,
+            attribution: "(c) OakTreeMap.org"
+        }
+    );
+    tm.tms.setVisibility(true);
     tm.tms.buffer = 0;
 
 

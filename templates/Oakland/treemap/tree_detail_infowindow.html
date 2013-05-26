@@ -52,16 +52,6 @@
         	<td class="col1">Last updated</td>
             <td>{{ tree.last_updated|date }}</td>
         </tr>
-        <tr>
-        	<td class="col1">Alerts</td>
-            <td>
-            {% if tree.treealert_set.all.count > 0 %}
-                <a href="{% url treemap_tree_detail tree.id %}#status">Yes</a>
-            {% else %}
-                No Alerts
-            {% endif %}
-            </td>
-        </tr>
 {% comment %}
         <tr>
         	<td class="col1">Height</td>

@@ -16,6 +16,8 @@
 {% block extrahead %}
  <style type="text/css">
     .smError {color:red; font-weight:bold;}
+    label.opt_fields {width:300px;}
+    .small {margin-left:310px;}
     #id_edit_address_city{display:none;}
   </style>
 <script type="text/javascript" src="/static/js/map.js"></script>
@@ -209,11 +211,11 @@
             <div id="opt_field_group">
                 <span class="small"><a id="treekey" href="#" target="_blank">How can I recognize a Coast Live Oak?</a></span>
                 <div class="clearLeft"></div>
-                <span class="small">Enter trunk size 54" aboveground in inches (number only). 
+                <span class="small">
                   <a href="http://www.sandiegotreemap.org/resources/#howto"><br>More Info on Measuring</a>
                   {%for e in form.dbh.errors %}<span class="smError">{{e}}</span>{% endfor %}
                 </span>
-                <label class="opt_fields">{{form.dbh.label}}</label>{{ form.dbh }}
+                <label class="opt_fields" style="width:300px;"><b>Enter Trunk Size (number only)</b></label>{{ form.dbh }}
                 <div class="clearLeft"></div>
                 <label class="opt_fields"> </label><div id="dbh_type">{{ form.dbh_type }}</div>
                 <div class="clearLeft"></div>
@@ -222,7 +224,7 @@
                 <span class="small">Estimate size of the tree crown.
                   {%for e in form.crown_width.errors %}<span class="smError">{{e}}</span>{% endfor %}
                 </span>
-                <label class="opt_fields">{{form.crown_width.label}}</label>
+                <label class="opt_fields" style="width:300px;"><b>Enter the diamater of the tree crown</b></label>
                   <select name="crown_width" id="id_crown_width">
                     <option value=''>Select an estimate</option>
                     <option value=30>.5-5 ft</option>
@@ -235,12 +237,28 @@
                   </select>
                 <div class="clearLeft"></div>
 
-
-                <span class="small">Select which Fauna you have seen in this tree
+<br>
+                <label style="width:500px;"><b>Identify any animals or birds you have seen in this tree</b></label>
                   {%for e in form.fauna.errors %}<span class="smError">{{e}}</span>{% endfor %}
                 </span>
-                <label class="opt_fields">{{form.fauna.label}}</label>
-                {{form.fauna}}
+                <div class="fauna_form" style="width:100%;float:left;margin-left:-35px;">
+                  <table><tr><td>
+                  <ul>
+                  {% for f in form.fauna.field.choices %}
+                    {% if forloop.counter0|divisibleby:"6"%}
+                      </ul></td><td><ul>
+                    {% endif %}
+                    <li>
+                      <label for="id_fauna_{{forloop.counter0}}">
+                        <input type="checkbox" name="fauna" value="{{f.0}}" id="id_fauna_{{forloop.counter0}}" /> 
+                          {{f.1}}
+                      </label>
+                    </li>
+                  {% endfor %}
+                 <li><input type="textbox" name="fauna" id="id_fauna_custom"  placeholder="Enter animal" /></li>
+                  </ul>
+                </td></tr></table></div>
+ 
   
 
         <div class="clearLeft" style"display:none;">

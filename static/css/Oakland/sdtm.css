@@ -81,10 +81,16 @@ form, fieldset {
 	height:100%;
 	position:relative;
 }
+
+.button{
+ border:2px outset buttonface;
+}
+
 .buttonMed {
 	font-size: 17px;
-    border:2px solid #d76c23;
-    /*background: #fff url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;    	*/
+    xborder:2px solid #d76c23;
+   /*background: #fff url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;    	*/
+  border:2px outset buttonface;
   background:#d76c23;
 	height: 30px;
 	line-height: 24px;
@@ -105,7 +111,7 @@ form, fieldset {
 }
 
 .buttonMed:hover {
-	background:#9653d6;
+	background:#d76c23;
 	text-decoration:none;
 }
 
@@ -118,7 +124,8 @@ form, fieldset {
 .buttomSm { 
   letter-spacing:1.2px;
 	clear:both;
-	border:2px solid #d76c23;
+	xborder:2px solid #d76c23;
+ border:2px outset buttonface;
 	background: #d76c23;
 	text-align:center;
 	color:#fff;
@@ -164,6 +171,7 @@ form, fieldset {
 
 #searchBox{
   margin-top:140px;
+  width:700px;
 }
 #searchBoxContainer {
 	position: relative;
@@ -1156,6 +1164,7 @@ ul#promoMap li#promoMapEmbed {
 */
 
 #results_aside.aside{
+  font-size:1.5em;
 	background: #d3e7c4 ;
 	width:250px;
 	margin-right:20px;
@@ -3489,7 +3498,6 @@ padding: 15px 0 0 0;
 	height:26px;
 	/*background: #fff url(/static/images/v2/buttonlg_bg.gif) repeat-x center center;*/
   background:#d76c23;
-	border:2px solid #d76c23;
 	text-align:center;
 	line-height:18px;
 	color:#fff;
@@ -3499,7 +3507,8 @@ padding: 15px 0 0 0;
 	padding:0 5px 2px 5px;
 }
 #register button:hover {
-	background:#9653d6;
+	xbackground:#9653d6;
+	border:2px solid #d76c23;
 }
 #calloutContainer {
 	float:right;
@@ -3739,4 +3748,20 @@ ui-state-active, .ui-widget-content .ui-state-active {
 #addTreeButton, #aboutButton{
 height: 20px;
 font-size: 1.5em;
+}
+
+.green{
+  color: #8ca828;
+}
+.grey {
+  color: #777;
+}
+.orange {
+	color:#d76c23;
+}
+.big {
+  font-size:1.9em;
+}
+.med {
+  font-size:1.22em;
 }

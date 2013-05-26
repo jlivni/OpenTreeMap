@@ -52,7 +52,7 @@ class TreeAddForm(forms.Form):
     sidewalk_damage = forms.ChoiceField(choices=Choices().get_field_choices('sidewalk_damage'), required=False)
     condition = forms.ChoiceField(choices=Choices().get_field_choices('condition'), required=False)
     canopy_condition = forms.ChoiceField(choices=Choices().get_field_choices('canopy_condition'), required=False)
-    fauna = forms.MultipleChoiceField(choices=Choices().get_field_choices('fauna'), required=False)
+    fauna = forms.MultipleChoiceField(choices=Choices().get_field_choices('fauna'), required=False, widget=forms.CheckboxSelectMultiple)
     target = forms.ChoiceField(required=False, choices=[('add', 'I want to add another tree'), ('edit', 'I\'m done!')], initial='edit', widget=forms.RadioSelect)        
 
     def __init__(self, *args, **kwargs):

@@ -92,6 +92,18 @@ INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (96, 'fauna
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (97, 'fauna', 'Arboreal Salamander', '97', 'int');
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (98, 'fauna', 'Red-backed Jumping Spider', '98', 'int');
 INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (99, 'fauna', 'Orb-weaving Spider', '99', 'int');
+
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (100, 'crown_width', '.5-5 ft', '2.5', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (101, 'crown_width', '5-10 ft', '7.5', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (102, 'crown_width', '10-20 ft', '15', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (103, 'crown_width', '20-30 ft', '25', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (104, 'crown_width', '30-40 ft', '35', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (105, 'crown_width', '40-50 ft', '45', 'int');
+INSERT INTO treemap_choices (id, field, value, key, key_type) VALUES (106, 'crown_width', '50-100 ft', '75', 'int');
+
+
+
+
 ALTER TABLE ONLY treemap_choices
     ADD CONSTRAINT treemap_choices_pkey PRIMARY KEY (id);
 

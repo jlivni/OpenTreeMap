@@ -44,15 +44,17 @@
         <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{tree.dbh|default:0}}]); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
     </tr> 
-	<tr>
-    	<td class="col1 activeEditRowLabel">Crown</td>
-        <td class="activeEditRowValue" id="edit_crown">{{ tree.crown_width|default:"Click to edit"  }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_crown').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("crown_width", "Tree", {{tree.id}});</script>
-    </tr> 
+	
+<tr>
+      <td class="col1 activeEditRowLabel">Crown Diameter</td>
+        <td class="activeEditRowValue" id="edit_crown_width">Click to edit</td>
+        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_crown_width').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+            <script>tm.setupEdit("crown_width", "Tree", 6, {'type':'select', 'loadurl': '../trees/{{tree.id}}/edit/choices/crown_width/'});</script>
+    </tr>
+
     <thead>
     	<tr>
-        	<th scope="col" colspan="4">Status</th>
+        	<th scope="col" colspan="4">Species that have been Spotted in this Tree</th>
         </tr>
     </thead>
 

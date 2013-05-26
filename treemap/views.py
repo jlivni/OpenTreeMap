@@ -86,6 +86,11 @@ def static(request, template, subdir="treemap"):
 def location_map(request):
     pass
 
+def splash_page(request):
+    if request.user.is_authenticated():
+      return HttpResponseRedirect('/map')
+    return render_to_response('treemap/splash.html', RequestContext(request,{}))
+
 def home_feeds(request):
     return HttpResponseRedirect('/map')
     feeds = {}

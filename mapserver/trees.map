@@ -20,20 +20,6 @@ IMAGETYPE agg
     END 
 
     SYMBOL
-      NAME "green1"
-      TYPE PIXMAP
-      IMAGE "../static/images/SanDiego/map_icons/v3/UFM_Tree_Icon_zoom1_2.png"
-      #TRANSPARENT 8
-    END
-
-    SYMBOL
-      NAME "green1s"
-      TYPE PIXMAP
-      IMAGE "../static/images/SanDiego/map_icons/v1s/UFM_Tree_Icon_zoom1_2.png"
-      #TRANSPARENT 8
-    END
-    
-    SYMBOL
       NAME "green2"
       TYPE PIXMAP
       IMAGE "../static/images/SanDiego/map_icons/v3/UFM_Tree_Icon_zoom3_4.png"
@@ -317,25 +303,13 @@ LAYER
       END
       CLASS
         MINSCALEDENOM 10000
-        MAXSCALEDENOM 50000
+        MAXSCALEDENOM 500000
         STYLE
           #COLOR 15 120 20
           #WIDTH 1
           size 3
           #OUTLINECOLOR 110 175 110
           SYMBOL "green2s"
-          ANTIALIAS true
-        END
-      END
-      CLASS
-        MINSCALEDENOM 50000
-        MAXSCALEDENOM 150000
-        STYLE
-          #COLOR 15 120 20
-          #WIDTH 1
-          size 2
-          #OUTLINECOLOR 110 175 110
-          SYMBOL "green1s"
           ANTIALIAS true
         END
       END
