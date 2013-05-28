@@ -1370,7 +1370,7 @@ console.log(ll, full_address, city, zip)
             'update': {
             }
         };
-        //console.log(value);
+        console.log(value,settings,'!')
         // TODO - I think if '' then we should replace
         // with original value and if 'null' then
         // we should save None in database if its
@@ -1419,7 +1419,7 @@ console.log(ll, full_address, city, zip)
                 }
             }
             
-            if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeFlags"]) >=0) {
+            if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeFlags","TreeFauna"]) >=0) {
                 data['update']['value'] = value;
                 data['update']['key'] = settings.fieldName;
             } else {    
@@ -1534,6 +1534,21 @@ console.log(ll, full_address, city, zip)
         });
 
     },
+    newFauna: function() {
+        console.log('adding fauna')
+        var select = $("<select id='faunaTypeSelection' />");
+        for (var key in tm.faunaTypes) {
+            select.append($("<option value='"+key+"'>"+tm.faunaTypes[key]+"</option>"));
+        }    
+        var tr = $("<tr />").append($(""), $("<td colspan='2' />").append(select));
+        tr.append(
+            $("<td />").append(
+                $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewFauna),
+                $("<input type='submit' value='Cancel' class='button' />").click(tm.cancelNew)
+            )
+        );
+        $("#faunaTable").append(tr);
+    },
     newAction: function() {
         var select = $("<select id='actionTypeSelection' />");
         for (var key in tm.actionTypes) {
@@ -1626,6 +1641,31 @@ console.log(ll, full_address, city, zip)
        $(elem.parentNode.parentNode).remove();
    
    },
+   handleNewFauna: function(evt) {
+       var data = $("#faunaTypeSelection")[0].value;
+       settings = {
+           'extraData': {
+               'parent': {
+                   'model': 'Tree',
+                   'id': tm.currentTreeId
+               }
+           },
+           model: 'TreeFauna',
+           fieldName: data,
+           submit: 'Save',
+           cancel: 'Cancel'
+       };    
+           
+       $(this.parentNode.parentNode).remove();
+       var d = new Date();
+       //TODO get date from field
+       var dateStr = (d.getYear()+1900)+"-"+(d.getMonth()+1)+"-"+d.getDate();
+       tm.updateEditableServerCall(dateStr, settings)
+       $("#faunaTable").append(
+           $("<tr><td>"+tm.actionTypes[data]+"</td><td>"+dateStr+"</td></tr>"));  
+       $("#faunaCount").html(parseInt($("#faunaCount")[0].innerHTML) + 1);     
+    },
+    faunaTypes: {"80": "Squirrel", "81": "Raccoon", "82": "Opossum", "83": "Housecat", "84": "Human", "85": "California Scrub Jay", "86": "Anna's Hummingbird", "87": "Hutton's Vireo", "88": "American Crow", "89": "American Robin", "90": "California Towhee", "91": "Rufous-backed Chickadee", "92": "Bushtit", "93": "Mourning Dove", "94": "Northern Mockingbird", "95": "Calfornia Sister butterfly", "96": "Western Fence Lizard", "97": "Arboreal Salamander", "98": "Red-backed Jumping Spider", "99": "Orb-weaving Spider"},
    handleNewAction: function(evt) {
        var data = $("#actionTypeSelection")[0].value;
        settings = {

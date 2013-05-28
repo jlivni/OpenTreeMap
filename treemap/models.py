@@ -1007,7 +1007,7 @@ class TreeItem(models.Model):
             return self.tree.validate_all()
 
     def __unicode__(self):
-        return '%s, %s, %s' % (self.reported, self.tree, self.key)
+        return '%s, %s, %s' % (self.reported, self.key, self.value)
 
 def get_parent_id(instance):
     return instance.key
