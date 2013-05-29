@@ -66,19 +66,15 @@
         <td colspan="3" id="dropSpace">
             <div id="faunaList">
             <table id="faunaTable" width="100%">
-             <tr>
-               <td><b>Animal Sighting type</b></td>
-               <td><b>Date</b></td>
-               <td></td>
-             </tr>
             {% if tree.treefauna_set.count > 0 %}
+               <tr>
+                 <td><b>Previous Animal Sightings</b></td>
+                 <td></td>
+               </tr>
                 {% for h in tree.treefauna_set.all %}
                   <tr>
                     <td>
                       {{ h.get_key_display }}
-                    </td>
-                    <td>
-                        {{ h.value|date:"Y-m-d" }}
                     </td>
                     <td>
                       <a href="#" onclick="tm.deleteFauna('{{h.key}}', '{{h.value}}', this); return false;">Delete</a>
@@ -97,30 +93,6 @@
 
 
 
-{% if perms.treemap.delete_tree %}
-<table class="box-table-a">
-    <thead>
-    	<tr>
-        	<th scope="col" colspan="4">Affiliations</th>
-        </tr>
-    </thead>
-	
-    	<td class="col1 activeEditRowLabel">Sponsor</td>
-        <td class="activeEditRowValue" id="edit_sponsor">{{ tree.sponsor|default:"Click to edit"  }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_sponsor').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("sponsor", "Tree", {{tree.id}});</script>
-    </tr> 
-    <tr>
-    	<td class="col1 activeEditRowLabel">Steward</td>
-        <td class="activeEditRowValue" id="edit_steward_name">{{ tree.steward_name|default:"Click to edit"  }}</td>
-        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_steward_name').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("steward_name", "Tree", {{tree.id}});</script>
-    </tr> 
-	    
-        
-    </tbody>
-</table>
-{% endif %}
             </div>
             </div>
         {% endblock middle_panel %}

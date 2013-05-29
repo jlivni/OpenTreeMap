@@ -1633,15 +1633,15 @@ console.log(ll, full_address, city, zip)
    }, 
    deleteAction: function(key, value, elem) {
        $(elem.parentNode.parentNode).remove();
-   
    },
    deleteHazard: function(key, value, elem) {
        $(elem.parentNode.parentNode).remove();
-   
    },
    deleteLocal: function(key, value, elem) {
        $(elem.parentNode.parentNode).remove();
-   
+   },
+   deleteFauna: function(key, value, elem) {
+       $(elem.parentNode.parentNode).remove();
    },
    handleNewFauna: function(evt) {
        var data = $("#faunaTypeSelection")[0].value;
@@ -1664,7 +1664,7 @@ console.log(ll, full_address, city, zip)
        var dateStr = (d.getYear()+1900)+"-"+(d.getMonth()+1)+"-"+d.getDate();
        tm.updateEditableServerCall(dateStr, settings)
        $("#faunaTable").append(
-           $("<tr><td>"+tm.actionTypes[data]+"</td><td>"+dateStr+"</td></tr>"));  
+           $("<tr><td>"+tm.faunaTypes[data]+"</td></tr>"));  
        $("#faunaCount").html(parseInt($("#faunaCount")[0].innerHTML) + 1);     
     },
     faunaTypes: {"80": "Squirrel", "81": "Raccoon", "82": "Opossum", "83": "Housecat", "84": "Human", "85": "California Scrub Jay", "86": "Anna's Hummingbird", "87": "Hutton's Vireo", "88": "American Crow", "89": "American Robin", "90": "California Towhee", "91": "Rufous-backed Chickadee", "92": "Bushtit", "93": "Mourning Dove", "94": "Northern Mockingbird", "95": "Calfornia Sister butterfly", "96": "Western Fence Lizard", "97": "Arboreal Salamander", "98": "Red-backed Jumping Spider", "99": "Orb-weaving Spider"},
