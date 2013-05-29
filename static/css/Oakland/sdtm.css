@@ -138,7 +138,7 @@ form, fieldset {
 	text-decoration:none;
 }
 .globalAdd {
-	margin-left:20px;
+	margin-left:10px;
 }
 
 
@@ -177,7 +177,7 @@ form, fieldset {
 	position: relative;
 }
 ul#searchBoxes {
-	width:510px;
+	width:460px;
 }
 ul#searchBoxes li#searchSpeciesBox {
 	float:left;

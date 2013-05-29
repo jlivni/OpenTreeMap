@@ -93,6 +93,8 @@ urlpatterns = patterns('',
 
     (r'^contact/$', contact),
     (r'^contact/thanks/$', static, {'template':'contact_thanks.html'}),
+    (r'^info/$', send_info),
+    (r'^info/thanks/$', static, {'template':'info_thanks.html'}),
 
     url(r'^verify/$', verify_edits, name='treemap_verify_edits'),
     url(r'^verify/(?P<change_type>[a-z_]*)/(?P<change_id>\d+)/(?P<rep_dir>(up|neutral|down))', verify_rep_change),

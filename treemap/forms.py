@@ -8,6 +8,12 @@ from django.contrib.gis.measure import D
 from datetime import datetime
 import math
 
+class SendInfoForm(forms.Form):
+    name = forms.CharField(max_length=100, 
+           help_text="Full Name", widget=forms.TextInput(attrs={'size':'40'}),required=False)
+    sender = forms.EmailField(
+              help_text="Your email address", widget=forms.TextInput(attrs={'size':'40'}),required=True)
+
 class ContactForm(forms.Form):
     name = forms.CharField(max_length=100, 
            help_text="Full Name", widget=forms.TextInput(attrs={'size':'40'}),required=False)

@@ -1943,6 +1943,41 @@ def contact(request):
         'form': form, 
     }, RequestContext(request))
 
+
+def send_info(request):
+    if request.method == 'POST': 
+        form = SendInfoForm(request.POST) 
+        if form.is_valid():
+            from django.core.mail import EmailMultiAlternatives
+            from django.template.loader import get_template
+            from django.template import Context
+
+            name = form.cleaned_data['name']
+            sender = form.cleaned_data['sender']
+
+            htmly = get_template('treemap/send_info_template.html')
+            plaintext = get_template('treemap/send_info_template.txt')
+ 
+            d = Context({ 'name': name })
+
+            text_content = plaintext.render(d)
+            html_content = htmly.render(d)
+
+            from_email = 'contact@oaktreemap.org'
+            subject = "Finding Oakland's Oaks"
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [sender])
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
+
+            return HttpResponseRedirect('%s/info/thanks/' % settings.SITE_ROOT) # Redirect after POST
+        else: print 'form invalid!', form.errors
+    else:
+        form = SendInfoForm() # An unbound form
+
+    return render_to_response('treemap/send_info.html', {
+        'form': form, 
+    }, RequestContext(request))
+
 def is_number(s):
     try:
         float(s)
@@ -2217,7 +2252,7 @@ def remove_flag(request):
 @login_required
 @permission_required('auth.change_user') #proxy for group users
 def build_admin_panel(request):
-    return render_to_response('treemap/admin.html',RequestContext(request))
+    return render_to_response('treemap/admin_nav.html',RequestContext(request))
 
 @login_required
 @permission_required('auth.change_user') #proxy for group users

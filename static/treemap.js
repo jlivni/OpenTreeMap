@@ -907,7 +907,9 @@ console.log(ll, full_address, city, zip)
         }
 
         tm.geocode_address = address;
-
+        if (tm.geocode_address.toLocaleLowerCase().indexOf("oaks")  == -1) {
+          tm.geocode_address += ', oakland'
+        }
         if (tm.local_geocoder) {
             $.getJSON(tm_static + "/geocode/", {address: tm.geocode_address, geocoder_name: tm.local_geocoder}, function(json) {
                 if (json.success == true) {
