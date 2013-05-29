@@ -847,7 +847,7 @@ def view_pends(request):
 
 
 @login_required
-@transaction.commit_manually
+#@transaction.commit_manually
 @csrf_view_exempt
 def object_update(request):
     """

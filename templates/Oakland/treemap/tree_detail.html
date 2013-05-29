@@ -63,7 +63,7 @@
         </tr>
         <tr>
         	<td class="col1Wide">Crown diameter</td>
-            <td>{{tree.crown_width|unit_or_missing:"inches"}}</td>
+            <td>{{tree.crown_width|unit_or_missing:"feet"}}</td>
             <td></td>
         </tr>
     </tbody>
@@ -148,22 +148,19 @@
 </table>
 
 <table class="box-table-a">
-    <thead>
-    	<tr>
-        	<th scope="col" colspan="3">Species that have been Spotted in this Tree</th>
-        </tr>
-    </thead>
-    <tbody>
-       {% for species in tree.get_fauna %} 
-          <tr>
-            <td class="col1Wide">{{species}}</td>
-            <td>
-            {{tree.plot.address}}
-            </td>
-          </tr>
-        <tr>
-      {% endfor %}
-    </tbody>
+     {% if tree.treefauna_set.count > 0 %}
+           <tr>
+             <td><b>Species that have been Spotted in this Tree</b></td>
+             <td></td>
+           </tr>
+            {% for h in tree.treefauna_set.all %}
+              <tr>
+                <td>
+                  {{ h.get_key_display }}
+                </td>
+              </tr>  
+            {% endfor %}
+        {% endif %}
 </table>
 
 

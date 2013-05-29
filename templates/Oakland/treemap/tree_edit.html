@@ -49,7 +49,7 @@
       <td class="col1 activeEditRowLabel">Crown Diameter</td>
         <td class="activeEditRowValue" id="edit_crown_width">Click to edit</td>
         <td style="vertical-align:top;"><a href="#" onclick="$('#edit_crown_width').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
-            <script>tm.setupEdit("crown_width", "Tree", 6, {'type':'select', 'loadurl': '../trees/{{tree.id}}/edit/choices/crown_width/'});</script>
+            <script>tm.setupEdit("crown_width", "Tree", {{tree.id}}, {'type':'select', 'loadurl': '../trees/{{tree.id}}/edit/choices/crown_width/'});</script>
     </tr>
 
     <thead>
