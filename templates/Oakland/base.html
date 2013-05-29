@@ -360,15 +360,14 @@ s.parentNode.insertBefore(po, s);
     <div id="footer"> 
     <div class="footer-holder"> 
 
-        <a href="http://museumca.org/"><img src="/static/images/oakland_museum.png" alt="Oakland Museum" /></a>
+        <img src="/static/images/oakland_museum.png" alt="Oakland Museum" />
 
       <div id="footer-nav-holder"> 
         <ul class="footer-nav">
         <li><a href="/about/">About</a></li> 
         <li><a href="/contact/">Contact</a></li> 
+        <li><a href="/info/">Send Me Info</a></li> 
         {% if user.is_authenticated %}
-           <li>Logged in as <a href="/profiles/{{user.username}}/">{{user.username|escape}}</a>
-           <span id="logout"><a href="/accounts/logout/?next=/" id="logout">(Logout)</a></span>
            {% if user.is_superuser %}
            <li><a href="/_admin_/">Admin</a></li>
            {% endif %}
@@ -376,7 +375,6 @@ s.parentNode.insertBefore(po, s);
            <li><a href="/verify/">Recent Changes</a></li>
            {% endif %}
         {% else %}
-          <li><a href="/accounts/login/">Login</a> or <a href="/accounts/register/" class="buttomSm">Sign up</a></li>
       {% endif %}
       </ul> 
       <span id="footer-lower"><a href="/">www.oaktreemap.org</a> </span>
