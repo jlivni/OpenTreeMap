@@ -1756,10 +1756,12 @@ def advanced_search(request, format='json'):
     tree_count = trees.count()
     plot_count = plots.count()
     full_count = Tree.objects.filter(present=True).count()
+    heritage_count = Tree.objects.filter(dbh__gte=36).count()
     full_plot_count = Plot.objects.filter(present=True).count()
     esj = {}
     esj['total_trees'] = tree_count
     esj['total_plots'] = plot_count
+    esj['heritage_count'] = heritage_count
 
     if tree_count > maximum_trees_for_summary:
         trees = []

@@ -1306,7 +1306,7 @@ ul#resultsContainer li#totals ul li#first {
     padding:0 0 0 5px;
     margin:0;
 }
-ul#resultsContainer li#totals ul li#first .tree_count {
+ul#resultsContainer li#totals ul li#first .tree_count, .heritage_tree_count {
 	font-size:30px;
     font-weight:bold;
     color:#000;
