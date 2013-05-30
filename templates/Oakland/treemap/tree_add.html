@@ -209,20 +209,21 @@
           <label class="required steps">Step 3 </label>
           <span class="value">Enter Other Data (optional)</span>
             <div id="opt_field_group">
-                <span class="small"><a id="treekey" href="/about/#id" target="_blank">How can I recognize a Coast Live Oak?</a><br>
-                  <a href="/about/#measure"><br>More Info on Measuring</a>
+                <div style="font-size:1.2em;">
+                <div class="clearLeft"></div>
+                  <a href="/about/#id" target="_blank">How can I recognize a Coast Live Oak?</a>
+                  <br>
+                  <a href="/about/#measure" target="_blank">More Info on Measuring</a>
+                </div>
                   {%for e in form.dbh.errors %}<span class="smError">{{e}}</span>{% endfor %}
-                </span>
                 <label class="opt_fields" style="width:300px;"><b>Enter Trunk Size (number only)</b></label>{{ form.dbh }}
                 <div class="clearLeft"></div>
                 <label class="opt_fields"> </label><div id="dbh_type">{{ form.dbh_type }}</div>
                 <div class="clearLeft"></div>
             </div>
 
-                <span class="small">Estimate size of the tree crown.
-                  {%for e in form.crown_width.errors %}<span class="smError">{{e}}</span>{% endfor %}
-                </span>
-                <label class="opt_fields" style="width:300px;"><b>Enter the diamater of the tree crown</b></label>
+                {%for e in form.crown_width.errors %}<span class="smError">{{e}}</span>{% endfor %}
+                <label class="opt_fields" style="width:300px;"><b>Enter the diameter of the tree crown</b></label>
                   <select name="crown_width" id="id_crown_width">
                     <option value=''>Select an estimate</option>
                     <option value=3>.5-5 ft</option>
