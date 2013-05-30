@@ -257,8 +257,21 @@ s.parentNode.insertBefore(po, s);
           </ul> 
         </div> 
         <div class="plot_type "> 
-          <ul> 
-          </ul> 
+        <strong>Trees that have been visited by</strong>
+        <table><tr>
+        {% for f in fauna %}
+          <ul>
+            {% if forloop.counter0|divisibleby:"7"%}
+              </ul></td><td><ul>
+            {% endif %}
+            <li>
+              <label for="fauna_{{forloop.counter0}}">
+                <input type="checkbox" name="fauna" value="{{f.0}}" id="fauna_{{f.0}}" /> 
+                  {{f.1}}
+              </label>
+            </li>
+          {% endfor %}
+          </ul> </td></tr></table>
         </div> 
         <div class="outstanding"> 
           <strong>Missing Data</strong> 

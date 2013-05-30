@@ -221,7 +221,8 @@ def result_map(request):
     recent_trees = recent_trees.filter(last_updated_by__id__gt=1)[0:5]
     recent_plots = Plot.objects.filter(present=True).order_by("-last_updated")[0:5]
     latest_photos = TreePhoto.objects.exclude(tree__present=False).order_by("-reported")[0:8]
-
+    fauna = Choices().get_field_choices('fauna') 
+    fauna.sort(key=lambda tup: tup[1])
     return render_to_response('treemap/results.html',RequestContext(request,{
                 'latest_trees': recent_trees,
                 'latest_plots' : recent_plots,
@@ -232,6 +233,7 @@ def result_map(request):
                 'max_updated': max_updated,
                 'min_plot': min_plot,
                 'max_plot': max_plot,
+                'fauna' : fauna
                 }))
 
 
@@ -1414,6 +1416,13 @@ def _build_tree_search_result(request):
         if max != 100: 
             trees = trees.filter(crown_width__lte=max)
         tile_query.append("crown_width BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
+
+    fauna_ids = []
+    for fauna_id in range(80,98):
+      if 'fauna_%d' % fauna_id in request.GET:
+        fauna_ids.append(fauna_id)
+    if fauna_ids:
+      trees = trees.filter(treefauna__key__in=fauna_ids) 
 
     missing_current_height = request.GET.get('missing_height','')
     if missing_current_height:
