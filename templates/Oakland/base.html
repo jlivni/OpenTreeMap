@@ -51,22 +51,23 @@ s.parentNode.insertBefore(po, s);
     <h1 class="logo"><a href="/">SanDiego TreeMap</a></h1>
     <div id="navContainer">
       <ul id="nav">
-<!---
       <li style="float:right;margin-right:25px;">
-        {% if user.is_authenticated %}
-          <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>
-          {% if user.username != 'museum' %}
-           <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> 
+        {% if user.username != 'museum' %}
+          {% if user.is_authenticated %}
+            <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>
+             <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> 
+          {% else %}
+          <a href="/accounts/login/">Login</a> or <a href="/accounts/register/">Sign up</a> 
           {% endif %}
-        {% else %}
-        <a href="/accounts/login/">Login</a> or <a href="/accounts/register/">Sign up</a> 
         {% endif %}
       </li>
--->
   <br>
   <br>
-        <li>
+        <li>{% if user.username == 'museum' %}
          <a href="/info/" class="buttomSm globalAdd button" id="addTreeButton">Send Me Info</a>
+        {% else %}
+         <a href="/trees/add/" class="buttomSm globalAdd button" id="addTreeButton">Add a tree</a>
+        {% endif %}
         </li>
         <li>
          <a href="/about" class="buttomSm globalAdd button" id="aboutButton">About</a>
@@ -354,19 +355,23 @@ s.parentNode.insertBefore(po, s);
      {% endblock %}  
     
     
-  {% if user.username != 'museum' %}    
      {% block global_footer %}
     <!-- Start Global footer --> 
     <div id="footer"> 
     <div class="footer-holder"> 
 
+  {% if user.username != 'museum' %}    <a href="http://museumca.org/">{% endif %}
         <img src="/static/images/oakland_museum.png" alt="Oakland Museum" />
+  {% if user.username != 'museum' %}    </a>{% endif %}
 
       <div id="footer-nav-holder"> 
         <ul class="footer-nav">
         <li><a href="/about/">About</a></li> 
-        <li><a href="/contact/">Contact</a></li> 
+        {% if user.username == 'museum' %}
         <li><a href="/info/">Send Me Info</a></li> 
+        {% else %}
+        <li><a href="/contact/">Contact</a></li> 
+        {% endif %}
         {% if user.is_authenticated %}
            {% if user.is_superuser %}
            <li><a href="/_admin_/">Admin</a></li>
@@ -383,7 +388,6 @@ s.parentNode.insertBefore(po, s);
     </div> 
     <!-- End Global footer --> 
     {% endblock global_footer %}
-  {% endif %} 
 
   </div>
 

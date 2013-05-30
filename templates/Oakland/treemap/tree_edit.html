@@ -32,6 +32,9 @@
             <div class="wrap">
 
 <table class="box-table-a">
+{% if user.username == 'museum' %}
+If you’d like to add or edit trees on the map, please create an account from your home computer and join in! <br><br><a href="http://oaktreemap.org/info/">Click Here</a> for more information on how to get started.
+{% else %}
     <tbody>
     <thead>
     	<tr>
@@ -39,7 +42,7 @@
         </tr>
     </thead>
     <tr>
-    	<td class="col1">Trunk size (inches)<a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
+    	<td class="col1">Trunk size (inches)<a href="/about/#measure" title="Not sure how to measure this?" target="_blank">(?)</a></td>
         <td id="edit_dbh">{{ tree.dbh|add:" in"|default:"Click icon to edit" }}</td>
         <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{tree.dbh|default:0}}]); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
         <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
@@ -88,9 +91,9 @@
     </tr>  
 
     <input id="id_geometry" type="hidden"/>
+{% endif %}
     </tbody>
 </table>
-
 
 
             </div>

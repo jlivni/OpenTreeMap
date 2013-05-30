@@ -491,6 +491,7 @@ def unified_history(trees, plots=[]):
 def tree_edit_choices(request, tree_id, type_):
     tree = get_object_or_404(Tree, pk=tree_id)
     choices = Choices().get_field_choices(type_)
+    choices.sort(key=lambda tup: float(tup[0]))
     data = SortedDict(choices)
     #for item in choices: 
     #    data[item[0]] = item[1]
