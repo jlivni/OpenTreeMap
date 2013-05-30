@@ -68,6 +68,10 @@
         </tr>
     </tbody>
 </table>
+{% if tree.dbh >= 36 %}
+<img src="/static/images/heritage.png" style="float:left;margin-right:15px;">
+<br><b>This Coast Live Oak is a Heritage Tree</b>
+{% endif %}
 
 <table class="box-table-a">
     <thead>
@@ -262,18 +266,26 @@
                     {% endfor %}
                     </ul>
                     <ul id="imageOptions">
-                        <li id="first">{{ tree.treephoto_set.count }} photos. <a class="add" href="/trees/{{tree.id}}/photos/">Add photos &raquo;</a></li>
+                        <li id="first">
+                          {{ tree.treephoto_set.count }} photos.
+                          {% if user.username != 'museum' %}
+                            <a class="add" href="/trees/{{tree.id}}/photos/">Add photos &raquo;</a>
+                          {% endif %}
+                         </li>
                     </ul>
-{% else %}
+                {% else %}
                     <img src="/static/images/v2/TreeSilhouette.jpg" alt="Tree" title="Add photos!" width="181" height="119" class="mainImage" />
-                    <ul id="imageOptions">
+                      {% if user.username != 'museum' %}
+                      <ul id="imageOptions">
                         <li id="first"><a href="/trees/{{tree.id}}/photos/">Add photos &raquo;</a></li>
-					</ul>
+                      </ul>
+                    {% endif %}
                 {% endif %}
                 </li>
             </ul>
             <ul id="message">
               <li>
+                {% if user.username != 'museum' %}
                 {% if user.is_authenticated %}
                     <ul class="optionItem">
                     <li>
@@ -296,6 +308,7 @@
                     <!--<li class="editItem"><a href="#">Edit</a>
                     </li>
                     </ul>-->
+                {% endif %}
                 {% endif %}
                     <!-- todo -->
                     <!--
