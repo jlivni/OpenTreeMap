@@ -1408,6 +1408,13 @@ def _build_tree_search_result(request):
             trees = trees.filter(dbh__lte=max)
         tile_query.append("dbh BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
 
+    if 'crown_width_range' in request.GET:
+        min, max = map(float,request.GET['crown_width_range'].split("-"))
+        trees = trees.filter(crown_width__gte=min)
+        if max != 100: 
+            trees = trees.filter(crown_width__lte=max)
+        tile_query.append("crown_width BETWEEN " + min.__str__() + " AND " + max.__str__() + "")
+
     missing_current_height = request.GET.get('missing_height','')
     if missing_current_height:
         trees = trees.filter(Q(height__isnull=True) | Q(height=0))

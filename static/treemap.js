@@ -269,6 +269,21 @@ var tm = {
                 tm.searchParams['diameter_range'] = min+'-'+max;
             }
         });
+        $("#crown_width_slider").slider({'range': true, max: 100, min: 0, values: [0, 100],
+            slide: function() { 
+                var min = $(this).slider('values', 0)
+                var max = $(this).slider('values', 1)
+                $('#min_crown_width').html(min);
+                $('#max_crown_width').html(max);
+            },    
+            change: function() {
+                var min = $(this).slider('values', 0)
+                var max = $(this).slider('values', 1)
+                $('#min_crown_width').html(min);
+                $('#max_crown_width').html(max);
+                tm.searchParams['crown_width_range'] = min+'-'+max;
+            }
+        });
         $("#height_slider").slider({'range': true, max: 200, min: 0, values: [0, 200],
             slide: function() { 
                 var min = $(this).slider('values', 0)
@@ -380,6 +395,9 @@ var tm = {
             $("#diameter_slider").slider('option', 'values', [0, 150]);
                 $('#min_diam').html(0);
                 $('#max_diam').html(150);
+            $("#crown_width").slider('option', 'values', [0, 100]);
+                $('#min_diam').html(0);
+                $('#max_diam').html(100);
             $("#planted_slider").slider('option', 'values', [min_year, current_year]);
                 $("#planted_slider")[0].updateDisplay();
             $("#updated_slider").slider('option', 'values', [min_updated, max_updated]);
@@ -405,6 +423,7 @@ var tm = {
             $("#updated_by").val('');
             $("#funding").val('');
             delete tm.searchParams['diameter_range'];
+            delete tm.searchParams['crown_width_range'];
             delete tm.searchParams['planted_range'];
             delete tm.searchParams['updated_range'];
             delete tm.searchParams['height_range'];
@@ -1752,6 +1771,11 @@ var tm = {
                     var dvals = $.address.parameter(key).split("-");
                     $("#diameter_slider").slider('values', 0, dvals[0]);
                     $("#diameter_slider").slider('values', 1, dvals[1]);
+                }   
+                if (key == "crown_width_range") {
+                    var dvals = $.address.parameter(key).split("-");
+                    $("#crown_width_slider").slider('values', 0, dvals[0]);
+                    $("#crown_width_slider").slider('values', 1, dvals[1]);
                 }   
                 if (key == "planted_range") {
                     var pvals = $.address.parameter(key).split("-");
