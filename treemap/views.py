@@ -598,17 +598,8 @@ def tree_delete(request, tree_id):
             content_type = 'text/plain'
           )
     tree = Tree.objects.get(pk=tree_id)
-    tree.present = False
-    tree.save()
-    
-    for h in tree.history.all():
-        h.present = False
-        h.save()
-    
-    return HttpResponse(
-        simplejson.dumps({'success':True}, sort_keys=True, indent=4),
-        content_type = 'text/plain'
-    )
+    plot = tree.plot
+    return plot_delete(request, plot.id)
 
 @csrf_view_exempt
 @login_required
