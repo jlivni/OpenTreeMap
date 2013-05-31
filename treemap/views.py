@@ -589,6 +589,7 @@ def plot_edit(request, plot_id = ''):
     return render_to_response('treemap/tree_edit.html',RequestContext(request,{ 'tree': plot.current_tree(), 'plot': plot, 'reputation': reputation, 'user': request.user}))   
 
 
+@csrf_view_exempt
 @login_required
 def tree_delete(request, tree_id):
     rep = Reputation.objects.reputation_for_user(request.user)
@@ -613,11 +614,11 @@ def plot_delete(request, plot_id):
     plot = Plot.objects.get(pk=plot_id)
     plot.present = False
     plot.save()
-
     if plot.current_tree():
-        plot.current_tree().present = False
-        plot.current_tree().save()
-        for h in plot.current_tree().history.all():
+        tree = plot.current_tree()
+        tree.present = False
+        tree.save()
+        for h in tree.history.all():
             h.present = False
             h.save()
     

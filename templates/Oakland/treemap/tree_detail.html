@@ -208,7 +208,7 @@
 								{% endfor %}
 								</div>
 
-								{% if user.is_authenticated %}
+								{% if user.is_authenticated and user.username != 'museum' %}
 									{% get_comment_form for tree as form %}
 									<form action="{% comment_form_target %}" method="post">{% csrf_token %}
 										<input type="hidden" name="next" value="{{request.get_full_path}}" />
@@ -259,6 +259,7 @@
                 {% if tree.treephoto_set.count %}
                     <a href="/media/{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}">
                     {% thumbnail tree.treephoto_set.all|first|get:"photo" "181x119" crop="center" as image %}{%endthumbnail%}
+                    <img src="{{ image.url }}" alt="{{ tree.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
                     </a>
                     <ul id="additionalImages">
                     {% for item in tree.treephoto_set.all|slice:"1:4" %}
@@ -340,7 +341,7 @@
             </ul>
             <ul id="message">
                 <li id="title">Your turn</li>
-                <li>Our database of trees comes from public records and citizen foresters like you. <a href="edit/">Update the information for this tree and help us grow!</a></li>
+                <li>Our database of trees comes from citizen scientists like you. You can help us find and map more of Oakland’s oaks. For more information on how to participate in this project, <a href="edit/">click here</a></li>
             </ul>
             <ul id="message">
             	<li id="title">Recent Contributors</li>

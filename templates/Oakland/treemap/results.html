@@ -119,7 +119,10 @@ You can join the project online to help complete the map.
             {% for pic in latest_photos %}
                 <li>
                     <a href="{{ pic.tree.get_absolute_url }}">
-                         {% thumbnail pic.photo "100x100" crop="center" as image %}{%endthumbnail%}
+                       {% thumbnail pic.photo "100x100" crop="center" as image %}
+                        <img src="{{ image.url }}" alt="image description" width="100" height="100" />
+                        {% endthumbnail %}
+
                     </a>
                 </li>
             {% endfor %}
