@@ -1,0 +1,409 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>{% block title %}Oakland Tree Map{% endblock %}</title>
+  
+  {% block tophead %}
+  {% endblock %}
+
+  <script type="text/javascript">
+    tm_static = "{{ SITE_ROOT }}";
+    tm_site = "{{SITE}}";
+  </script>
+  <script type="text/javascript" src="/static/all_misc.js"></script>
+  <script type="text/javascript" src="/static/jquery/jquery.jeditable.min.js"></script>
+  <script type="text/javascript" src="/static/jquery/jquery.query-2.1.7.js"></script>
+  <script type="text/javascript" src="/static/treemap.js"></script>
+  <script type="text/javascript" src="/static/v3map.js"></script>
+  <link rel="stylesheet" href="/static/css/treemap.css" type="text/css"/>
+  <link rel="stylesheet" href="/static/jquery/ui/css/ui-lightness/jquery-ui-1.8rc3.custom.css" type="text/css"/>
+  <link rel="stylesheet" type="text/css" href="/static/jquery/jquery.autocomplete.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/sdtm.css" media="all" />
+  <link rel="shortcut icon" href="/static/images/favicon.ico" />
+  <!--<link type="text/css" href="http://jqueryui.com/latest/themes/base/jquery.ui.all.css" rel="stylesheet" />-->
+  
+    
+  {% block js_ready %}
+  <script type="text/javascript">
+    jQuery().ready(tm.baseTemplatePageLoad);
+  </script>
+  {% endblock %}
+<!-- Place this tag in the <head> of your document -->
+<link href="https://plus.google.com/109842840363208247792" rel="publisher" /><script type="text/javascript">
+window.___gcfg = {lang: 'en'};
+(function() 
+{var po = document.createElement("script");
+po.type = "text/javascript"; po.async = true;po.src = "https://apis.google.com/js/plusone.js";
+var s = document.getElementsByTagName("script")[0];
+s.parentNode.insertBefore(po, s);
+})();</script>
+  {% block extrahead %}
+  {% endblock %}
+
+</head>
+
+<body {% block body_load %}{% endblock %} class="{%block body_class%}base_body{%endblock %}">
+  <div id="wrapper">
+  
+<!-- start: header -->
+  <div id="header">
+    <h1 class="logo"><a href="/">SanDiego TreeMap</a></h1>
+    <div id="navContainer">
+      <ul id="nav">
+<!---
+      <li style="float:right;margin-right:25px;">
+        {% if user.is_authenticated %}
+          <b><a href="/profiles/{{user.username}}/">{{user.username|escape}}!</a></b>
+          {% if user.username != 'museum' %}
+           <span id="logout">|  <a href="/accounts/logout/?next=/" id="logout">Logout</a> 
+          {% endif %}
+        {% else %}
+        <a href="/accounts/login/">Login</a> or <a href="/accounts/register/">Sign up</a> 
+        {% endif %}
+      </li>
+-->
+  <br>
+  <br>
+        <li>
+         <a href="/info/" class="buttomSm globalAdd button" id="addTreeButton">Send Me Info</a>
+        </li>
+        <li>
+         <a href="/about" class="buttomSm globalAdd button" id="aboutButton">About</a>
+        </li>
+       </ul>
+      </div> <!-- end: navContainer div -->
+
+<!-- start: search box -->
+  
+  <div id="searchBox">
+    <div id="searchBoxContainer">
+    <ul id="searchBoxes">
+    <form method="get" action="/map/" name="address" class="address" id="search_form">
+      <li id="searchSpeciesBox" style="display:none;">
+      <input type="text"  id="species_search_input" value="All trees"
+       onFocus='if (this.value == "All trees") { this.value=""; };' />
+      <input type='hidden' name='species_search_id' id="species_search_id" />
+      <input type='hidden' name='species_search_id' id="species_search_id_cultivar" />
+      </li>
+      <li id="searchLocationBox">
+        <div id="searchLocationBrowse"></div>
+        <input type="text"  name="location" onFocus="this.value=''" id="location_search_input" value="Oakland" />
+      </li>
+      <li id="searchButton"><input class="go" id="location_go" type="button" value="Search" /></li>
+    </form>
+    </ul>
+    <ul id="searchSuggest">
+      <li id="searchSpeciesSuggest">
+      </li>
+      
+      <li id="searchLocationSuggest">Examples: 
+      
+      <a onclick='$("#location_search_input").val("1000 Oak St., Oakland"); $("#location_search_input").change(); return false;' href="#">1000 Oak St.</a> / 
+      <a onclick='$("#location_search_input").val("RockRidge"); $("#location_search_input").change(); return false;' href="#">RockRidge</a> / 
+      <a onclick='$("#location_search_input").val("94612"); $("#location_search_input").change(); return false;' href="#">94612</a>
+        <a href="#" id="advanced" class="advanced">
+          <span id="close-filters">Show advanced filters</span>
+       </a> 
+     </li>
+    </ul>
+    <div id="searchSpeciesList" class="ac_results" style=""><h2>Species</h2><a class="floatRight" href="http://www.urbantreekey.org/key/What-kind-of-leaves-does-the-tree-have/" target="_blank">View Tree Key for More Detail</a></div>
+    <div id="searchNBList" class="ac_results" style=""><h2>Municipalities</h2></div>
+
+    </div>
+  </div>
+
+  
+  </div>
+  
+<!-- end: header -->
+    
+    <div class="filter-box" style="display:none"> 
+      <div class="wrap"> 
+      <div class="parameter"> 
+        <ul> 
+        <li> 
+          <div class="title"> 
+          <strong>Diameter</strong> 
+          <em><span id="min_diam">0</span> inches - <span id="max_diam">150</span> inches</em> 
+          </div> 
+          <div style="width:200px; height:10px;" id="diameter_slider"></div>
+        </li> 
+        <li class="hidden"> 
+          <div class="title"> 
+          <strong>Height</strong> 
+          <em><span id="min_height">0</span> feet - <span id="max_height">200</span> feet</em> 
+          </div> 
+          <div style="width:200px; height:10px;" id="height_slider"></div>
+        </li> 
+
+        <li class="hidden"> 
+          <div class="title"> 
+          <strong>Plant Date</strong> 
+          <em><span id="min_planted">1700</span> - 
+          <span id="max_planted">2010</span></em> 
+          </div> 
+          <div style="width:200px; height:10px;" id="planted_slider"></div>
+        </li> 
+        <li> 
+          <div class="title"> 
+          <strong>Last Tree Update</strong> 
+          <em><span id="min_updated">0</span> - 
+          <span id="max_updated">365</span></em> 
+          </div> 
+          <div style="width:200px; height:10px;" id="updated_slider"></div>
+        </li> 
+        <li class="hidden"> 
+          <div class="title"> 
+          <strong>Plot Size</strong> 
+          <em><span id="min_plot">0</span> feet - <span id="max_plot">15+</span> feet</em> 
+          </div> 
+          <div style="width:200px; height:10px;" id="plot_slider"></div>
+        </li> 
+
+        </ul> 
+      </div> 
+      <form id="options_form" action="#" class="options"> 
+        <fieldset> 
+        <div class="characteristics hidden"> 
+          <strong>Characteristics</strong> 
+          <ul> 
+          <li> 
+            <input type="checkbox" id="flowering" /> 
+            <label for="flowering">Flowering</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="color" /> 
+            <label for="color">Fall color</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="edible" /> 
+            <label for="edible">Edible (fruits/nuts)</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="native" /> 
+            <label for="native">Native to region</label> 
+          </li> 
+          </ul> 
+          <strong>Powerlines</strong> 
+          <ul> 
+          <li> 
+            <input type="checkbox" id="yes" /> 
+            <label for="pl_yes">Yes</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="no" /> 
+            <label for="pl_no">No</label> 
+          </li> 
+          </ul> 
+          <strong>Photos</strong> 
+          <ul> 
+          <li> 
+            <input type="checkbox" id="photos" /> 
+            <label for="photos">Present</label> 
+          </li> 
+          </ul> 
+        </div> 
+        <div class="project_trees hidden">
+          <strong>Project trees</strong> 
+          <ul> 
+           <li> 
+            <input type="checkbox" id="project1" /> 
+            <label for="project1">Protected Trees</label> 
+           </li> 
+           <li> 
+            <input type="checkbox" id="project2" /> 
+            <label for="project2">Specimen Trees</label> 
+           </li> 
+          </ul>
+          <strong>Condition</strong> 
+          <ul> 
+          <li> 
+            <input type="checkbox" id="excellent" /> 
+            <label for="excellent">Excellent</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="very_good" /> 
+            <label for="very_good">Very good</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="good" /> 
+            <label for="good">Good</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="fair" /> 
+            <label for="fair">Fair</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="poor" /> 
+            <label for="poor">Poor</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="critical" /> 
+            <label for="critical">Critical</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="dead" /> 
+            <label for="dead">Dead</label> 
+          </li> 
+          </ul> 
+        </div> 
+        <div class="plot_type hidden"> 
+          <strong>Sunset Zones</strong> 
+          <ul> 
+          <li> 
+            <input type="checkbox" id="sunset_7" /> 
+            <label for="sunset_7">7</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="sunset_11" /> 
+            <label for="sunset_11">11</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="sunset_13" /> 
+            <label for="sunset_13">13</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="sunset_18" /> 
+            <label for="sunset_18">18</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="sunset_19" /> 
+            <label for="sunset_19">19</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="sunset_20" /> 
+            <label for="sunset_20">20</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="sunset_21" /> 
+            <label for="sunset_21">21</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="sunset_22" /> 
+            <label for="sunset_22">22</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="sunset_23" /> 
+            <label for="sunset_23">23</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="sunset_24" /> 
+            <label for="sunset_24">24</label> 
+          </li> 
+          </ul> 
+        </div> 
+        <div class="outstanding"> 
+          <strong>Missing Data</strong> 
+          <ul> 
+          <li> 
+            <input type="checkbox" id="missing_diameter" /> 
+            <label for="diameter">Trunk diameter</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="crown_width" /> 
+            <label for="crown_width">Crown Width</label> 
+          </li> 
+          <li> 
+            <input type="checkbox" id="missing_photos" /> 
+            <label for="missing_photos">Photos</label> 
+          </li> 
+          <li> 
+            <span>Missing data searches take priority </span>
+          </li> 
+          </ul> 
+        </div> 
+        </fieldset> 
+      </form> 
+      </div> 
+    </div> 
+    
+    <!-- end search-box -->
+    {% block content %}
+    Information on oak tree identification coming soon!
+    {% endblock content %}
+    {% block callout %}
+    <div id="callout">
+      {% block callout_content %}
+      
+      {% endblock callout_content %}
+    </div>
+    <!--end callout-->  
+    {% endblock callout %}
+    
+    {% block sub_footer %}
+    <div class="content"> 
+    <div id="subfooterContainer">
+      <div class="threecolumns"> 
+      <h2>How you can help</h2> 
+      <div class="box"> 
+        <span class="number">1</span> 
+        <p><span class="mark"><a href="/map/">Find a tree</a></span>: Look around for Coast Live Oak trees near where you live, work or play.  Write down the address or mark it on a map.  Take a photo, or measure the tree using tree measurement guideleness. <a href="/map/#?advanced=open" class="more">Go  &raquo;</a></p> 
+      </div> 
+      <div class="box"> 
+        <span class="number">2</span> 
+        <p><span class="mark"><a href="/trees/add/">Send me info a tree</a></span>: Come to this website and enter the tree's street address or mark it on the map.  Upload your photo and enter measurements or other information you noted about the tree. <a href="/trees/add/" class="more">Go  &raquo;</a></p> 
+      </div> 
+      <div class="box" id="boxLast"> 
+        <span class="number">3</span> 
+        <p><span class="mark"><a href="#">Edit a Tree</a></span>: Return to the website when you notice something new about the tree.  Notice how it's growing or what animals you've seen there lately.  Take another photo.  Be a citizen scientist for Coast Live Oaks!</p>
+      </div> 
+      </div> 
+    </div>
+    </div>
+     {% endblock %}  
+    
+    
+  {% if user.username != 'museum' %}    
+     {% block global_footer %}
+    <!-- Start Global footer --> 
+    <div id="footer"> 
+    <div class="footer-holder"> 
+
+        <img src="/static/images/oakland_museum.png" alt="Oakland Museum" />
+
+      <div id="footer-nav-holder"> 
+        <ul class="footer-nav">
+        <li><a href="/about/">About</a></li> 
+        <li><a href="/contact/">Contact</a></li> 
+        <li><a href="/info/">Send Me Info</a></li> 
+        {% if user.is_authenticated %}
+           {% if user.is_superuser %}
+           <li><a href="/_admin_/">Admin</a></li>
+           {% endif %}
+           {% if user.reputation.reputation > 1000 %}
+           <li><a href="/verify/">Recent Changes</a></li>
+           {% endif %}
+        {% else %}
+      {% endif %}
+      </ul> 
+      <span id="footer-lower"><a href="/">www.oaktreemap.org</a> </span>
+    </div> 
+    </div> 
+    </div> 
+    <!-- End Global footer --> 
+    {% endblock global_footer %}
+  {% endif %} 
+
+  </div>
+
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js'  type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-28968074-1");
+pageTracker._setDomainName("none");
+pageTracker._setAllowLinker(true);
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+{% block endpage %}
+
+{% endblock endpage %}
+
+</body>
+</html>

@@ -25,6 +25,24 @@ mapnik.load_map(m,settings.MAPNIK_STYLESHEET)
 style = m.find_style('style')
 del m
 
+
+style2 = mapnik.Style()
+r = mapnik.Rule()
+icon = '/ebs/projects/oakland/OpenTreeMap/static/images/SanDiego/map_icons/v4/marker-sm.png'
+sym = mapnik.PointSymbolizer( mapnik.PathExpression(icon))
+sym.transform = 'scale(0.4)'
+sym.allow_overlap = True
+sym.opacity = .5
+x = mapnik.MarkersSymbolizer()
+x.width = mapnik.Expression("20")
+x.stroke_width = mapnik.Expression("20")
+x.allow_overlap = True
+x.fill = '#ff0'
+x.stroke = '#ccc'
+r.symbols.append(sym)
+style2.rules.append(r)
+
+
 srv = None
 
 if settings.CACHE_SEARCH_METHOD == 'mem':

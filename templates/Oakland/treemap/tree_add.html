@@ -1,0 +1,291 @@
+{% extends "template_3.html" %}
+
+{% block body_load %}class="contact"{% endblock %}
+
+{% block tophead %}
+  <script type="text/javascript" src="/static/openlayers/proj4js-compressed.js"></script>
+  <script type="text/javascript" src="/static/openlayers/defs/EPSG102100.js"></script>
+  <script type="text/javascript" src="/static/openlayers/defs/EPSG4326.js"></script>
+  <script type="text/javascript" src="/static/openlayers/OpenLayers.js"></script>
+  <script src="http://maps.google.com/maps/api/js?v=3.2&amp;sensor=false&libraries=places"></script>
+
+{% endblock %}
+
+{% block body_id %}id="tree_add"{% endblock %}
+
+{% block extrahead %}
+ <style type="text/css">
+    .smError {color:red; font-weight:bold;}
+    label.opt_fields {width:300px;}
+    .small {margin-left:310px;}
+    #id_edit_address_city{display:none;}
+  </style>
+<script type="text/javascript" src="/static/js/map.js"></script>
+    <script type="text/javascript">
+    var museum_user_confirmed = false;
+
+    function updateAddTreeMarkerLocation(lng, lat){
+      var olPoint = new OpenLayers.LonLat(lng, lat);
+      var zoom = tm.add_zoom;
+      if (tm.map.getZoom() > tm.add_zoom) {zoom = tm.map.getZoom();}
+      tm.map.setCenter(new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
+
+      if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
+      if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
+      tm.load_nearby_trees(olPoint);
+      tm.add_new_tree_marker(olPoint, false);
+    }
+
+    jQuery().ready(function() {
+        tm.init_add_map();
+        //jQuery("#mapHolder").hide();
+        jQuery("#calloutContainer").hide();
+        //jQuery("#opt_field_group").hide();
+        jQuery("#addTree").submit(function(evt) {
+          tm.trackEvent("Add", "Add Tree");
+          //if museum user, double check they want to add a tree
+          if (1) {
+             if (museum_user_confirmed) {
+               return true;
+             } else {
+
+              $("#submitButton").fadeOut(500)
+                .delay(600)
+                .queue(function(n) {
+                    $(this).html("Yes, Really, I want to Add this tree to the Database!"),
+                    n();
+                }).fadeIn(500);
+             museum_user_confirmed = true;
+             return false;
+            }
+          } 
+        });
+      //hack css
+      var input = $('#id_edit_latitude').css('width','100px');
+      var input = $('#id_edit_longitude').css('width','100px');
+
+      var input = $('#id_edit_address_street')[0];
+      input.value = '';
+      var autocomplete = new google.maps.places.Autocomplete(input);
+      autocomplete.setBounds(new google.maps.LatLngBounds(
+        new google.maps.LatLng(37.75,-122.33),
+        new google.maps.LatLng(37.88,-122.15)
+      ));
+
+      google.maps.event.addListener(autocomplete, 'place_changed', function() {
+          var place = autocomplete.getPlace();
+          var loc = place.geometry.location;
+          var lng = loc.lng();
+          var lat = loc.lat();
+
+          updateAddTreeMarkerLocation(lng, lat);
+          tm.drag_control.activate();
+
+          jQuery('#id_lat').val(lat);
+          jQuery('#id_lon').val(lng);
+          jQuery('#id_edit_latitude').val(lat);
+          jQuery('#id_edit_longitude').val(lng);
+          jQuery('#id_geocode_address').val(place)
+
+          jQuery("#mapHolder").show();
+          jQuery("#calloutContainer").show();
+          tm.trackEvent('Add', 'View Map');
+      })
+
+        jQuery("#id_edit_latitude").focus(function() {
+          if(jQuery("#id_edit_latitude")[0].value == "Latitude") {
+              jQuery("#id_edit_latitude")[0].value = "";
+            }
+          })
+          .change(function(e) {
+            var lat = $(this).val();
+            if (lat < 39 && lat > 35) {
+              $('#id_lat').val(lat);
+              var lng = $("#id_edit_longitude").val()
+              if (lng){ 
+                updateAddTreeMarkerLocation(lng, lat);
+              }
+            } else {
+              alert(lat + ': invalid latitude for Oakland');
+              $(this).val('');
+            }
+          })
+        jQuery("#id_edit_longitude")
+          .focus(function() {
+            if(jQuery("#id_edit_longitude")[0].value == "Longitude") {
+              jQuery("#id_edit_longitude")[0].value = "";
+            }
+          })
+          .change(function(e) {
+            var lng = $(this).val();
+            if (lng < -120 && lng > -125) {
+              $('#id_lon').val(lng);
+              var lat = $("#id_edit_latitude").val();
+              if (lat){ 
+                tm.drag_control.activate();
+                updateAddTreeMarkerLocation(lng, lat);
+              }
+            } else {
+              alert(lng + ': invalid longitude for Oakland');
+              $(this).val('');
+            }
+          })
+        jQuery("#opt_field_group input").focus(function() {
+          if(this.value == "inches" || this.value == "feet") {
+            this.value = "";
+          }
+        });
+
+        jQuery("#id_dbh_type_0").attr('checked', 'checked');
+
+        jQuery("#opt_field_toggle").click(function() {
+            jQuery("#opt_field_group").toggle();
+        });
+        jQuery("#id_dbh_type_0").attr('checked', 'checked');
+        jQuery("#id_target_2").attr('checked', 'checked');
+
+    });
+</script>
+{% endblock %}
+
+
+{% block left_panel %}
+{% if messages %}
+<div id="messages">
+{% for message in messages %}
+    <div {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</div>
+    <div>You can add another tree below. <a href="/map">Done?</a></div>
+{% endfor %}
+</div>
+{% endif %}
+<div id="register" class="add">
+
+    <h1>Add a Coast Live Oak found in the East Bay<span class="note"></span></h1>
+
+    {% if form.errors %}
+    <div id="genError"><b>Oops!</b> There was a problem.<br />
+        {% if form.non_field_errors %}
+            <span id="smError">{{ form.non_field_errors }} </span></div>
+        {% else %}
+            <span id="smError">Error are noted in red below.</span></div>
+        {% endif %}
+    {% endif %}
+
+    <form id="addTree" action="." method="POST">
+    <fieldset>
+  <div id="step1">
+  <label class="required steps" {% if form.edit_address_street.errors %}id="error"{% endif %}>Step 1
+    </label>
+    {{ form.edit_address_street }}
+    </div>
+    <div id="step1">
+    {{ form.edit_address_city }}
+    &nbsp;{{ form.edit_latitude }}
+    {{ form.edit_longitude }}
+  </div>
+
+
+
+  <div id="mapHolder">
+
+      <div class="clearLeft" id="step2">
+        <label class="required steps">Step 2</label>
+        <span class="value">Specify Placement</span>
+        <div class="clearLeft"></div>
+      </div>
+
+            <div id="mapHolderDirections">Click-and-drag the orange circle to move it to the correct location.</div>
+        <div id="add_tree_map_wrap"><div id="add_tree_map" class="addMap"></div>
+        <div id="geocode_address"></div>
+        <div class="shadowLeft"></div>
+        <div class="shadowTop"></div>
+      </div>
+      <div id="add_tree_nearby">
+        <h1 class="title-edit">Nearby Trees</h1>
+        <div id="nearby_trees"></div>
+      </div>
+
+      <div class="clearLeft" id="step3">
+          <label class="required steps">Step 3 </label>
+          <span class="value"><a href="javascript:void(0);" id="opt_field_toggle">Enter Other Data (optional)</a></span>
+            <div id="opt_field_group">
+                <span class="small"><a id="treekey" href="#" target="_blank">How can I recognize a Coast Live Oak?</a></span>
+                <div class="clearLeft"></div>
+                <span class="small">
+                  <a href="http://www.sandiegotreemap.org/resources/#howto"><br>More Info on Measuring</a>
+                  {%for e in form.dbh.errors %}<span class="smError">{{e}}</span>{% endfor %}
+                </span>
+                <label class="opt_fields" style="width:300px;"><b>Enter Trunk Size (number only)</b></label>{{ form.dbh }}
+                <div class="clearLeft"></div>
+                <label class="opt_fields"> </label><div id="dbh_type">{{ form.dbh_type }}</div>
+                <div class="clearLeft"></div>
+            </div>
+
+                <span class="small">Estimate size of the tree crown.
+                  {%for e in form.crown_width.errors %}<span class="smError">{{e}}</span>{% endfor %}
+                </span>
+                <label class="opt_fields" style="width:300px;"><b>Enter the diamater of the tree crown</b></label>
+                  <select name="crown_width" id="id_crown_width">
+                    <option value=''>Select an estimate</option>
+                    <option value=30>.5-5 ft</option>
+                    <option value=100>5-10 ft</option>
+                    <option value=180>10-20 ft</option>
+                    <option value=300>20-30 ft</option>
+                    <option value=420>30-40 ft</option>
+                    <option value=540>40-50 ft</option>
+                    <option value=700>50-100+ ft</option>
+                  </select>
+                <div class="clearLeft"></div>
+
+<br>
+                <label style="width:500px;"><b>Identify any animals or birds you have seen in this tree</b></label>
+                  {%for e in form.fauna.errors %}<span class="smError">{{e}}</span>{% endfor %}
+                </span>
+                <div class="fauna_form" style="width:100%;float:left;margin-left:-35px;">
+                  <table><tr><td>
+                  <ul>
+                  {% for f in form.fauna.field.choices %}
+                    {% if forloop.counter0|divisibleby:"6"%}
+                      </ul></td><td><ul>
+                    {% endif %}
+                    <li>
+                      <label for="id_fauna_{{forloop.counter0}}">
+                        <input type="checkbox" name="fauna" value="{{f.0}}" id="id_fauna_{{forloop.counter0}}" /> 
+                          {{f.1}}
+                      </label>
+                    </li>
+                  {% endfor %}
+                 <li><input type="textbox" name="fauna_custom" id="id_fauna_custom"  placeholder="Enter animal" /></li>
+                  </ul>
+                </td></tr></table></div>
+ 
+  
+
+        <div class="clearLeft" style"display:none;">
+                {{ form.target }} 
+            </div>
+            <div class="clearLeft"></div>
+            <button type="submit" class="buttonMed" id="submitButton">Add this Tree!</button>
+      </div>
+
+  </div>
+
+
+  <!-- Hidden fields -->
+    <input type="hidden" name="species_id" id="id_species_id" value="QUAG"/>
+    {{ form.lat }}
+    {{ form.lon }}
+    {{ form.edit_address_zip }}
+    {{ form.geocode_address }}
+
+
+    </fieldset>
+    </form>
+    </div>
+
+    {% endblock %}
+
+    {% block right_panel %}
+
+    {% endblock right_panel %}
+

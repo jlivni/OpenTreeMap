@@ -1,0 +1,15 @@
+Hello {{name}}
+
+Thanks for your interest in the Finding Oakland’s Oaks project! Finding Oakland’s Oaks is a community-built mapping project sponsored by the Oakland Museum of California. We need the help of people like you to map the coast live oaks of the San Francisco Bay Area. Here’s how to participate:
+
+1. Visit the Oak Tree Map website [link: http://oaktreemap.org/accounts/login/] and create an account. You’ll receive an email with a link to confirm your participation.
+2. Once your account registration is complete, you can start adding the coast live oak trees around you to the map!
+3. Just click the Add a Tree button on any page or go here [link:  http://oaktreemap.org/trees/add/]. Enter the address where a coast live oak is located (or the latitude and longitude) and the map will zoom to that spot.
+4. Grab the little orange dot that represents your tree and move it until it’s on top of the tree in the aerial image.
+5. If you know it, enter the trunk size of the tree and the diameter of its crown.
+6. Tell us about any animals you’ve seen in the tree.
+7. Click “Add this tree!” and your tree will appear on the map!
+
+For more information about the project, visit the About page [link: http://oaktreemap.org/about/] or exhibit in the Museum.
+
+Thanks again for your interest in Finding Oakland’s Oaks. We look forward to seeing your trees appear!

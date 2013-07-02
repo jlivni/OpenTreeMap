@@ -1,0 +1,374 @@
+	{% extends "template_2.html" %}
+
+{% load thumbnail dynamic_attribute humanize %}
+{% load maths %}
+{% load comments %}
+{% load tree_tags %}
+
+{% block extrahead %}
+<script type="text/javascript" src="/static/js/map.js"></script>
+<script type="text/javascript">
+    jQuery().ready(function() {
+        jQuery.each(['#tree_actions','#tree_alerts'], function(i,s){
+            jQuery(s).click(function() {
+                $(this).next().toggle('slow');
+                return false;
+                }).next().hide();
+            });
+            
+    });
+    
+</script>
+{% endblock %}
+
+        {% block content_body_top %}
+        <!-- start contentbody -->
+        
+        <div id="contentbody">
+             <div id="tabcontainer"> 
+                    {% if user.username != 'museum' %}
+                      <ul id="tablist"> 
+                          <li class="first"><a href="../{{ tree.id }}" id="current">Tree info</a></li> 
+                            <li><a href="./edit">Edit tree</a></li> 
+                      </ul> 
+                    {% endif %}
+            </div> 
+            <div class="tab-content" id="tab-1">
+              <div class="wrap">
+          {% endblock %}
+
+
+          {% block middle_panel %}
+    <!-- start t2_middle_panel  -->
+    <div class="data">
+
+                        
+
+<table class="box-table-a">
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">General tree information</th>
+        </tr>
+    </thead>
+    <tbody>
+    	<tr>
+        	<td class="col1Wide">Tree number</td>
+            <td>#{{tree.id}}</td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Trunk diameter</td>
+            <td>{{tree.dbh|unit_or_missing:"inches"}}</td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Crown diameter</td>
+            <td>{{tree.crown_width|unit_or_missing:"feet"}}</td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="box-table-a">
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="3">Tree Location</th>
+        </tr>
+    </thead>
+    <tbody>
+    	<tr>
+          <td class="col1Wide">Nearby Address</td>
+          <td>
+          {{tree.plot.address}}
+          </td>
+        </tr>
+    	<tr>
+          <td class="col1Wide">Latitude</td>
+          <td>
+          {{tree.plot.geometry.y|floatformat:6}}
+          </td>
+        </tr>
+    	<tr>
+          <td class="col1Wide">Longitude</td>
+          <td>
+          {{tree.plot.geometry.x|floatformat:5}}
+          </td>
+        </tr>
+    </tbody>
+</table>
+
+
+<table class="box-table-a">
+    <thead>
+    	<tr>
+        <th scope="col" colspan="2">Nature's Benefits</th>
+        <th scope="col">Value</th>
+      </tr>
+      <tr>
+        <th scope="col" colspan="2" style="color:#aaa;">Calculated Annually</th>
+      </tr>
+    </thead>
+    <tbody>
+{% if tree.species %} {% if tree.dbh %}
+        <tr>
+        	<td class="col1Wide">Energy conserved</td>
+            <td>{{tree.treeresource.annual_energy_conserved|unit_or_empty:'kWh'}}</td>
+            <td>${{tree.treeresource.benefits.energy|unit_or_empty:''}}</td>
+        </tr>
+    	<tr>
+        	<td class="col1Wide">Stormwater intercepted</td>
+            <td>{{tree.treeresource.annual_stormwater_management|unit_or_empty:'gal'}} </td>
+            <td>${{tree.treeresource.benefits.water|unit_or_empty:''}}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Air pollutants removed</td>
+            <td>{{tree.treeresource.annual_air_quality_improvement|unit_or_empty:'lbs'}} </td>
+            <td>${{tree.treeresource.benefits.air_quality|unit_or_empty:''}}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide">Carbon dioxide reduced</td>
+            <td>{{tree.treeresource.annual_co2_reduced|unit_or_empty:'lbs'}} </td>
+            <td>${{tree.treeresource.benefits.co2_reduced|unit_or_empty:''}}</td>
+        </tr>
+        <tr>
+        	<td class="col1Wide link-color">Total Co2 stored to date</td>
+            <td colspan=2 class="orange med">{{tree.treeresource.total_co2_stored|unit_or_empty:'lbs'}} </td>
+        </tr>
+{% else %}
+        <tr>
+            <td colspan="3"><span class="note">Data is not available. The trunk diameter is needed to calculate the environmental resources for this tree. <a href="edit/">Add the diameter &raquo;</a></span></td>
+        </tr>
+{% endif %}
+{% else %}
+        <tr>
+            <td colspan="3">Data is not available. The trunk species is needed to calculate the environmental resources for this tree. <a href="edit/">Add the species >></a></td>
+        </tr>
+{% endif %}
+    </tbody>
+</table>
+
+<table class="box-table-a">
+     {% if tree.treefauna_set.count > 0 %}
+           <tr>
+             <td><b>Species that have been Spotted in this Tree</b></td>
+             <td></td>
+           </tr>
+            {% for h in tree.treefauna_set.all %}
+              <tr>
+                <td>
+                  {{ h.get_key_display }}
+                </td>
+              </tr>  
+            {% endfor %}
+        {% endif %}
+</table>
+
+
+                    </div>
+                    <!-- end t2_middle_panel  -->
+
+                {% endblock %}
+
+    
+    
+                {% block right_panel %}
+                    <!-- start t2_right_panel  -->
+                        <div class="aside">
+                            <div id="edit_tree_map_wrap"><div id="edit_tree_map"></div></div>
+                            <div id="alternate_tree_div"></div>
+                            <div id="tree_streetview"></div>
+                             {% if tree.plot.address_street %}
+                            <div id="tree_address"><div class="wrap"><h2>Nearby Address: *</h2></div>
+                                <div id="tree_address_address">{{tree.plot.address_street}}</div>
+                                <div>*Please note that this address is intended to be a general, not exact, reference to the location.</div>
+                            </div>
+                             {% endif %}
+                            <div id="tree_comments">
+								<div class="wrap">
+									<h2>Comments</h2>
+								</div>
+								<div class="comment_list">
+								{% get_comment_list for tree as comment_list %}
+								{% for comment in comment_list %}
+									<div class="comment_item">
+										<div class="comment_head">
+											{{ comment.user.username }} - {{ comment.submit_date|date:"P M j, Y"}}
+											{% if user.is_authenticated %}<a href="/comments/flag/{{ comment.id }}/">Flag</a>{% endif %}
+										</div>
+										<div class="comment_body">
+											{{ comment.comment }}
+										</div>
+									</div>
+								{% empty %}
+									<div class="comment_item">No comments yet!</div>
+								{% endfor %}
+								</div>
+
+								{% if user.is_authenticated %}
+									{% get_comment_form for tree as form %}
+									<form action="{% comment_form_target %}" method="post">{% csrf_token %}
+										<input type="hidden" name="next" value="{{request.get_full_path}}" />
+										{% for field in form %}
+										{% if field.is_hidden %}
+										  {{ field }}
+										{% else %}
+										  {% if field.errors %}{{ field.errors }}{% endif %}
+										  <div class="comment_field {% if field.errors %} error{% endif %}"
+											{% ifequal field.name "honeypot" %} style="display:none;"{% endifequal %}
+											{% ifequal field.name "url" %} style="display:none;"{% endifequal %}
+											{% ifequal field.name "name" %} style="display:none;"{% endifequal %}
+											{% ifequal field.name "email" %} style="display:none;"{% endifequal %}>
+											{{ field.label_tag }} {{ field }}
+										  </div>
+										{% endif %}
+										{% endfor %}
+										<div class="submit">
+											<input type="submit" name="post" class="submit-post buttonSmall" value="Post" />
+										</div>
+									</form>
+                                    <div id="comment_disclaimer">The comment system on Oak Tree Map does not serve as a way to report problems with a tree.</div>
+								{% else %}
+									<div>Please login to add comments</div>
+								{% endif %}
+
+							</div>
+                        </div>
+                        <!-- end t2_right_panel  -->
+                {% endblock right_panel %}
+                
+                
+                {% block content_body_bottom %}
+                                </div>      <!-- end wrap -->
+                            </div>
+                        </div>
+                        <!-- end contentbody -->
+                {% endblock %}
+
+                
+
+                {% block left_panel %}
+                <!-- start t2_left_panel  -->
+                
+         <div id="t2_top_left_panel">
+            <ul id="userImage">
+                <li>
+                {% if tree.treephoto_set.count %}
+                    <a href="/media/{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}">
+                    {% thumbnail tree.treephoto_set.all|first|get:"photo" "181x119" crop="center" as image %}{%endthumbnail%}
+                    </a>
+                    <ul id="additionalImages">
+                    {% for item in tree.treephoto_set.all|slice:"1:4" %}
+                            {% thumbnail item.photo "53x36" crop="center" as image %}{%endthumbnail%}
+                    {% endfor %}
+                    </ul>
+                    <ul id="imageOptions">
+                        <li id="first">{{ tree.treephoto_set.count }} photos. <a class="add" href="/trees/{{tree.id}}/photos/">Add photos &raquo;</a></li>
+                    </ul>
+{% else %}
+                    <img src="/static/images/v2/TreeSilhouette.jpg" alt="Tree" title="Add photos!" width="181" height="119" class="mainImage" />
+                    <ul id="imageOptions">
+                        <li id="first"><a href="/trees/{{tree.id}}/photos/">Add photos &raquo;</a></li>
+					</ul>
+                {% endif %}
+                </li>
+            </ul>
+            <ul id="message">
+              <li>
+                {% if user.is_authenticated %}
+                    <ul class="optionItem">
+                    <li>
+                    {% if favorite %}
+                        Favorited (<a href="#" id="favorite_{{ tree.id }}" class="favorite fav unfave">Unfavorite</a>)
+                    {% else %}
+                        <a href="#" id="favorite_{{ tree.id }}"
+                         class="favorite fav fave">Add as favorite</a>
+                        {% if tree.treefavorite_set.all.count %}
+                            ({{tree.treefavorite_set.all.count}} others have)
+                        {% endif %}
+                    {% endif %}
+                    </li>
+                    </ul>
+                {% else %}
+                    <li>
+                    <a href="#" class="fav" id="favorite_{{ tree.id }}" class="favorite">Add as favorite</a>
+                    </li>
+                    <!-- needed? -->
+                    <!--<li class="editItem"><a href="#">Edit</a>
+                    </li>
+                    </ul>-->
+                {% endif %}
+                    <!-- todo -->
+                    <!--
+                    <ul class="optionItem">
+                        <li><a href="#">Email to a friend</a></li>
+                    </ul>
+                    <ul class="optionItem">
+                        <li><a href="#">Print</a></li>
+                    </ul>
+                    <ul class="optionItem">
+                        <li><a href="#">Tweet this page</a></li>
+                    </ul>
+                    -->
+                </li>
+            </ul>
+
+            <ul id="message">
+                <li id="title">Latest update <div class="Info note"></div></li>
+                <li class="optionItemLastContainer">
+                    <ul class="optionItemLast">
+                        <li>Username</li>
+                        <li class="editItem"><a href="/profiles/{{recent.0.0}}/">{{recent.0.0}}</a></li>
+                    </ul>
+                    <ul class="optionItemLast">
+                        <li>Date</li>
+                        <li class="editItem">{{recent.0.1|date}}</li>
+                    </ul>
+                </li>
+            </ul>
+            <ul id="message">
+                <li id="title">Your turn</li>
+                <li>Our database of trees comes from public records and citizen foresters like you. <a href="edit/">Update the information for this tree and help us grow!</a></li>
+            </ul>
+            <ul id="message">
+            	<li id="title">Recent Contributors</li>
+            	<li>
+					<ul class="optionItem">
+						{% for update in recent %}
+							{% if forloop.counter0 < 5 %}
+							<li>{{update.1|naturalday:"SHORT_DATE_FORMAT"}} - <a href="/profiles/{{update.0}}" target="_blank">{{ update.0 }}</a></li>
+							{% endif %}
+						{% empty %}
+							<li>No edits yet!</li>
+						{% endfor %}
+					</ul>
+            	</li>
+            </ul>
+        </div>
+                
+                
+                 <!-- end t2_left_panel  -->
+
+            {% endblock left_panel %}
+
+                 
+
+
+{% block endpage %}
+	<script>
+		tm.current_tree_geometry = [{{plot.geometry.x}}, {{plot.geometry.y}}];
+		tm.currentTreeId = {{tree.id}};
+		tm.init_tree_map(false); //not editable
+		tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+	</script>
+
+<script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script>
+
+
+{% endblock endpage %}
+

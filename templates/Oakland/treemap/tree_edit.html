@@ -1,0 +1,209 @@
+{% extends "template_2.html" %}
+
+{% load thumbnail dynamic_attribute %}
+
+{% block extrahead %}
+<script type="text/javascript" src="/static/js/map.js"></script>
+<script type="text/javascript">
+  tm.currentPlotId = tm.currentPlotId || {{plot.id}};
+</script>
+{% endblock %}
+
+            {% block content_body_top %}
+               
+                <!-- start contentbody -->
+                    <div id="contentbody">
+                         <div id="tabcontainer"> 
+                            <ul id="tablist"> 
+                                <li class="first"><a href="../">Tree info</a></li> 
+                                <li><a href="#" id="current">Edit tree</a></li>
+<!--                                 <li id="addIt"><a href="/trees/add" id="addTree">Add a tree &raquo;</a></li>  -->
+                            </ul> 
+                        </div> 
+                        <div class="tab-content" id="tab-2">
+
+                            <div class="wrap">
+                {% endblock %}
+
+
+  {% block middle_panel %}
+          <div class="data">
+
+            <div class="wrap">
+
+<table class="box-table-a">
+    <tbody>
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">General tree information</th>
+        </tr>
+    </thead>
+    <tr>
+    	<td class="col1">Trunk size (inches)<a href="/resources/#howto" title="Not sure how to measure this?" target="_blank">(?)</a></td>
+        <td id="edit_dbh">{{ tree.dbh|add:" in"|default:"Click icon to edit" }}</td>
+        <td style="vertical-align:top;"><a href="#" onclick="tm.editDiameter('#edit_dbh', [{{tree.dbh|default:0}}]); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+        <script>var val = $("#edit_dbh").html(); if (val) { val = parseFloat(val); } if (val) { $("#edit_dbh").html(val.toFixed(1)) };</script>
+    </tr> 
+	
+<tr>
+      <td class="col1 activeEditRowLabel">Crown Diameter</td>
+        <td class="activeEditRowValue" id="edit_crown_width">Click to edit</td>
+        <td style="vertical-align:top;"><a href="#" onclick="$('#edit_crown_width').trigger('click'); return false;"><img src="/static/images/edit.png" class="editOption" /> </a></td>
+            <script>tm.setupEdit("crown_width", "Tree", {{tree.id}}, {'type':'select', 'loadurl': '../trees/{{tree.id}}/edit/choices/crown_width/'});</script>
+    </tr>
+
+    <thead>
+    	<tr>
+        	<th scope="col" colspan="4">Species that have been Spotted in this Tree</th>
+        </tr>
+    </thead>
+
+	<tr>
+    	<td class="col1 activeEditRowLabel">Animal Sightings</td>
+        <td colspan="2" class="activeEditRowValue" id="edit_faunas"><span id="faunaCount">{{ tree.treefauna_set.count }} </span> reported <span class="viewAddSep"><a href="#" onclick="$('#faunaList').show();tm.newFauna();return false;" class="viewAdd">{% if field.value.count > 0 %}View and add animals{% else %}Add an animal{% endif %}</a></span></td>
+    </tr>
+    <tr>
+        <td colspan="3" id="dropSpace">
+            <div id="faunaList">
+            <table id="faunaTable" width="100%">
+            {% if tree.treefauna_set.count > 0 %}
+               <tr>
+                 <td><b>Previous Animal Sightings</b></td>
+                 <td></td>
+               </tr>
+                {% for h in tree.treefauna_set.all %}
+                  <tr>
+                    <td>
+                      {{ h.get_key_display }}
+                    </td>
+                    <td>
+                      <a href="#" onclick="tm.deleteFauna('{{h.key}}', '{{h.value}}', this); return false;">Delete</a>
+                    </td>  
+                  </tr>  
+                {% endfor %}
+            {% endif %}
+            </table>
+            </div>
+        </td>
+    </tr>  
+
+    <input id="id_geometry" type="hidden"/>
+    </tbody>
+</table>
+
+
+
+            </div>
+            </div>
+        {% endblock middle_panel %}
+  
+        {% block right_panel %}
+            <!-- start t2_right_panel  -->
+                <div class="aside">
+                    <div id="editOptionContainer">
+                        <ul>
+                            <li id="title">Edit the tree location</li>
+                            <li id="instructions">Select the start button and move the marker on the map to the correct location.</li>
+                            <li id="buttonEdit"><span id="edit_tree_location"><a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttomSm">Start editing Tree location</a></span></li>
+                        </ul>
+                    </div>
+                    <div class="editMap">
+                        <div id="edit_tree_map_wrap">
+                          <div id="edit_tree_map"></div>
+                          <div id="edit_map_errors"></div>
+                        </div>
+                        
+                        <div id="alternate_tree_div"></div>
+                        <div id="tree_streetview"></div>
+                        <input type="hidden" id ="id_geocode_address" />
+                    </div>
+                </div>   
+
+        {% endblock %}
+        
+     
+
+        {% block left_panel %}
+        
+        
+         <div id="t2_top_left_panel">
+            <ul id="userImage">
+                <li>
+                    {% if tree.treephoto_set.count %}
+                        <a href="/media/{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}">
+                            {% thumbnail tree.treephoto_set.all|first|get:"photo" "181x119" crop="center" as image %}
+{%endthumbnail%}
+                        </a>
+                        {% if perms.treemap.delete_tree %}
+							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ tree.id }}, {{ tree.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
+						{% else %}
+							{% if tree.treephoto_set.all|first|get:"reported_by"|get:"id" == user.id %}
+							<div><a href="javascript:void(0)" onclick="tm.deletePhoto({{ tree.id }}, {{ tree.treephoto_set.all|first|get:'id' }}); return false;">delete?</a></div>
+							{% endif %}
+						{% endif %}
+                        <ul id="additionalImages">
+						{% for item in tree.treephoto_set.all|slice:"1:4" %}
+							{% thumbnail item.photo "53x36" crop="center" as image %}{%endthumbnail%}
+								{% if perms.treemap.delete_tree %}
+									<br><span><a href="javascript:void(0)" onclick="tm.deletePhoto({{ tree.id }}, {{ item.id }}); return false;">delete?</a></span>
+								{% endif %}
+								</div>
+							</li>
+						{% endfor %}
+						</ul>
+                        <ul id="imageOptions">
+                            <li id="first">{{ tree.treephoto_set.count }} photos. <a class="add" href="/trees/{{ tree.id }}/photos/">Add photos &raquo;</a></li>
+						</ul>
+                    {% else %}
+                        <img src="/static/images/v2/TreeSilhouette.jpg" alt="image description" width="181" height="119" class="mainImage" />
+<!--
+                        <ul id="additionalImages">
+                            <li><a href="#"><img src="/static/images/es/image15.jpg" alt="image description" width="55" height="36" /></a></li>
+                            <li><a href="#"><img src="/static/images/es/image16.jpg" alt="image description" width="55" height="36" /></a></li>
+                            <li><a href="#"><img src="/static/images/es/image17.jpg" alt="image description" width="55" height="36" /></a></li>
+                        </ul>
+-->
+                        <ul id="imageOptions">
+                            <li id="first"><a href="/trees/{{ tree.id }}/photos/">Add photos &raquo;</a></li>
+                        </ul>
+                    {% endif %}
+                </li>
+            </ul>
+            {% if perms.treemap.delete_tree %}
+            <ul id="message">
+				<li id="title"><a href="javascript:void(0)" onclick="tm.deleteTree({{ tree.id }});return false;" >Delete this Tree</a></li>
+				<li>Trees may be deleted only by administrative users. Deleting this tree will remove
+					it permanently from the database. Please do not delete this tree unless you are
+					sure that it is a duplicate tree or should otherwise not be in the system.
+					Due to caching of the map tiles, the tree may not immediately be deleted from
+					the map search page. </li>
+            </ul>
+				{% if tree.treewatch_set.count > 0 %}
+				<ul id="message">
+					<li id="title">Watch List</li>
+					{% for w in tree.treewatch_set.all %}
+						<li>{{w.key}} - {{w.value}}  {{w.is_valid|yesno:"Valid,"}}</li>
+					{% endfor %}
+				</ul>
+				{% endif %}
+            {% endif %}
+            {% comment %}
+            <ul id="message">
+                <li id="title"><a href="#">Flag this tree</a></li>
+                <li>Let us know if you see a problem and we'll look into it.</li>
+            </ul>
+            {% endcomment %}
+            <ul id="message">
+                <li id="title"><a href="/contact">Feedback</a></li>
+                <li>Tell us about a specific problem or give us general feedback. We like both!</a></li>
+            </ul>
+        </div>
+    {% endblock %}
+
+{% block endpage %}
+	<script>
+		tm.current_tree_geometry = [{{plot.geometry.x}}, {{plot.geometry.y}}];
+		tm.init_tree_map(true);
+        tm.currentTreeId = {{tree.id}};
+	</script>
+{% endblock endpage %}

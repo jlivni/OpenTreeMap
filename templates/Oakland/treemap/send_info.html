@@ -1,0 +1,59 @@
+{% extends "template_3.html" %}
+{% block body_load %}class="contact"{% endblock %}
+
+    {% block left_panel %}
+<div id="register">
+    
+	<h1>Send Me Info! <span class="note"></span></h1>
+  <h3>I’d like to learn more about how I can participate in the Finding Oakland’s Oaks project. Please send me an email with more information.</h3>
+<br><br>
+    {% if form.errors %}
+    <div id="genError"><b>Oops!</b> There was a problem.<br />
+    {% if form.non_field_errors %}
+        <span id="smError">{{ form.non_field_errors }} </span></div>
+    {% else %}
+        <span id="smError">Error are noted in red below.</span></div>
+    {% endif %}
+    {% endif %}
+
+    <form action="/info/" method="POST">
+    <fieldset>
+      
+    <label {% if form.name.errors %}id="error"{% endif %}>Name
+        {% if form.name.errors %}
+             {% for error in form.name.errors %}
+                 <span id="smError2">{{ error }}</span>
+             {% endfor %}
+        {% else %}
+        <span class="small">First and last</span>
+        {% endif %}
+    </label>
+    {{ form.name }}
+    
+    <label class="required" {% if form.sender.errors %}id="error"{% endif %}>Email address
+        {% if form.sender.errors %}
+             {% for error in form.sender.errors %}
+                 <span id="smError2">{{ error }}</span>
+             {% endfor %}
+        {% else %}
+        <span class="small">So we can respond</span>
+        {% endif %}
+    </label>
+    {{ form.sender }}
+    
+    
+    <button type="submit">Submit message</button>
+
+        </fieldset>
+    </form>
+</div>
+    {% endblock %}
+    
+{% block right_panel %}
+                            <div id="calloutContainer">
+                                <h2>Your turn</h2>
+                                <p>Our database of trees comes from public records and citizen foresters like you. <a href="/trees/add/">Add a tree today and help us grow!</a></p>
+                            </div>
+{% endblock %}
+    
+  

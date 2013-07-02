@@ -1,5 +1,5 @@
 from django import forms
-from models import Tree, Plot, Species, TreePhoto, TreeAlert, TreeAction, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
+from models import Tree, Plot, Species, TreePhoto, TreeAlert, TreeFauna, TreeAction, Neighborhood, ZipCode, ImportEvent, Choices, status_choices
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.localflavor.us.forms import USZipCodeField
@@ -7,6 +7,12 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from datetime import datetime
 import math
+
+class SendInfoForm(forms.Form):
+    name = forms.CharField(max_length=100, 
+           help_text="Full Name", widget=forms.TextInput(attrs={'size':'40'}),required=False)
+    sender = forms.EmailField(
+              help_text="Your email address", widget=forms.TextInput(attrs={'size':'40'}),required=True)
 
 class ContactForm(forms.Form):
     name = forms.CharField(max_length=100, 
@@ -30,13 +36,16 @@ class TreeEditPhotoForm(forms.ModelForm):
 class TreeAddForm(forms.Form):
     edit_address_street = forms.CharField(max_length=200, required=True, initial="Enter an Address or Intersection")
     geocode_address = forms.CharField(widget=forms.HiddenInput, max_length=255, required=True)
-    edit_address_city = forms.CharField(max_length=200, required=False, initial="Enter a City")
+    edit_address_city = forms.CharField(max_length=100, required=False, initial="Enter a City")
+    edit_latitude = forms.CharField(max_length=100, required=False, initial="Latitude")
+    edit_longitude = forms.CharField(max_length=100, required=False, initial="Longitude")
     edit_address_zip = USZipCodeField(widget=forms.HiddenInput, required=False)
     lat = forms.FloatField(widget=forms.HiddenInput,required=True)
     lon = forms.FloatField(widget=forms.HiddenInput,required=True)
     species_name = forms.CharField(required=False, initial="Enter a Species Name")
     species_id = forms.CharField(widget=forms.HiddenInput, required=False)
     dbh = forms.FloatField(required=False, label="Trunk size")
+    crown_width = forms.FloatField(required=False, label="Crown Diameter")
     dbh_type = forms.ChoiceField(required=False, widget=forms.RadioSelect, choices=[('diameter', 'Diameter'), ('circumference', 'Circumference')])
     height = forms.FloatField(required=False, label="Tree height")
     canopy_height = forms.IntegerField(required=False)
@@ -49,7 +58,8 @@ class TreeAddForm(forms.Form):
     sidewalk_damage = forms.ChoiceField(choices=Choices().get_field_choices('sidewalk_damage'), required=False)
     condition = forms.ChoiceField(choices=Choices().get_field_choices('condition'), required=False)
     canopy_condition = forms.ChoiceField(choices=Choices().get_field_choices('canopy_condition'), required=False)
-    target = forms.ChoiceField(required=False, choices=[('addsame', 'I want to add another tree using the same tree details'), ('add', 'I want to add another tree with new details'), ('edit', 'I\'m done!')], initial='edit', widget=forms.RadioSelect)        
+    fauna = forms.MultipleChoiceField(choices=Choices().get_field_choices('fauna'), required=False, widget=forms.CheckboxSelectMultiple)
+    target = forms.ChoiceField(required=False, choices=[('add', 'I want to add another tree'), ('edit', 'I\'m done!')], initial='edit', widget=forms.RadioSelect)        
 
     def __init__(self, *args, **kwargs):
         super(TreeAddForm, self).__init__(*args, **kwargs)
@@ -143,6 +153,7 @@ class TreeAddForm(forms.Form):
         height = self.cleaned_data.get('height')
         canopy_height = self.cleaned_data.get('canopy_height')
         dbh = self.cleaned_data.get('dbh')
+        crown_width = self.cleaned_data.get('crown_width')
         dbh_type = self.cleaned_data.get('dbh_type')
         condition = self.cleaned_data.get('condition')
         canopy_condition = self.cleaned_data.get('canopy_condition')
@@ -153,6 +164,8 @@ class TreeAddForm(forms.Form):
             if spp:
               new_tree.species=spp[0]
 
+        if crown_width:
+            new_tree.crown_width = crown_width
         if height:
             new_tree.height = height
         if canopy_height:
@@ -171,6 +184,18 @@ class TreeAddForm(forms.Form):
         new_tree.plot = plot
         new_tree.save()
         #print new_tree.__dict__
+        fauna = self.cleaned_data.get('fauna')
+        if fauna:
+            print 'fauna',fauna
+            fauna_dict = dict(Choices().get_field_choices('fauna'))
+            for f in fauna:
+              fauna = TreeFauna()
+              fauna.reported_by = request.user
+              fauna.key = f
+              fauna.value = datetime.now()
+              fauna.fauna = fauna_dict[f] # or random string
+              fauna.tree = new_tree
+              fauna.save()
         
         return plot
      

@@ -20,20 +20,6 @@ IMAGETYPE agg
     END 
 
     SYMBOL
-      NAME "green1"
-      TYPE PIXMAP
-      IMAGE "../static/images/SanDiego/map_icons/v3/UFM_Tree_Icon_zoom1_2.png"
-      #TRANSPARENT 8
-    END
-
-    SYMBOL
-      NAME "green1s"
-      TYPE PIXMAP
-      IMAGE "../static/images/SanDiego/map_icons/v1s/UFM_Tree_Icon_zoom1_2.png"
-      #TRANSPARENT 8
-    END
-    
-    SYMBOL
       NAME "green2"
       TYPE PIXMAP
       IMAGE "../static/images/SanDiego/map_icons/v3/UFM_Tree_Icon_zoom3_4.png"
@@ -160,15 +146,13 @@ LAYER
     TYPE POLYGON
     #TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION " dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION " dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     DATA 'geometry from (select * from treemap_neighborhood) as foo using unique id using srid=4326'
       CLASS
-        #STYLE
-          ##WIDTH 3
+        STYLE
+          WIDTH 3.0
           OUTLINECOLOR 150 50 50
-          #SYMBOL "circle"
-          #ANTIALIAS true
-        #END
+        END
     END
 END 
 
@@ -183,7 +167,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION "dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     DATA "geometry from (select * from treemap_plot where geocoded_accuracy >= 7 or geocoded_accuracy is null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -267,7 +251,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION "dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     DATA "geometry from (select * from treemap_plot where geocoded_accuracy >= 8 or geocoded_accuracy is null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -319,25 +303,13 @@ LAYER
       END
       CLASS
         MINSCALEDENOM 10000
-        MAXSCALEDENOM 50000
+        MAXSCALEDENOM 500000
         STYLE
           #COLOR 15 120 20
           #WIDTH 1
           size 3
           #OUTLINECOLOR 110 175 110
           SYMBOL "green2s"
-          ANTIALIAS true
-        END
-      END
-      CLASS
-        MINSCALEDENOM 50000
-        MAXSCALEDENOM 150000
-        STYLE
-          #COLOR 15 120 20
-          #WIDTH 1
-          size 2
-          #OUTLINECOLOR 110 175 110
-          SYMBOL "green1s"
           ANTIALIAS true
         END
       END
@@ -350,7 +322,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION "dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     DATA "geometry from (select * from treemap_plot where geocoded_accuracy >= 8 or geocoded_accuracy is null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -435,7 +407,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION "dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     # dane - not sure why ilike paved is in there, so commenting
     #DATA "geometry from (select * from treemap_plot where (geocoded_accuracy >= 8 or geocoded_accuracy is null) and (species_id is null) and  orig_species not ilike '%paved%' ) as foo using unique id using srid=4326"
     DATA "geometry from (select * from treemap_plot where (geocoded_accuracy >= 8 or geocoded_accuracy is null)and species_id is null ) as foo using unique id using srid=4326"
@@ -508,7 +480,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION "dbname=oaktrees password=oaktrees07 user=oaktrees  port=5432"
     DATA "geometry from (select * from treemap_plot where (geocoded_accuracy >= 8 or geocoded_accuracy is null) and species_id is not null) as foo using unique id using srid=4326"
       CLASS
         MINSCALEDENOM 0
@@ -578,7 +550,7 @@ LAYER
     TYPE POINT
     TRANSPARENCY ALPHA
     CONNECTIONTYPE POSTGIS
-    CONNECTION "dbname=sdtrees password=sftrees05 user=sftrees  port=5432"
+    CONNECTION "dbname=oaktrees password=oaktrees07 user=oaktrees port=5432"
     DATA 'geometry from (select * from treemap_tree where species_id = %SPECIES_ID%) as foo using unique id using srid=4326'
     #CLASSITEM 'species_id'
       CLASS 
