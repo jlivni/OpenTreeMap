@@ -1,7 +1,14 @@
 import os
-import djcelery
+import sys
 
+from choices import CHOICES
+
+import djcelery
 djcelery.setup_loader()
+
+
+PROJECT_ROOT = os.path.dirname(__file__)
+sys.path.insert(0, os.path.join(PROJECT_ROOT, "apps"))
 
 # The following settings should be overriden in your
 # local_settings.py or impl_settings.py file if needed
@@ -38,6 +45,8 @@ FORCE_MAIL_TO_BE_FROM = None
 
 DEBUG = True
 
+from settings_sandiego import *
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -64,13 +73,13 @@ INSTALLED_APPS = (
     'sorl.thumbnail',
     'classfaves',
     'qs_tiles',
-    'treekey',
+    #'treekey',
     'badges',
     'pagination',
     'django_sorting',
-    'pipeline',
-    'importer',
+    #'pipeline',
     'djcelery',
+    'importer',
     'polygons'
 )
 
@@ -85,7 +94,7 @@ API_VERSION = "0.1"
 TEMPLATE_DEBUG = DEBUG
 
 # sorl thumbnail settings
-THUMBNAIL_DEBUG = True
+THUMBNAIL_DEBUG = DEBUG
 THUMBNAIL_SUBDIR = '_thumbs'
 
 AUTH_PROFILE_MODULE = 'profiles.userprofile'
@@ -100,10 +109,6 @@ USE_I18N = False
 
 ROOT_URLCONF = 'urls'
 
-# celery config
-BROKER_URL = 'redis://localhost:6379/0'
-
-TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -139,7 +144,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 try:
-    from local_settings import *
+    from settings_sandiego import *
 except ImportError, exp:
     pass
 

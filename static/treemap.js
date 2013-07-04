@@ -1,17 +1,49 @@
-tm_icons = {
+
+jQuery.urlParam = function(name){
+    var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    if (results) {
+        return results[1];
+        }
+    };
+    
+jQuery('html').ajaxSend(function(event, xhr, settings) {
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+        // Only send the token to relative URLs i.e. locally.
+        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+    }
+});
+
+
+
+var tm_icons = {
     //base folder for shadow and other icon specific stuff
-    base_folder : tm_static + 'static/images/map_icons/v3/',
-    small_trees : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
-    small_plots : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7_plot.png",
-    small_trees_complete : tm_static + "static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
-    focus_tree : tm_static + 'static/images/map_icons/v4/marker-selected.png',
-    pending_tree : tm_static + 'static/images/map_icons/v4/marker-pending.png',
-    marker : tm_static + 'static/openlayers/img/marker.png'
+    base_folder : tm_static + '/static/images/map_icons/v3/', 
+    small_trees : tm_static + "/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
+    small_trees_complete : tm_static + "/static/images/map_icons/v3/UFM_Tree_Icon_zoom7b.png",
+    focus_tree : tm_static + '/static/images/map_icons/v4/marker-selected.png',
+    pending_tree : tm_static + '/static/images/map_icons/v4/marker-pending.png', 
+    marker : tm_static + '/static/openlayers/img/marker.png'
     };
 
-tm = {
+var tm = {
     speciesData: null,
-    map : null,
+    speciesDataListeners: [],
+    map : null, 
     tree_markers : [],
     geocoded_locations: {},
     plot_detail_market : null,
@@ -25,6 +57,8 @@ tm = {
     clckTimeOut : null,
     locations: null,
 
+    map_center_lon: null,
+    map_center_lat: null,
     start_zoom: null,
     add_start_zoom: null,
     add_zoom: null,
@@ -32,28 +66,815 @@ tm = {
     google_bounds: null,
     panoAddressControl: true,
 
-    searchParams: {},
+    tree_columns_of_interest : {
+        'address_street' : true,
+        'id' : false,
+        //'native' : true,
+        'flowering' : true,
+        'species' : true,
+        //'orig_species' : true,
+        'geocoded_address' : true,
+        'site_type' : true
+        },
+    trackEvent: function(category, action, label, value) {
+       
+        _gaq.push(['_trackEvent', category, action, label, value]);
+        
+    },
+    trackPageview: function(url) {        
+        _gaq.push(['_trackPageview', url]);        
+    },
+    baseTemplatePageLoad:function() {
+        //document.namespaces;
+        $("#logo").click(function() {
+        //    location.href="/home";
+        });        
+        jQuery.getJSON(tm_static + '/species/json/', function(species){
+            tm.speciesData = species;
+            tm.setupAutoComplete($('#species_search_input')).result(function(event, item) {
+                $("#species_search_id").val(item.id).change(); 
+                if (item.cultivar) {
+                    $("#species_search_id_cultivar").val(item.cultivar).change(); 
+                } else {
+                    $("#species_search_id_cultivar").val("").change();
+                }    
+            });
+            tm.setupSpeciesList();
+            var spec = $.address.parameter("species");
+            var cultivar = $.address.parameter("cultivar");
+            tm.updateSpeciesFields("search_species",spec, cultivar);
+            for (var i = 0; i < tm.speciesDataListeners.length; i++) {
+                tm.speciesDataListeners[i]();
+            }    
+        });
+        jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', list: 'list'}, function(nbhoods){
+            tm.setupLocationList(nbhoods);
+        });
+        var adv_active = false;
+        $('#advanced').click(function() {
+            if (!adv_active) {
+                if (location.pathname == "/map/") {
+                    $('.filter-box').slideDown('slow');
+                }
+                adv_active = true;
+                $('#arrow').attr('src',tm_static + '/static/images/v2/arrow2.gif');
+                $('#close-filters').html( 'Hide advanced filters');
+            }    
+            else {
+                if (location.pathname == "/map/") {
+                    $('.filter-box').slideUp('slow');
+                }
+                adv_active = false;
+                $('#arrow').attr('src',tm_static + '/static/images/v2/arrow1.gif');
+                $('#close-filters').html( 'Show advanced filters');          
+            }
+            return false;
+        });
+        
+        $("#location_search_input").blur(function(evt) {
+            if (!this.value || this.value == tm.initial_location_string || this.value == 'San Diego County') {
+                $("#location_search_input").val("");
+                $(this).val(tm.initial_location_string);
+                delete tm.searchParams.location;
+                delete tm.searchParams.geoName;
+            }    
+        }).keydown(function(evt) {
+            if (evt.keyCode == 13) {
+                $("#location_go").click();
+            }
+        });
+        
+        $("#species_search_input").blur(function(evt) {
+            if (!this.value || this.value == 'All trees') {
+                $("#species_search_id").val("");
+                $(this).val(tm.initial_species_string);
+            }    
+        }).keydown(function(evt) {
+            if (evt.keyCode == 13) {
+                $("#species_go").click();
+            }
+        });
+        $("#species_search_id").change(function(evt) {
+            if (this.value) {
+                tm.searchParams['species'] = this.value;
+            } else {
+                delete tm.searchParams.species;
+            }
+        });
+        $("#location_go").click(function(evt) {
+            if ($('body')[0].id == "results") {
+                if ($("#location_search_input")[0].value && $("#location_search_input").val() != tm.initial_location_string) {
+                //if ($("#location_search_input")[0].value ) {
+                    tm.handleSearchLocation($("#location_search_input")[0].value);
+                } else {
+                    $("#location_search_input").val(tm.initial_location_string);
+                    delete tm.searchParams['location'];
+                    delete tm.searchParams['geoName'];
+                    if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
+                    if (tm.map) {
+                        tm.map.setCenter(
+                            new OpenLayers.LonLat(tm.map_center_lon, tm.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
+                            , tm.start_zoom);
+                    }
+                    tm.updateSearch();
+                } 
+            } else {
+                triggerSearch();
+            }
+        });
+        
+        $("#species_go").click(function(evt) {
+            $("#location_go").click();
+        });
+        $("#searchSpeciesBrowse").click(function(evt) {
+            $("#searchSpeciesList").slideToggle();
+            tm.trackEvent('Search', 'List Species');
+        });
+        $("#searchLocationBrowse").click(function(evt) {
+            $("#searchNBList").slideToggle();
+            tm.trackEvent('Search', 'List Location');
+        });
 
-    benefitUnitTransformer: function(k,v) { return v; },
+        // todo - clean this logic up...
+        if (jQuery.urlParam('diameter') || jQuery.urlParam('date') || jQuery.urlParam('characteristics') ||  jQuery.urlParam('advanced') )
+        {
+            //TODO: might be causing duplicate search
+            jQuery('#advanced').click();
+        }
+        function triggerSearch() {
+            var q = $.query.empty();
+            if ($("#location_search_input").val() != tm.initial_location_string) { 
+                q = q.set("location", $("#location_search_input").val());
+            }
+            if ($("#species_search_id").val()) {
+                q = q.set("species", $("#species_search_id").val());
+            }
+            if ($("#species_search_id_cultivar").val()) {
+                q = q.set("cultivar", $("#species_search_id_cultivar").val());
+            }
+            if (tm.advancedClick) {
+                q = q.set('advanced', 'open');
+            }    
+            window.location.href = tm_static + "/map/#" + decodeURIComponent(q.toString());
+            return false;
+        }
+        //$("#search_form").submit(triggerSearch);    
+        $("#advanced").click(function() {
+            tm.advancedClick = true;
+            tm.updateSearch();
+            });   
+            
+            
+        tm.add_favorite_handlers('/trees/favorites/create/', '/trees/favorites/delete/');
+    },    
+    resultsTemplatePageLoad: function(min_year, current_year, min_updated, max_updated, min_plot, max_plot) {    
+        tm.init_map('results_map');
+
+        var spp = jQuery.urlParam('species');
+        if (spp) {
+            jQuery('#heading_location').html(spp);
+            }
+        
+        $.address.externalChange(tm.pageLoadSearch);
+        $(".characteristics input").change(function(evt) { 
+            tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
+        });
+        $(".project_trees input").change(function(evt) { 
+            tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
+        });
+        $(".outstanding input").change(function(evt) { 
+            tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
+        });
+        $(".plot_type input").change(function(evt) { 
+            tm.searchParams[this.id] = this.checked ? 'true' : undefined; 
+        });
+        
+        $(".input-box input").change(function(evt) { 
+            tm.searchParams[this.id] = this.value; 
+        });
+        var curmin = 0;
+        var curmax = 150;
+        $("#diameter_slider").slider({'range': true, max: 150, min: 0, values: [0, 150],
+            slide: function() { 
+                var min = $(this).slider('values', 0)
+                var max = $(this).slider('values', 1)
+                $('#min_diam').html(min);
+                $('#max_diam').html(max);
+            },    
+            change: function() {
+                var min = $(this).slider('values', 0)
+                var max = $(this).slider('values', 1)
+                $('#min_diam').html(min);
+                $('#max_diam').html(max);
+                tm.searchParams['diameter_range'] = min+'-'+max;
+            }
+        });
+        $("#height_slider").slider({'range': true, max: 200, min: 0, values: [0, 200],
+            slide: function() { 
+                var min = $(this).slider('values', 0)
+                var max = $(this).slider('values', 1)
+                $('#min_height').html(min);
+                $('#max_height').html(max);
+            },    
+            change: function() {
+                var min = $(this).slider('values', 0)
+                var max = $(this).slider('values', 1)
+                $('#min_height').html(min);
+                $('#max_height').html(max);
+                tm.searchParams['height_range'] = min+'-'+max;
+            }
+        });
+        
+        $("#planted_slider")[0].updateDisplay = function() {
+            var min = $("#planted_slider").slider('values', 0)
+            var max = $("#planted_slider").slider('values', 1)
+            $('#min_planted').html(min);
+            $('#max_planted').html(max);
+        }
+        $("#planted_slider").slider({'range': true, min: min_year, max: current_year,
+            values: [min_year, current_year],
+            slide: function() { 
+                $("#planted_slider")[0].updateDisplay();
+            },
+            change: function() {
+                $("#planted_slider")[0].updateDisplay();
+                var min = $("#planted_slider").slider('values', 0)
+                var max = $("#planted_slider").slider('values', 1)
+                tm.searchParams['planted_range'] = min+'-'+max;
+            }
+        });
+        $("#planted_slider")[0].updateDisplay();
+        
+        $("#updated_slider")[0].updateDisplay = function() {
+            var min = $("#updated_slider").slider('values', 0)
+            var min_d = new Date(parseInt(min) * 1000);
+            var max = $("#updated_slider").slider('values', 1)
+            var max_d = new Date(parseInt(max) * 1000);
+            $('#min_updated').html(tm.dateString(min_d));
+            $('#max_updated').html(tm.dateString(max_d));
+        }        
+
+        $("#updated_slider").slider({'range': true, min: min_updated, max: max_updated,
+            values: [min_updated, max_updated],
+            slide: function() {
+                $("#updated_slider")[0].updateDisplay();
+            },    
+            change: function() {
+                $("#updated_slider")[0].updateDisplay();
+                var min = $("#updated_slider").slider('values', 0)
+                var max = $("#updated_slider").slider('values', 1)
+                tm.searchParams['updated_range'] = min+'-'+max;
+            }
+        });    
+        $("#updated_slider")[0].updateDisplay();
+        
+        if (!tm.isNumber(max_plot) && max_plot.indexOf('+') != -1) {
+            max_p = parseInt(max_plot.split('+')[0]) + 1;
+            m_text = max_p - 1 + "+"
+            $("#plot_slider").slider({'range': true, max: max_p, min: min_plot, values: [min_plot, max_p],
+                slide: function() { 
+                    var min = $(this).slider('values', 0)
+                    var max = $(this).slider('values', 1)
+                    $('#min_plot').html(min);
+                    if (max == max_p) {max = m_text;}
+                    else {$('#max_plot').html(max);}
+                },    
+                change: function() {
+                    var min = $(this).slider('values', 0)
+                    var max = $(this).slider('values', 1)
+                    $('#min_plot').html(min);
+                    if (max == max_p) {$('#max_plot').html(m_text);tm.searchParams['plot_range'] = min+'-100';}
+                    else {$('#max_plot').html(max);tm.searchParams['plot_range'] = min+'-'+max;}
+                    
+                }
+            });
+        }
+        else {
+            $("#plot_slider").slider({'range': true, max: max_plot, min: min_plot, values: [min_plot, max_plot],
+                slide: function() { 
+                    var min = $(this).slider('values', 0)
+                    var max = $(this).slider('values', 1)
+                    $('#min_plot').html(min);
+                    $('#max_plot').html(max);
+                },    
+                change: function() {
+                    var min = $(this).slider('values', 0)
+                    var max = $(this).slider('values', 1)
+                    $('#min_plot').html(min);
+                    $('#max_plot').html(max);
+                    tm.searchParams['plot_range'] = min+'-'+max;
+                }
+            });
+        }
+       
+        
+        $("#species_search_input").change(function(evt) {
+            if (this.value === "") {
+                $("#species_search_id").val("");
+                $(this).val(tm.initial_species_string);
+                delete tm.searchParams['species'];
+            }    
+        });
+
+        $("#close-filters").click(function(evt) {
+            $("#diameter_slider").slider('option', 'values', [0, 150]);
+                $('#min_diam').html(0);
+                $('#max_diam').html(150);
+            $("#planted_slider").slider('option', 'values', [min_year, current_year]);
+                $("#planted_slider")[0].updateDisplay();
+            $("#updated_slider").slider('option', 'values', [min_updated, max_updated]);
+                $("#updated_slider")[0].updateDisplay();
+            $("#height_slider").slider('option', 'values', [0, 200]);
+                $('#min_height').html(0);
+                $('#max_height').html(200);
+            if (!tm.isNumber(max_plot) && max_plot.indexOf('+') != -1) {
+                max_p = parseInt(max_plot.split('+')[0]) + 1;
+                m_text = max_p - 1 + "+"
+                $("#plot_slider").slider('option', 'values', [min_plot, max_p]);
+                $('#min_plot').html(min_plot);
+                $('#max_plot').html(m_text);
+            }
+            else {
+                $("#plot_slider").slider('option', 'values', [min_plot, max_plot]);
+                $('#min_plot').html(min_plot);
+                $('#max_plot').html(max_plot);
+            }
+            
+            $("#steward").val('');
+            $("#owner").val('');
+            $("#updated_by").val('');
+            $("#funding").val('');
+            delete tm.searchParams['diameter_range'];
+            delete tm.searchParams['planted_range'];
+            delete tm.searchParams['updated_range'];
+            delete tm.searchParams['height_range'];
+            delete tm.searchParams['plot_range'];
+            delete tm.searchParams['advanced'];
+            delete tm.searchParams['steward'];
+            delete tm.searchParams['owner'];
+            delete tm.searchParams['updated_by'];
+            delete tm.searchParams['funding'];
+
+            var checks = $("#options_form input:checked");
+            for(var i=0;i<checks.length;i++) {
+                delete tm.searchParams[checks[i].id];
+            }
+            $("#options_form input:checked").attr('checked', false)  
+            tm.updateSearch();
+            tm.trackEvent('Search', 'Reset Advanced');
+        });        
+    },    
+    
+    setupSpeciesList: function() {
+        var ul = $("<ul id='s_list' style='max-height:180px; overflow:auto;'></ul>");
+        $("#searchSpeciesList").append(ul).hide();
+        for(var i=0; i<tm.speciesData.length;i++) {
+            if (tm.speciesData[i].count == 0) {continue;}
+            var c = "ac_odd";
+            if (i%2 == 0) {c = 'ac-even';}
+            ul.append("<li id='" + tm.speciesData[i].id + "' class='" + c + "'>" + tm.speciesData[i].cname + " [" + tm.speciesData[i].sname + "]</li>")
+        }
+        
+        $("#s_list > li").hover(function(evt) {
+            $(this).addClass("ac_over")
+        }, function(evt) {
+            $(this).removeClass("ac_over")
+        }).click(function(evt) {
+            $('#species_search_input').val(this.innerHTML)
+            $("#species_search_id").val(this.id).change();
+            $("#searchSpeciesList").toggle();
+        });
+        
+    },
+    
+    setupLocationList: function(nbhoods) {
+        var ul = $("<ul id='n_list' style='max-height:180px; overflow:auto;'></ul>");
+        $("#searchNBList").append(ul).hide();
+        for(i=0;i<nbhoods.length;i++) {
+            var c = "ac_odd";
+            if (i%2 == 0) {c = 'ac-even';}
+            var name = nbhoods[i].name;
+            ul.append("<li id='" + name + "' class='" + c + "'>" + name + "</li>")
+        }
+
+        $("#n_list > li").hover(function(evt) {
+            $(this).addClass("ac_over")
+        }, function(evt) {
+            $(this).removeClass("ac_over")
+        }).click(function(evt) {
+            if ($(this).hasClass("header")) {return;}
+            $('#location_search_input').val(this.innerHTML);
+            $("#searchNBList").toggle();
+        });
+        
+        if ($("#s_nhood")) {
+            select_nh = $("#s_nhood");
+            for(i=0;i<nbhoods.length;i++) {
+                var name = nbhoods[i].name;
+                select_nh.append("<option value='" + name + "' >" + name + "</li>")
+            }
+        }    
+    },
+    dateString: function(dateObj) {
+        var d = (dateObj.getYear()+1900) + "-" +
+            ((""+(dateObj.getMonth() + 1)).length > 1 ?  (dateObj.getMonth()+1) : "0"+(dateObj.getMonth()+1)) + "-" + 
+            ((""+dateObj.getDate()).length > 1 ? dateObj.getDate() : "0" + dateObj.getDate());
+        return d;    
+    },
+    // http://www.mredkj.com/javascript/numberFormat.html
+    addCommas : function(nStr)
+    {
+        nStr += '';
+        x = nStr.split('.');
+        x1 = x[0];
+        x2 = x.length > 1 ? '.' + x[1] : '';
+        var rgx = /(\d+)(\d{3})/;
+        while (rgx.test(x1)) {
+            x1 = x1.replace(rgx, '$1' + ',' + '$2');
+        }
+        return x1 + x2;
+    },
+    
+    // Search page map init
+    init_map : function(div_id){
+        tm.init_base_map(div_id);
+
+        tm.misc_markers = new OpenLayers.Layer.Markers('MarkerLayer2');
+        tm.vector_layer = new OpenLayers.Layer.Vector('Vectors');
+
+        
+        tm.map.addLayers([tm.vector_layer, tm.misc_markers]);
+        tm.map.setCenter(
+            new OpenLayers.LonLat(tm.map_center_lon, tm.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
+            , tm.start_zoom);
+            
+        //check to see if coming for a bookmarked tree
+        var bookmark_id = jQuery.urlParam('tree');
+        if (bookmark_id){
+            jQuery.getJSON(tm_static + '/trees/' + bookmark_id  + '/',
+               {'format' : 'json'},
+                tm.display_tree_details);
+            }
+        
+        tm.map.events.register("click", tm.map, function (e) {
+            var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
+            mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));           
+            tm.clckTimeOut = window.setTimeout(function() {
+                singleClick(mapCoord)
+                },500); 
+        });
+                
+        function singleClick(olLonlat) { 
+            window.clearTimeout(tm.clckTimeOut); 
+            tm.clckTimeOut = null; 
+            var spp = jQuery.urlParam('species');
+            jQuery.getJSON(tm_static + '/plots/location/',
+              {'lat': olLonlat.lat, 'lon' : olLonlat.lon, 'format' : 'json', 'species':spp},
+            tm.display_tree_details);
+        } 
+
+        tm.geocoder = new google.maps.Geocoder();
+
+        $(".mapToggle").click(function(evt) {
+            if ($(".mapToggle").html() == 'View Satellite') {
+                tm.map.setBaseLayer(tm.aerial);
+                $(".mapToggle").html('View Streets')
+            }
+            else if ($(".mapToggle").html() == 'View Streets') {
+                tm.map.setBaseLayer(tm.baseLayer);
+                $(".mapToggle").html('View Satellite')
+            }
+            evt.preventDefault();
+            evt.stopPropagation();
+        });
+
+    },
+    
+    update_add_address: function(ll, full_address, city, zip) {
+console.log(ll, full_address, city, zip)
+        if ($("#geocode_address")) {
+            $("#geocode_address").html("<b>Address Found: </b><br>" + full_address);
+        }
+        if ($("#id_geocode_address")) {
+            $('#id_geocode_address').val(full_address);
+        }
+        if ($('#edit_address_city')) {
+            $('#edit_address_city').val(city);
+            $('#edit_address_city').html(city);
+        }
+        if ($('#id_edit_address_city')) {
+            $('#id_edit_address_city').val(city);
+        }            
+        if ($('#edit_address_zip')) {
+            $('#edit_address_zip').val(zip);
+            $('#edit_address_zip').html(zip);
+        }
+        if ($('#id_edit_address_zip')) {
+            $('#id_edit_address_zip').val(zip);
+        }
+        
+        tm.update_nearby_trees_list(ll, 10, .0001);
+    },
 
     //initializes the map where a user places a new tree
+    init_add_map : function(){
+        tm.init_base_map('add_tree_map');
+        
+        tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
+        tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
+
+        tm.drag_control = new OpenLayers.Control.DragFeature(tm.add_vector_layer);
+        tm.drag_control.onComplete = function(feature, mousepix) {
+            var mapCoord = tm.map.getLonLatFromViewPortPx(mousepix);
+            mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
+            $('#id_lat').val(mapCoord.lat);
+            $('#id_lon').val(mapCoord.lon);
+            tm.reverse_geocode(mapCoord, function(ll, full_address, city, zip) {
+                tm.update_add_address(ll, full_address, city, zip);
+                
+            }, function (ll) {
+                if ($("#geocode_address")) {
+                    $("#geocode_address").html("<b>Address Found: </b><br>" + $('#id_geocode_address').val);
+                    tm.update_nearby_trees_list(ll, 10, .0001);                    
+                }
+                else {
+                    alert("Reverse Geocode was not successful.");
+                }
+            });
+        }
+
+
+        if (tm.mask) {tm.map.addLayer(tm.mask);}
+        if (tm.parcels) {tm.map.addLayer(tm.parcels);}
+
+        tm.map.addLayers([tm.add_vector_layer, tm.tree_layer]);
+
+        tm.map.setBaseLayer(tm.aerial);
+        tm.map.addControl(tm.drag_control);
+        tm.map.setCenter(
+            new OpenLayers.LonLat(tm.map_center_lon, tm.map_center_lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject())
+            , tm.add_start_zoom);
+            
+        //jQuery("#mapHolder").hide();
+        //jQuery("#calloutContainer").hide();
+        
+        tm.geocoder = new google.maps.Geocoder();
+        
+        jQuery('#id_edit_address_street').keydown(function(evt){
+            if (evt.keyCode == 13) {                
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+        });
+        
+    },
+        
+    //initializes map on the profile page; shows just favorited trees
+    init_favorite_map : function(user){
+        tm.init_base_map('favorite_tree_map');
+        
+        tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
+        tm.map.addLayers([tm.tree_layer]);
+        
+        //load in favorite trees
+        var url = ['/trees/favorites/' + user + '/geojson/']
+        $.getJSON(tm_static + url, function(json){
+            $.each(json, function(i,f){
+                var coords = f.coords;
+                var ll = new OpenLayers.LonLat(coords[0], coords[1]);
+                marker = tm.get_marker_light(ll, 17);
+                marker.tid = f.id;
+                tm.tree_layer.addMarker(marker);
+            });
+            var bounds = tm.tree_layer.getDataExtent();
+            if (bounds) {
+                tm.map.zoomToExtent(bounds, true);
+            }
+        });
+    },
+    //initializes map on the recently added page; shows just recently added trees
+    init_new_map : function(user){
+        tm.init_base_map('add_tree_map');
+        
+        tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
+        tm.map.addLayers([tm.tree_layer]);
+        var url = []
+        //load in new trees
+        if (user) {url = ['/trees/new/' + user + '/geojson/']}
+        else {url = ['/trees/new/geojson/']}
+        $.getJSON(tm_static + url, function(json){
+            $.each(json, function(i,f){
+                var coords = f.coords;
+                var ll = new OpenLayers.LonLat(coords[0], coords[1]);
+                marker = tm.get_marker_light(ll, 17);
+                marker.tid = f.id;
+                tm.tree_layer.addMarker(marker);
+            });
+            var bounds = tm.tree_layer.getDataExtent();
+            tm.map.zoomToExtent(bounds, true);
+            tm.map.zoomOut();
+        });
+    },
+        
+    //initializes the map on the detail/edit page, 
+    // where a user just views, or moves, an existing tree
+    // also it loads the streetview below the map
+    init_tree_map : function(editable){
+        var controls = [new OpenLayers.Control.Attribution(),
+               new OpenLayers.Control.Navigation(),
+               new OpenLayers.Control.ArgParser(),
+               new OpenLayers.Control.ZoomPanel()];
+        tm.init_base_map('edit_tree_map', controls);
+        
+        tm.add_vector_layer = new OpenLayers.Layer.Vector('AddTreeVectors')
+        tm.tree_layer = new OpenLayers.Layer.Markers('MarkerLayer')
+        
+        if (tm.mask) {tm.map.addLayer(tm.mask);}
+        if (tm.parcels) {tm.map.addLayer(tm.parcels);}
+
+        tm.drag_control = new OpenLayers.Control.DragFeature(tm.add_vector_layer);
+        tm.drag_control.onComplete = function(feature, mousepix) {
+            var mapCoord = tm.map.getLonLatFromViewPortPx(mousepix);
+            mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
+            jQuery('#id_geometry').val('POINT (' + mapCoord.lon + ' ' + mapCoord.lat + ')')
+            tm.reverse_geocode(mapCoord, function(ll, full_address, city, zip) {
+                if ($('#edit_address_city')) {
+                    $('#edit_address_city').val(city);
+                    $('#edit_address_city').html(city);
+                }
+                if ($('#edit_address_zip')) {
+                    $('#edit_address_zip').val(zip);
+                    $('#edit_address_zip').html(zip);
+                }
+            });
+        }
+        
+        tm.map.addLayers([tm.tree_layer, tm.add_vector_layer]);
+        tm.map.addControl(tm.drag_control);
+        tm.map.setBaseLayer(tm.aerial);
+        
+        var currentPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]);        
+        var olPoint = new OpenLayers.LonLat(tm.current_tree_geometry[0], tm.current_tree_geometry[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+        
+        tm.map.setCenter(olPoint, tm.edit_zoom);
+        
+        tm.geocoder = new google.maps.Geocoder();
+        tm.add_new_tree_marker(currentPoint, false);
+
+        tm.load_nearby_trees(currentPoint);
+        
+        if (tm.current_tree_geometry_pends && tm.current_tree_geometry_pends.length > 0) {
+            tm.add_pending_markers(tm.current_tree_geometry_pends);
+            jQuery('#edit_tree_map_legend').show();
+        }
+        //if (editable) { tm.drag_control.activate(); }
+        
+        tm.load_streetview(currentPoint, 'tree_streetview');
+                
+        tm.map.events.register('click', tm.map, function(e){
+            var mapCoord = tm.map.getLonLatFromViewPortPx(e.xy);
+            mapCoord.transform(tm.map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
+            jQuery.getJSON(tm_static + '/plots/location/',
+                {'lat': mapCoord.lat, 'lon' : mapCoord.lon, 'format' : 'json', 'max_plots' : 1},
+                function(json) {
+                    var html = '<a href="/plots/' + json.features[0].properties.id + '">Tree Bed #' + json.features[0].properties.id + '</a>';
+                    $('#alternate_tree_div').html(html);
+                }
+            );
+        });
+        
+        if (!editable) {return;}
+        
+        //listen for change to address field to update map location //todo always?
+        jQuery('#id_nearby_address').change(function(nearby_field){
+
+            var new_addy = nearby_field.target.value;
+            //new_addy += ', ph';
+            tm.geocoder.getLatLng(new_addy, function(ll){
+                if (tm.validate_point(ll,new_addy) && !tm.tree_marker){ //only add marker if it doesn't yet exist
+                    tm.add_new_tree_marker(ll, false);
+                    tm.map.setCenter(ll,15);
+                    }
+                
+                });
+            });
+        },
+    
     get_icon: function(type, size) {
         var size = new OpenLayers.Size(size, size);
         var offset = new OpenLayers.Pixel(-(size.w/2), -(size.h/2));
         if (type == tm_icons.marker) {
             size = new OpenLayers.Size(33, 32);
-            offset = new OpenLayers.Pixel(-(size.w/2), -(size.h));
+            offset = new OpenLayers.Pixel(-(size.w/2), -(size.h)); 
         }
-
+        
         var icon = new OpenLayers.Icon(type, size, offset);
         return icon
     },
+        
+    //returns a large or small markerLight
+    get_marker_light : function(t, size){
+        var ll = new OpenLayers.LonLat(t.lon, t.lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());       
 
+        if (size == 'small') {        
+            if (t.cmplt) { var icon = tm.get_icon(tm_icons.small_trees_complete, 13);}
+            else { var icon = tm.get_icon(tm_icons.small_trees, 13);}
+            var marker = new OpenLayers.Marker(ll, icon);
+        } else {
+            var icon = tm.get_icon(tm_icons.focus_tree, 19);
+            var marker = new OpenLayers.Marker(ll, icon);
+        }
+        return marker
+    },        
+        
+    load_nearby_trees : function(ll){
+        //load in nearby trees as well
+        var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=70'].join('');
+        $.getJSON(tm_static + url, function(geojson){
+            $.each(geojson.features, function(i,f){
+                coords = f.geometry.coordinates;
+                var ll = new OpenLayers.LonLat(coords[0], coords[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                if (f.properties.id == tm.currentTreeId) {return;}
+                var icon = tm.get_icon(tm_icons.small_trees, 19);
+                var marker = new OpenLayers.Marker(ll, icon);
+                marker.tid = f.properties.id;
+                
+                tm.tree_layer.addMarker(marker);
+                                
+            });
+        });
+    },
+    
     get_tree_marker: function(lat, lng) {
         var ll = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
         var marker = new OpenLayers.Marker(ll, tm.get_icon(tm_icons.focus_tree, 19));
 
         return marker
+        },
+    add_pending_markers: function(pends) {
+        for (var i=0; i<pends.length; i++) {
+            var ll = new OpenLayers.LonLat(pends[i].x, pends[i].y).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+            var icon = tm.get_icon(tm_icons.pending_tree, 19);
+            var marker = new OpenLayers.Marker(ll, icon);
+            
+            tm.tree_layer.addMarker(marker);
+
+            var popupPixel = tm.map.getViewPortPxFromLonLat(ll);
+            popupPixel.y += marker.icon.offset.y - 15;
+            tm.smallPopup = new OpenLayers.Popup("popup_id",
+                       tm.map.getLonLatFromPixel(popupPixel),
+                       null,
+                       "<span class='pendPopup'>" + pends[i].id + "</span>",
+                       false);
+            tm.smallPopup.minSize = new OpenLayers.Size(25,25);
+            tm.smallPopup.maxSize = new OpenLayers.Size(150,25);
+            tm.map.addPopup(tm.smallPopup);
+            tm.smallPopup.updateSize();
+            tm.smallPopup.setBackgroundColor('transparent');
+        }
+    },
+    add_new_tree_marker : function(ll, do_reverse_geocode){
+        if (tm.add_vector_layer) {
+            tm.add_vector_layer.destroyFeatures();
+        }
+        var tree_marker = new OpenLayers.Geometry.Point(ll.lon, ll.lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+        var tree_vector = new OpenLayers.Feature.Vector(tree_marker)
+        
+        tm.add_vector_layer.addFeatures([tree_vector])
+        if (do_reverse_geocode) {
+            tm.reverse_geocode(ll, function(ll, full_address, city, zip) {
+                tm.update_add_address(ll, full_address, city, zip);
+            });
+        }
+    
+    },
+    
+    update_nearby_trees_list: function (ll, plots, distance) {
+        if ($('#nearby_trees')) {
+            $('#nearby_trees').html("Loading...")
+            var url = ['/plots/location/?lat=',ll.lat,'&lon=',ll.lon,'&format=json&max_plots=' + plots + '&distance=' + distance].join('');
+            $.getJSON(tm_static + url, function(geojson){
+                if (geojson.features.length == 0) {
+                    $('#nearby_trees').html("We'll let you know if our records show any trees near the one you're entering. That way you can check to be sure you're not entering a duplicate.")
+                }
+                else {
+                    $('#nearby_trees').html("Found " + geojson.features.length + " tree bed(s) that may be too close to the tree you want to add. Please double-check that you are not adding a tree that is already on our map:")
+                    $.each(geojson.features, function(i,f){
+                        var tree = $('#nearby_trees');
+                        if (f.properties.common_name){
+                            tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>" + f.properties.common_name + " (#" + f.properties.id + ")</a><br><span class='nearby_tree_scientific'>" + f.properties.scientific_name + "</span></div>");
+                        }
+                        else {
+                            tree.append("<div class='nearby_tree_info'><a href='/plots/" + f.properties.id + "' target='_blank'>No species information (#" + f.properties.id + ")</a></div>")
+                        }
+                        if (f.properties.current_dbh){
+                            tree.append("<div class='nearby_tree_diameter'>Diameter: " + f.properties.current_dbh + " inches</div>");
+                        }
+                        
+                    });
+                }
+            });
+        }
     },
 
     add_location_marker: function (ll) {
@@ -78,119 +899,382 @@ tm = {
             tm.map.removePopup(tm.smallPopup);
         });
     },
+    
 
+    geocode : function(address, callback, error_callback){
+        if (!address){
+            address = jQuery('#searchInput').text();
+        }
+
+        tm.geocode_address = address;
+        if (tm.geocode_address.toLocaleLowerCase().indexOf("oaks")  == -1) {
+          tm.geocode_address += ', oakland'
+        }
+        if (tm.local_geocoder) {
+            $.getJSON(tm_static + "/geocode/", {address: tm.geocode_address, geocoder_name: tm.local_geocoder}, function(json) {
+                if (json.success == true) {
+                    if (callback) {
+                        callback(json.lat, json.lng, json.place)
+                    }
+                }
+                else {
+                    tm.geocoder.geocode({
+                        address: tm.geocode_address,
+                        bounds: tm.google_bounds  
+                    }, function(results, status){
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            
+                            if (callback) {
+                                callback(results[0].geometry.location.lat(), results[0].geometry.location.lng(), results[0].formatted_address);
+                            }
+
+                        } else {
+                            if (error_callback) {
+                                error_callback(status)
+                            }
+                        }
+
+                    });
+                }
+            });
+        }
+        else {
+            tm.geocoder.geocode({
+                address: tm.geocode_address,
+                bounds: tm.google_bounds  
+            }, function(results, status){
+                if (status == google.maps.GeocoderStatus.OK) {
+                    
+                    if (callback) {
+                        callback(results[0].geometry.location.lat(), results[0].geometry.location.lng(), results[0].formatted_address);
+                    }
+
+                } else {
+                    if (error_callback) {
+                        error_callback(status)
+                    }
+                }
+
+            });
+        }
+
+    },
+        
+        
+    //pass in a GLatLng and get back closest address
+    reverse_geocode : function(ll, callback, error_callback){
+        if (tm.local_geocoder) {
+            $.getJSON(tm_static + "/geocode/reverse/", {lat: ll.lat, lng: ll.lon, geocoder_name: tm.local_geocoder}, function(json) {
+                if (json.success == true) {
+                    if (callback) {
+                        var city = json.place.split(", ")[1] + " " + json.place.split(", ")[2];
+                        var zip = json.place.split(", ")[3];
+                        callback(ll, json.place, city, zip)
+                    }
+                }
+                else {
+                   latlng = new google.maps.LatLng(ll.lat, ll.lon)
+                   tm.geocoder.geocode({
+                        latLng: latlng
+                        }, function(results, status){
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            if (callback) {
+                                var full_address = results[0].formatted_address
+                                var addy = results[0].address_components;
+                                var city = "";
+                                var zip = "";
+                                
+                                for (var i=0; i<addy.length; i++) {
+                                    if ($.inArray('locality', addy[i].types) > -1) {
+                                        city = addy[i].long_name;
+                                    }
+                                    else if ($.inArray('postal_code', addy[i].types) > -1) {    
+                                        zip = addy[i].long_name;
+                                    }
+                                    else if ($.inArray('administrative_area_level_1', addy[i].types) > -1) {
+                                        city += " " + addy[i].short_name;
+                                    }
+                                }
+
+                                callback(ll, full_address, city, zip);
+                            }
+
+                        } else {
+                            if (error_callback) {error_callback(ll);}               
+                        }        
+                    });   
+                }
+            });
+        }
+        else {
+            latlng = new google.maps.LatLng(ll.lat, ll.lon)
+            tm.geocoder.geocode({
+                    latLng: latlng
+                }, function(results, status){
+                if (status == google.maps.GeocoderStatus.OK) {
+                    if (callback) {
+                        var full_address = results[0].formatted_address
+                        var addy = results[0].address_components;
+                        var city = "";
+                        var zip = "";
+                        
+                        for (var i=0; i<addy.length; i++) {
+                            if ($.inArray('locality', addy[i].types) > -1) {
+                                city = addy[i].long_name;
+                            }
+                            else if ($.inArray('postal_code', addy[i].types) > -1) {    
+                                zip = addy[i].long_name;
+                            }
+                            else if ($.inArray('administrative_area_level_1', addy[i].types) > -1) {
+                                city += " " + addy[i].short_name;
+                            }
+                        }
+
+                        callback(ll, full_address, city, zip);
+                    }
+
+                } else {
+                    if (error_callback) {error_callback(ll);}               
+                }        
+            });   
+        }     
+    },    
+        
+    /*
+    load up streetview pointing at specified GLatLng, into specified div
+    */
+    load_streetview : function(ll, div){
+          div = document.getElementById(div);
+          panoPosition = new google.maps.LatLng(ll.lat, ll.lon);
+          new google.maps.StreetViewService().getPanoramaByLocation(panoPosition, 50, function(data, status) {
+              if (status == google.maps.StreetViewStatus.OK) {
+                  tm.pano = new google.maps.StreetViewPanorama(div, {position:panoPosition, addressControl:tm.panoAddressControl});
+                  
+              }
+              else {
+                  $(div).hide()
+              }
+          });       
+          
+    },
+        
+                
+    highlight_geography : function(geometry, geog_type){        
+         //console.log(geometry, geog_type)
+        if (tm.vector_layer){
+            tm.vector_layer.destroyFeatures();
+        }
+        var feature = tm.getFeatureFromCoords(geometry.coordinates[0]);
+        tm.vector_layer.addFeatures(feature);
+    },
+
+    getFeatureFromCoords : function (coords) {
+        var verts = [];
+        jQuery.each(coords, function(i, c){ //no multipoly support
+            verts.push(new OpenLayers.Geometry.Point(c[0],c[1]).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()));
+            });
+        var poly = new OpenLayers.Geometry.LineString(verts);
+        var feature = new OpenLayers.Feature.Vector(poly, null, {
+            strokeColor: "#663399",
+            strokeWidth: 4,
+            strokeOpacity: 0.7
+        });
+        return feature;
+    },
+        
+    display_tree_details : function(json){
+        if (json) {
+            if (json.features.length > 0) {
+                var tree = json.features[0];
+                var p = tree.properties;
+                var coords = tree.geometry.coordinates;
+                
+                //remove old markers
+                if (tm.plot_detail_market) {tm.misc_markers.removeMarker(tm.plot_detail_market);}
+                
+                var AutoSizeFramedCloud = OpenLayers.Class(OpenLayers.Popup.FramedCloud, {
+                    'autoSize': true
+                });
+                                
+                //Add tree marker
+                tm.plot_detail_market = tm.get_tree_marker(coords[1], coords[0]);
+                tm.plot_detail_market.plot_id = p.id;
+                tm.plot_detail_market.nhbd_id = p.neighborhood_id;
+                tm.plot_detail_market.district_id = p.district_id;
+                tm.misc_markers.addMarker(tm.plot_detail_market);
+                
+                
+                var ll = tm.plot_detail_market.lonlat;
+                
+                popup = new OpenLayers.Popup.FramedCloud("Tree Info",
+                   ll,
+                   null,
+                   '<div id="max_tree_infowindow">Loading ...</div>',
+                   tm.plot_detail_market.icon,
+                   true);
+                popup.minSize = tm.popup_minSize;
+                popup.maxSize = tm.popup_maxSize;
+                popup.autoSize = true;
+                popup.panMapIfOutOfView = true;
+                tm.map.addPopup(popup, true);
+                
+                tm.trackEvent('Search', 'Map Detail', 'Tree', p.id);
+                
+                if (!p.address_street) {
+                    latlng = new google.maps.LatLng(coords[1], coords[0])
+                    tm.geocoder.geocode({
+                        latLng: latlng
+                    }, function(results, status){
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            //TODO: add jsonString here for post
+                            var data = {
+                                'plot_id': p.id,
+                                'address': results[0].formatted_address.split(", ")[0],
+                                'city': results[0].formatted_address.split(", ")[1]
+                            };
+                            var jsonString = JSON.stringify(data);
+
+                            $.ajax({
+                                url: tm_static + '/plots/location/update/',
+                                type: 'POST',
+                                data: jsonString,
+                                complete: function(xhr, textStatus) {
+                                    jQuery('#max_tree_infowindow').load(tm_static + '/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
+                                }
+                            });
+                        } else {
+                            jQuery('#max_tree_infowindow').load(tm_static + '/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
+                        }
+                    });
+                }
+                else {
+                    jQuery('#max_tree_infowindow').load(tm_static + '/plots/' + tm.plot_detail_market.plot_id + '/?format=popup');
+                }
+            }
+        }
+    },
+        
+ 
     display_benefits : function(benefits){
-        $('#results_wrapper').show();
-        $("#no_results").hide();
-        $.each(benefits, function(k,v){
-            $('#benefits_' + k).html(tm.addCommas(parseInt(v)));
+        //console.log(benefits);
+        jQuery('#results_wrapper').show();
+        jQuery("#no_results").hide();
+        jQuery.each(benefits, function(k,v){
+            //console.log(k,v)
+            jQuery('#benefits_' + k).html(tm.addCommas(parseInt(v)));
         });
         if (benefits['total'] == 0.0)
         {
-            $("#no_results").show();
-        }
+            jQuery("#no_results").show();
+            //alert("here");
+        }   
     },
-
+        
     display_summaries : function(summaries){
-        $(".tree_count").html(tm.addCommas(parseInt(summaries.total_trees)));
-        $(".plot_count").html(tm.addCommas(parseInt(summaries.total_plots)));
+        jQuery(".tree_count").html(tm.addCommas(parseInt(summaries.total_trees)));
+        jQuery(".plot_count").html(tm.addCommas(parseInt(summaries.total_plots)));
         if (summaries.total_trees == '0' && summaries.total_plots == '0')
         {
-            $(".moretrees").html("");
-            $(".notrees").html("No results? Try changing the filters above.");
+            // todo.. http://sftrees.securemaps.com/ticket/148
+            jQuery(".moretrees").html("");
+            jQuery(".notrees").html("No results? Try changing the filters above.");
+            //jQuery(".tree_count").css('font-size',20);
         }  else {
-            $(".moretrees").html("");
-            $(".notrees").html("");
+            jQuery(".moretrees").html("");
+            jQuery(".notrees").html("");
         }
-        $.each(summaries, function(k,v){
-            var span = $('#' + k);
+        
+        jQuery.each(summaries, function(k,v){
+            var span = jQuery('#' + k);
+            //console.log(span);
             if (span.length > 0){
-                span.html(tm.addCommas(
-                    tm.benefitUnitTransformer(k,parseInt(v))));
+                span.html(tm.addCommas(parseInt(v)));
             }
-        });
+            /*else{
+                console.log(k);
+            }
+            */
+            });
 
-    },
+        //set geog name or selected trees 
+        },
 
+            
     display_search_results : function(results){
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
-        $('#displayResults').hide();
+        //if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
+        jQuery('#displayResults').hide();
+
+        //remove old tile overlay
+        var existing_qs_layer = tm.map.getLayersByName('qsLayer')[0]
+        if (existing_qs_layer) {
+          tm.map.removeLayer(existing_qs_layer);
+        }
         if (results) {
             tm.display_summaries(results.summaries);
             tm.display_benefits(results.benefits);
-
-            tm.tree_layer.setVisibility(false);
-
-            if (results.initial_tree_count != results.full_tree_count && !(results.summaries.total_trees == 0 && results.summaries.total_plots == 0)) {
-                if (results.featureids) {
-                    var cql = results.featureids;
-                    delete tm.tree_layer.params.CQL_FILTER;
-                    tm.tree_layer.mergeNewParams({'FEATUREID':cql});
-                    tm.tree_layer.setVisibility(true);
-                }
-                else if (results.tile_query) {
-                    var cql = results.tile_query;
-                    delete tm.tree_layer.params.FEATUREID;
-                    if (tm.set_style) {
-                        var style = tm.set_style(results.tile_query);
-                        tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles':style});
-                    }
-                    else {
-                        tm.tree_layer.mergeNewParams({'CQL_FILTER':cql, 'styles': tm_urls.geo_style});
-                    }
-                    tm.tree_layer.setVisibility(true);
-                }
-            }
+   
+            
+            if (results.tile_query) {
+                //console.log('tile query: ' + results.tile_query)
+                //add new xyz overlay
+                tm.xyz = new OpenLayers.Layer.XYZ('qsLayer',
+                   tm_urls.qs_tile_url +  "${z}/${x}/${y}.png?" + results.tile_query,
+                   {sphericalmercator : false, isBaseLayer: false}
+                );
+                tm.xyz.setVisibility(true);
+                tm.map.addLayer(tm.xyz);
+            }    
 
             if (results.geography) {
                 var geog = results.geography;
                 $('#summary_subset_val').html(geog.name);
                 tm.highlight_geography(geog, 'neighborhood');
+                var ew = $('#search_location_infowindow');
+                if (ew){
+                    var addy = ew.html();
+                    //ew.html(addy + ' in ' + geog.name);
+                    }
             } else {
                 $('#summary_subset_val').html('the region');
             }
         }
-
+        
     },
 
-    highlight_geography : function(geometry, geog_type){
-        if (tm.vector_layer){
-            tm.vector_layer.destroyFeatures();
-        }
-        if (geometry.coordinates.length == 1) {
-            var feature = tm.getFeatureFromCoords(geometry.coordinates[0]);
-            tm.vector_layer.addFeatures(feature);
-        }
-        for (var i=0; i<geometry.coordinates.length;i++) {
-            var feature = tm.getFeatureFromCoords(geometry.coordinates[i][0])
-            tm.vector_layer.addFeatures(feature);
-        }
+    // unused?
+    select_species : function(species){
+        tm.mgr.clearMarkers();
+        jQuery.getJSON(tm_static + '/search/' + species + '/?simple=true', 
+            tm.display_search_results);
     },
 
+     
     enableEditTreeLocation : function(){
-        tm.trackEvent('Edit', 'Location', 'Start');
-
+        //tm.tree_marker.enableDragging();
         tm.drag_control.activate();
         //TODO:  bounce marker a bit, or change its icon or something
-        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="' + tm_static + 'static/images/loading-indicator-trans.gif" width="12" /> Stop Editing and Save</a>'
+        tm.trackEvent('Edit', 'Location', 'Start');
+        var save_html = '<a href="javascript:tm.saveTreeLocation()" class="buttonSmall"><img src="' + tm_static + '/static/images/loading-indicator-trans.gif" width="12" /> Stop Editing and Save</a>'
         $('#edit_tree_location').html(save_html);
         return false;
-    },
-
+        },
+        
     saveTreeLocation : function(){
-        tm.trackEvent('Edit', 'Location', 'Save');
-
+        //tm.tree_marker.disableDragging();     
         tm.drag_control.activate();
-        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Location</a>'
+        tm.trackEvent('Edit', 'Location', 'Save');
+        var edit_html = '<a href="#" onclick="tm.enableEditTreeLocation(); return false;"class="buttonSmall">Start Editing Tree Location</a>'
         $('#edit_tree_location').html(edit_html);
-        tm.updateEditableLocation(tm.currentPlotId);
-    },
+        tm.updateEditableLocation();
+        },
+
 
     validate_point : function(point,address) {
         if (!point) {
             alert(address + " not found");
             return false;
-        }
+        } 
         var lat_lon = new GLatLng(point.lat(),point.lng(),0);
 
         if (tm.maxExtent && !tm.maxExtent.containsLatLng(lat_lon)){
@@ -199,13 +1283,13 @@ tm = {
         }
         return true;
     },
-
+    
     setupEdit: function(field, model, id, options) {
         var editableOptions = {
             submit: 'Save',
             cancel: 'Cancel',
             cssclass:  'activeEdit',
-            indicator: '<img src="' + tm_static + 'static/images/loading-indicator.gif" alt="" />',
+            indicator: '<img src="' + tm_static + '/static/images/loading-indicator.gif" alt="" />',
             width: '80%',
             objectId: id,
             model: model,
@@ -214,7 +1298,7 @@ tm = {
         if (options) {
             for (var key in options) {
                 if (key == "loadurl") {
-                    editableOptions[key] =  options[key];
+                    editableOptions[key] = tm_static + "/" + options[key];
                 } else {
                     editableOptions[key] = options[key];
                 }
@@ -223,27 +1307,40 @@ tm = {
 
         if (model == "Plot") {
             $('#edit_'+field).editable(tm.updatePlotServerCall, editableOptions);
-        } else if (model == "TreeStewardship"){
-            $('#edit_'+field).editable(tm.addTreeStewardship, editableOptions);
-        } else if (model == "PlotStewardship"){
-            $('#edit_'+field).editable(tm.addPlotStewardship, editableOptions);
         } else {
             $('#edit_'+field).editable(tm.updateEditableServerCall, editableOptions);
         }
+    },
+
+    coerceFromString: function(value) {
+        if (Number(value) == value) {
+            value = Number(value);
+        }
+        if (value == "true") {
+            value = true;
+        } 
+        if (value == "false") {
+            value = false;
+        }    
+        if (value == "null") {
+            value = null;
+        }            
+
+        return value;
     },
 
     updatePlotServerCall: function(value, settings) {
         var data = {};
         var plotId = settings.objectId;
         var field = settings.fieldName;
-
+        
         data[field] = tm.coerceFromString(value)
 
-        this.innerHTML = "Saving..."; //TODO- is this needed?
+        this.innerHTML = "Saving...";
         var jsonString = JSON.stringify(data);
         settings.obj = this;
         $.ajax({
-            url: tm_static + 'plots/' + plotId + '/update/',
+            url: tm_static + '/plots/' + plotId + '/update/',
             type: 'POST',
             data: jsonString,
             complete: function(xhr, textStatus) {
@@ -256,207 +1353,142 @@ tm = {
                     });
                 } else {
                     var value = response['update'][settings.fieldName];
-
-                    if (settings.fieldName == "width" || settings.fieldName == "length") {
+                    
+                    if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
                         if (value == 99.0) {value = "15+"}
                     }
 
-                    settings.obj.innerHTML = value
+                    settings.obj.innerHTML = value 
                     tm.trackEvent("Edit", settings.fieldName)
                 }
             }});
 
-        return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
+        return "Saving... " + '<img src="' + tm_static + '/static/images/loading-indicator.gif" />';
     },
-
-    addTreeStewardship: function(value, date, settings) {
-        var data = {};
-        var treeId = settings.objectId;
-
-        data['activity'] = tm.coerceFromString(value)
-        data['performed_date'] = tm.coerceFromString(date)
-
-        var jsonString = JSON.stringify(data);
-        settings.obj = this;
-        $.ajax({
-            url: tm_static + 'trees/' + treeId + '/stewardship/',
-            type: 'POST',
-            data: jsonString,
-            complete: function(xhr, textStatus) {
-                var response =  JSON.parse(xhr.responseText);
-                if (response['success'] != true) {
-                    settings.obj.className = "errorResponse";
-                    settings.obj.innerHTML = "An error occurred in saving: "
-                    $.each(response['errors'], function(i,err){
-                        settings.obj.innerHTML += err;
-                    });
-                } else {
-                    var value = response['update']['activity'];
-
-                    settings.obj.innerHTML = value
-                    tm.trackEvent("Edit", settings.fieldName)
-                    tm.newTreeActivity();
-                }
-            }});
-
-        return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
-
-    },
-
-    addPlotStewardship: function(value, date, settings) {
-        var data = {};
-        var plotId = settings.objectId;
-
-        data['activity'] = tm.coerceFromString(value)
-        data['performed_date'] = tm.coerceFromString(date)
-
-        var jsonString = JSON.stringify(data);
-        settings.obj = this;
-        $.ajax({
-            url: tm_static + 'plots/' + plotId + '/stewardship/',
-            type: 'POST',
-            data: jsonString,
-            complete: function(xhr, textStatus) {
-                var response =  JSON.parse(xhr.responseText);
-                if (response['success'] != true) {
-                    settings.obj.className = "errorResponse";
-                    settings.obj.innerHTML = "An error occurred in saving: "
-                    $.each(response['errors'], function(i,err){
-                        settings.obj.innerHTML += err;
-                    });
-                } else {
-                    var value = response['update']['activity'];
-
-                    settings.obj.innerHTML = value
-                    tm.trackEvent("Edit", settings.fieldName)
-                    tm.newPlotActivity();
-                }
-            }});
-
-        return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
-    },
-
     updateEditableServerCall: function(value, settings) {
         var data = {
             'model': settings.model,
             'update': {
             }
         };
-
-        if (settings.objectId) {
-            data.id = settings.objectId;
-        }
-
-        value = tm.coerceFromString(value);
-
-        $(this).removeClass("error");
-
-        if (settings.fieldName == 'species_id') {
-            if (value == 0) {
+        console.log(value,settings,'!')
+        // TODO - I think if '' then we should replace
+        // with original value and if 'null' then
+        // we should save None in database if its
+        // a field that accepts nulls
+        //if (value === '') {
+        //if (value == '' || value == 'null') {
+           // do nothing
+           //this.innerHTML = 'Click to edit';
+           //return 'Click to edit';
+        //}
+        //else {
+            if (settings.objectId) {
+                data.id = settings.objectId;
+            }    
+            if (Number(value) == value) {
+                value = Number(value);
+            }
+            if (value == "true") {
+                value = true;
+            } 
+            if (value == "false") {
+                value = false;
+            }    
+            if (value == "null") {
+                value = null;
+            }
+            //if (!isNaN(Date.parse(value))) {
+            //  //it's a javascript-parsable date, so we'll take it
+            //  var dateVal = new Date(Date.parse(value));
+            //  value = dateVal.getFullYear() + "-" + (dateVal.getMonth()+1) + "-" + dateVal.getDate()
+            //}
+            
+                
+            if (settings.fieldName == 'species_id' && value == 0) {
                 $(this).addClass("error");
                 return "Please select a species from the provided list.";
             }
-            data['update']['species_other1'] = $('#other_species1')[0].value;
-            data['update']['species_other2'] = $('#other_species2')[0].value;
-        }
-
-        //do some validation for height and canopy height
-        if ((settings.fieldName == 'height' || settings.fieldName == 'canopy_height') && value > 300) {
-            $(this).addClass("error");
-            return "Height is too large.";
-        }
-
-        if (settings.fieldName == 'height' && isNaN(value)) {
-            $(this).addClass("error");
-            return "Height must be a number.";
-        }
-
-
-        if ($.inArray(settings.model, ["TreeAlert","TreeAction","TreeFlags"]) >=0) {
-            data['update']['value'] = value;
-            data['update']['key'] = settings.fieldName;
-        } else {
-            data['update'][settings.fieldName] = value;
-        }
-
-        if (settings.extraData) {
-            for (key in settings.extraData) {
-                data[key] = settings.extraData[key];
-            }
-        }
-
-        this.innerHTML = "Saving..."; //TODO: Is this needed?
-
-        var jsonString = JSON.stringify(data);
-        settings.obj = this;
-        $.ajax({
-            url: tm_static + 'update/',
-            type: 'POST',
-            data: jsonString,
-            complete: function(xhr, textStatus) {
-                var response =  JSON.parse(xhr.responseText);
-                if (response['success'] != true) {
-                    settings.obj.className = "errorResponse";
-                    settings.obj.innerHTML = "An error occurred in saving: "
-                    $.each(response['errors'], function(i,err){
-                        settings.obj.innerHTML += err;
-                    });
-                } else {
-                    var value = response['update'][settings.fieldName];
-
-                    if (!value) {
-                        value = response['update']['value'];
-                    }
-                    if (settings.fieldName == "species_id") {
-                        for (var i = 0; i < tm.speciesData.length; i++) {
-                            if (tm.speciesData[i].id == value) {
-                                value = tm.formatSpeciesName(tm.speciesData[i]);
-                                $("#edit_species").html(tm.speciesData[i].cname);
-                            }
-                        }
-                        var other1 = response['update']['species_other1'];
-                        var other2 = response['update']['species_other2'];
-                        if ($('#edit_species_other').length > 0) {
-                            $('#edit_species_other')[0].innerHTML = other1 + " " + other2;
-                        } else {
-                            $("#edit_species").append('<br>' + other1 + " " + other2);
-                        }
-
-                    }
-                    if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
-                        if (value == 99.0) {value = "15+"}
-                    }
-                    settings.obj.innerHTML = value;
-                    tm.trackEvent("Edit", settings.fieldName)
+            //do some validation for height and canopy height
+            if (settings.fieldName == 'height' || settings.fieldName == 'canopy_height') {
+                if (value > 300) {
+                    $(this).addClass("error");
+                    return "Height is too large.";
                 }
-            }});
-        return "Saving... " + '<img src="' + tm_static + 'static/images/loading-indicator.gif" />';
-    },
-
-    updateEditableLocation: function(currentPlotId) {
-        $("#edit_map_errors")[0].innerHTML = "Saving..."
-        var wkt = $('#id_geometry').val();
-        var geoaddy = $("#id_geocode_address").val();
+                else {
+                    $(this).removeClass("error");
+                }
+            }
+            
+            if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeFlags","TreeFauna"]) >=0) {
+                data['update']['value'] = value;
+                data['update']['key'] = settings.fieldName;
+            } else {    
+                data['update'][settings.fieldName] = value;
+            }
+            if (settings.extraData) {
+                for (key in settings.extraData) {
+                    data[key] = settings.extraData[key];
+                }
+            }    
+            this.innerHTML = "Saving...";
+            var jsonString = JSON.stringify(data);
+            settings.obj = this;
+            $.ajax({
+                url: tm_static + '/update/',
+                type: 'POST',
+                data: jsonString,
+                complete: function(xhr, textStatus) {
+                    var response =  JSON.parse(xhr.responseText);
+                    if (response['success'] != true) {
+                        settings.obj.className = "errorResponse";
+                        settings.obj.innerHTML = "An error occurred in saving: "
+                        $.each(response['errors'], function(i,err){
+                             settings.obj.innerHTML += err;
+                        });
+                    } else {
+                        var value = response['update'][settings.fieldName];
+    
+                        if (!value) {
+                            value = response['update']['value'];
+                        }
+                        if (settings.fieldName == "species_id") {
+                            for (var i = 0; i < tm.speciesData.length; i++) {
+                                if (tm.speciesData[i].id == value) {
+                                    value = tm.speciesData[i].sname;
+                                    $("#edit_species").html(tm.speciesData[i].cname);
+                                }
+                            }    
+                        }
+                        if (settings.fieldName == "plot_width" || settings.fieldName == "plot_length") {
+                            if (value == 99.0) {value = "15+"}
+                        }
+                        settings.obj.innerHTML = value 
+                        tm.trackEvent("Edit", settings.fieldName)
+                    }
+                }});
+            return "Saving... " + '<img src="' + tm_static + '/static/images/loading-indicator.gif" />';
+        //} 
+    },       
+    updateEditableLocation: function() {
+        
+        var wkt = jQuery('#id_geometry').val();
+        var geoaddy = jQuery("#id_geocode_address").val();
         var data = {
             'model': 'Plot',
-            'id': currentPlotId,
+            'id': tm.currentPlotId,
             'update': {
                 geometry: wkt,
                 geocoded_address: geoaddy
             }
         };
-
-        if (tm.update_address_on_location_update) {
-            data['update']['address_street'] = geoaddy;
-        };
-
         var jsonString = JSON.stringify(data);
         $.ajax({
-            url: tm_static + 'update/',
+            url: tm_static +'/update/',
             type: 'POST',
             data: jsonString,
             complete: function(xhr, textStatus) {
-                var response =  JSON.parse(xhr.responseText);
+                var response =  JSON.parse(xhr.responseText);                
                 $("#edit_map_errors")[0].innerHTML = ""
                 $("#edit_map_errors")[0].className = "";
                 if (response['success'] != true) {
@@ -469,267 +1501,238 @@ tm = {
 
                     if (newError.indexOf("exclusion zone") >= 0 &&
                         newError.indexOf("Geometry") >= 0) {
-                        $("#edit_map_errors")[0].innerHTML = "An error occurred in saving the location. Trees may not be placed within the white areas.";
+                        $("#edit_map_errors")[0].innerHTML = "An error occurred in saving the location. Trees may not be placed within the red areas.";
                     } else {
                         $("#edit_map_errors")[0].innerHTML = newError;
                     }
-                } else {
+                } else {                                  
                     $("#edit_map_errors")[0].innerHTML = "New location saved."
-                    if (tm.update_address_on_location_update) {
-                        $("#edit_address_street")[0].innerHTML = geoaddy;
-                    };
                 }
             }});
     },
-
-    formatTreeName: function(item) {
-        var cultivar_portion = item.cultivar ? " '" + item.cultivar + "'" : " ";
-        return item.cname + " [ " + item.sname + " " + cultivar_portion +
-            " " + item.family + " " + item.other_part + "]";
-    },
-
-    formatSpeciesName: function(item) {
-        var cultivar_portion = item.cultivar ? " '" + item.cultivar + "'" : " ";
-        return item.sname + cultivar_portion + item.family +
-            " " + item.other_part;
-    },
-
     setupAutoComplete: function(field) {
-        return field.autocomplete({
-            source:function(request, response){
-                response( $.map( tm.speciesData, function( item ) {
-                    if (item.cname.toLowerCase().indexOf(request.term.toLowerCase()) != -1 ||
-                        item.sname.toLowerCase().indexOf(request.term.toLowerCase()) != -1)
-                    {
-                                            return {
-                                                    label: tm.formatTreeName(item),
-                                                    value: item.id
-                                            }
-                    }
-                                }));
-            },
-            minLength: 1,
-            select: function(event, ui) {
-                field.val(ui.item.label);
-                $("#species_search_id").val(ui.item.value).change();
-                if ($("#id_species_id").length > 0) {
-                    $("#id_species_id").val(ui.item.value).change();
+        //console.log(field);
+        return field.autocomplete(tm.speciesData, {
+            matchContains: true,
+            minChars: 1,
+            max:50,
+
+            formatItem: function(row, i, max) {
+                var text = row.cname;
+                text += "  [" + row.sname;
+                if (row.cultivar) {
+                    text += " '" + row.cultivar + "'";
                 }
-                return false;
+                text += "]";
+                return text;
+            },
+            formatMatch: function(row, i, max) {
+                return row.symbol + " " + row.cname + " " + row.sname;
+            },
+            formatResult: function(row) {
+                return row.cname + " / " + row.sname;
             }
         });
 
     },
-
-    newTreeActivity: function() {
-        return tm.createAttributeDateRow("treeActivityTypeSelection", tm.choices['tree_stewardship'], "treeActivityTable",
-                                     tm.handleNewTreeStewardship("treeActivityTypeSelection",
-                                                           "TreeStewardship",
-                                                           "treeActivityTable",
-                                                           "treeActivityCount"));
-    },
-    newPlotActivity: function() {
-        return tm.createAttributeDateRow("plotActivityTypeSelection", tm.choices['plot_stewardship'], "plotActivityTable",
-                                     tm.handleNewPlotStewardship("plotActivityTypeSelection",
-                                                           "PlotStewardship",
-                                                           "plotActivityTable",
-                                                           "plotActivityCount"));
+    newFauna: function() {
+        console.log('adding fauna')
+        var select = $("<select id='faunaTypeSelection' />");
+        for (var key in tm.faunaTypes) {
+            select.append($("<option value='"+key+"'>"+tm.faunaTypes[key]+"</option>"));
+        }    
+        var tr = $("<tr />").append($(""), $("<td colspan='2' />").append(select));
+        tr.append(
+            $("<td />").append(
+                $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewFauna),
+                $("<input type='submit' value='Cancel' class='button' />").click(tm.cancelNew)
+            )
+        );
+        $("#faunaTable").append(tr);
     },
     newAction: function() {
-        return tm.createAttributeRow("actionTypeSelection", tm.choices['actions'], "actionTable",
-                                     tm.handleNewAttribute("actionTypeSelection",
-                                                           "TreeAction",
-                                                           "actionTable",
-                                                           "actionCount", tm.choices['actions']));
+        var select = $("<select id='actionTypeSelection' />");
+        for (var key in tm.actionTypes) {
+            select.append($("<option value='"+key+"'>"+tm.actionTypes[key]+"</option>"));
+        }    
+        var tr = $("<tr />").append($(""), $("<td colspan='2' />").append(select));
+        tr.append(
+            $("<td />").append(
+                $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewAction),
+                $("<input type='submit' value='Cancel' class='button' />").click(tm.cancelNew)
+            )
+        );
+        $("#actionTable").append(tr);
     },
-
     newLocal: function() {
-        return tm.createAttributeRow("localTypeSelection", tm.choices['projects'], "localTable",
-                                     tm.handleNewAttribute("localTypeSelection",
-                                                           "TreeFlags",
-                                                           "localTable",
-                                                           "localCount", tm.choices['projects']));
+            var select = $("<select id='localTypeSelection' />");
+            for (var key in tm.localTypes) {
+                select.append($("<option value='"+key+"'>"+tm.localTypes[key]+"</option>"));
+            }    
+            var tr = $("<tr />").append($(""), $("<td colspan='2' />").append(select));
+            tr.append(
+                $("<td />").append(
+                    $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewLocal),
+                    $("<input type='submit' value='Cancel' class='button' />").click(tm.cancelNew)
+                )
+            );
+            $("#localTable").append(tr);
     },
-
     newHazard: function() {
-        return tm.createAttributeRow("hazardTypeSelection", tm.choices['alerts'], "hazardTable",
-                                     tm.handleNewAttribute("hazardTypeSelection",
-                                                           "TreeAlert",
-                                                           "hazardTable",
-                                                           "hazardCount", tm.choices['alerts']));
-    },
-
-    createAttributeRow: function(selectId, typesArray, tableName, submitEvent) {
-        var select = $("<select id='" + selectId + "' />");
-        for (var i=0; i < typesArray.length;i++) {
-            select.append($("<option value='"+typesArray[i][0]+"'>"+ typesArray[i][1]+"</option>"));
-        }
-        var row = $("<tr />");
-
-        row.append($(""), $("<td colspan='2' />").append(select)).append(
-            $("<td />").append(
-                $("<input type='submit' value='Submit' class='buttonSmall' />").click(submitEvent),
-                $("<input type='submit' value='Cancel' class='buttonSmall' />").click(function() {
-                    row.remove();
-                })
+        var select = $("<select id='hazardTypeSelection' />");
+        for (var key in tm.hazardTypes) {
+            select.append($("<option value='"+key+"'>"+tm.hazardTypes[key]+"</option>"));
+        }    
+        var tr = $("<tr />").append($(""), $("<td colspan='2' />").append(select));
+        tr.append(
+            $("<td style='white-space:nowrap;' />").append(
+                $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewHazard),
+                $("<input type='submit' value='Cancel' class='button' />").click(tm.cancelNew)
             )
         );
-
-        $("#" + tableName).append(row);
+        $("#hazardTable").append(tr);
     },
-    createAttributeDateRow: function(selectId, typesArray, tableName, submitEvent) {
-        var select = $("<select id='" + selectId + "' />");
-        for (var i=0; i < typesArray.length;i++) {
-            select.append($("<option value='"+typesArray[i][0]+"'>"+ typesArray[i][1]+"</option>"));
-        }
-        var row = $("<tr id='data-row' />");
-
-        row.append(
-            $(""),
-            $("<td />").append(select),
-            $("<td />").append($("<input id='" + selectId + "-datepicker' type='text'>").datepicker({ maxDate: "+0d" })),
-            $("<td />").append(
-                $("<input type='submit' value='Submit' class='buttonSmall' />").click(submitEvent),
-                $("<input type='submit' value='Cancel' class='buttonSmall' />").click(function() {
-                    row.remove();
-                })
-            )
-        );
-
-        $("#" + tableName).append(row);
-
+    cancelNew: function(evt) {
+        $(this.parentNode.parentNode).remove();
     },
-
-    handleNewTreeStewardship: function(select, model, table, count) {
-        return function() {
-            var data = $("#" + select)[0].value;
-            var data_date = $("#" + select + "-datepicker")[0].value;
-
-            if (data == "" || data_date == "") {
-                alert("You must enter a date for the tree activity.");
-                return;
-            }
-
-            settings = {
-                model: model,
-                objectId: tm.currentTreeId,
-                activity: data,
-                submit: 'Save',
-                cancel: 'Cancel'
-            };
-
-            $(this.parentNode.parentNode).remove();
-            tm.addTreeStewardship(data, data_date, settings);
-            var choices = tm.choices['tree_stewardship'];
-            for (var i=0;i<choices.length; i++) {
-                if (choices[i][0] == data) {
-                    $("#" + table).append(
-                        $("<tr><td>"+choices[i][1]+"</td><td>"+data_date+"</td><td></td></tr>"));
-                    $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);
-                    break;
+    handleNewHazard: function(evt) {
+        var data = $("#hazardTypeSelection")[0].value;
+        settings = {
+            'extraData': {
+                'parent': {
+                    'model': 'Tree',
+                    'id': tm.currentTreeId
                 }
-            }
-        };
+            },
+            model: 'TreeAlert',
+            fieldName: data,
+            submit: 'Save',
+            cancel: 'Cancel'
+        };    
+            
+        $(this.parentNode.parentNode).remove();
+        var d = new Date();
+        var dateStr = (d.getYear()+1900)+"-"+(d.getMonth()+1)+"-"+d.getDate();
+        tm.updateEditableServerCall(dateStr, settings)
+        $("#hazardTable").append(
+            $("<tr><td>"+tm.hazardTypes[data]+"</td><td>"+dateStr+"</td><td>False</td></tr>"));  
+        $("#hazardCount").html(parseInt($("#hazardCount")[0].innerHTML) + 1);     
     },
-
-    handleNewPlotStewardship: function(select, model, table, count) {
-        return function() {
-            var data = $("#" + select)[0].value;
-            var data_date = $("#" + select + "-datepicker")[0].value;
-
-            if (data == "" || data_date == "") {
-                alert("You must enter a date for the planting site activity.");
-                return;
-            }
-
-            settings = {
-                model: model,
-                objectId: tm.currentPlotId,
-                activity: data,
-                performed_date: data_date,
-                submit: 'Save',
-                cancel: 'Cancel'
-            };
-
-            $(this.parentNode.parentNode).remove();
-            tm.addPlotStewardship(data, data_date, settings);
-            var choices = tm.choices['plot_stewardship'];
-            for (var i=0;i<choices.length; i++) {
-                if (choices[i][0] == data) {
-                    $("#" + table).append(
-                        $("<tr><td>"+choices[i][1]+"</td><td>"+data_date+"</td><td></td></tr>"));
-                    $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);
-                    break;
-                }
-            }
-        };
-    },
-
-    handleNewAttribute: function(select, model, table, count, data_array) {
-        return function() {
-            var data = $("#" + select)[0].value;
-            settings = {
-                'extraData': {
-                    'parent': {
-                        'model': 'Tree',
-                        'id': tm.currentTreeId
-                    }
-                },
-                model: model,
-                fieldName: data,
-                submit: 'Save',
-                cancel: 'Cancel'
-            };
-
-            $(this.parentNode.parentNode).remove();
-            var d = new Date();
-            var dateStr = (d.getYear()+1900)+"-"+(d.getMonth()+1)+"-"+d.getDate();
-            tm.updateEditableServerCall(dateStr, settings)
-            for (var i=0;i<data_array.length; i++) {
-                if (data_array[i][0] == data) {
-                    $("#" + table).append(
-                        $("<tr><td>"+data_array[i][1]+"</td><td>"+dateStr+"</td><td></td></tr>"));
-                    $("#" + count).html(parseInt($("#" + count)[0].innerHTML) + 1);
-                    break;
-                }
-            }
-        };
-    },
-
-    //TODO: These don't delete from the database
-    deleteAction: function(key, value, elem) {
-        $(elem.parentNode.parentNode).remove();
-    },
-    deleteHazard: function(key, value, elem) {
-        $(elem.parentNode.parentNode).remove();
-    },
-    deleteLocal: function(key, value, elem) {
+    hazardTypes: {
+        '1':'Needs watering',
+        '2':'Needs pruning',
+        '3':'Should be removed',
+        '4':'Pest or disease present',
+        '5':'Guard should be removed',
+        '6':'Stakes and ties should be removed',
+        '7':'Construction work in the vicinity',
+        '8':'Touching wires',
+        '9':'Blocking signs/traffic signals',
+        '10':'Has been improperly pruned/topped'
+   }, 
+   deleteAction: function(key, value, elem) {
        $(elem.parentNode.parentNode).remove();
+   },
+   deleteHazard: function(key, value, elem) {
+       $(elem.parentNode.parentNode).remove();
+   },
+   deleteLocal: function(key, value, elem) {
+       $(elem.parentNode.parentNode).remove();
+   },
+   deleteFauna: function(key, value, elem) {
+       $(elem.parentNode.parentNode).remove();
+   },
+   handleNewFauna: function(evt) {
+       var data = $("#faunaTypeSelection")[0].value;
+       settings = {
+           'extraData': {
+               'parent': {
+                   'model': 'Tree',
+                   'id': tm.currentTreeId
+               }
+           },
+           model: 'TreeFauna',
+           fieldName: data,
+           submit: 'Save',
+           cancel: 'Cancel'
+       };    
+           
+       $(this.parentNode.parentNode).remove();
+       var d = new Date();
+       //TODO get date from field
+       var dateStr = (d.getYear()+1900)+"-"+(d.getMonth()+1)+"-"+d.getDate();
+       tm.updateEditableServerCall(dateStr, settings)
+       $("#faunaTable").append(
+           $("<tr><td>"+tm.faunaTypes[data]+"</td></tr>"));  
+       $("#faunaCount").html(parseInt($("#faunaCount")[0].innerHTML) + 1);     
     },
-
-    deleteTreeActivity: function(id, elem) {
-        $.ajax({
-            url: tm_static + 'trees/' + tm.currentTreeId + "/stewardship/" + id + "/delete/",
-            complete: function(xhr, textStatus) {
-                $(elem.parentNode.parentNode).remove();
-                $("#treeActivityCount").html(parseInt($("#treeActivityCount")[0].innerHTML) - 1);
-            }
-        });
+    faunaTypes: {"80": "Squirrel", "81": "Raccoon", "82": "Opossum", "83": "Housecat", "84": "Human", "85": "California Scrub Jay", "86": "Anna's Hummingbird", "87": "Hutton's Vireo", "88": "American Crow", "89": "American Robin", "90": "California Towhee", "91": "Rufous-backed Chickadee", "92": "Bushtit", "93": "Mourning Dove", "94": "Northern Mockingbird", "95": "Calfornia Sister butterfly", "96": "Western Fence Lizard", "97": "Arboreal Salamander", "98": "Red-backed Jumping Spider", "99": "Orb-weaving Spider"},
+   handleNewAction: function(evt) {
+       var data = $("#actionTypeSelection")[0].value;
+       settings = {
+           'extraData': {
+               'parent': {
+                   'model': 'Tree',
+                   'id': tm.currentTreeId
+               }
+           },
+           model: 'TreeAction',
+           fieldName: data,
+           submit: 'Save',
+           cancel: 'Cancel'
+       };    
+           
+       $(this.parentNode.parentNode).remove();
+       var d = new Date();
+       var dateStr = (d.getYear()+1900)+"-"+(d.getMonth()+1)+"-"+d.getDate();
+       tm.updateEditableServerCall(dateStr, settings)
+       $("#actionTable").append(
+           $("<tr><td>"+tm.actionTypes[data]+"</td><td>"+dateStr+"</td></tr>"));  
+       $("#actionCount").html(parseInt($("#actionCount")[0].innerHTML) + 1);     
     },
-
-    deletePlotActivity: function(id, elem) {
-        $.ajax({
-            url: tm_static + 'plots/' + tm.currentPlotId + "/stewardship/" + id + "/delete/",
-            complete: function(xhr, textStatus) {
-                $(elem.parentNode.parentNode).remove();
-                $("#plotActivityCount").html(parseInt($("#plotActivityCount")[0].innerHTML) - 1);
-            }
-        });
+    actionTypes: {
+         //'planted':'Tree has been planted',
+         '1':'Tree has been watered',
+         '2':'Tree has been pruned',
+         '3':'Fruit/nuts have been harvested from this tree',
+         '4':'Tree has been removed',
+         '5':'Tree has been inspected'
+         // disabled till we have commenting ability
+         //'other':'Other',
     },
-
+   handleNewLocal: function(evt) {
+       var data = $("#localTypeSelection")[0].value;
+       settings = {
+           'extraData': {
+               'parent': {
+                   'model': 'Tree',
+                   'id': tm.currentTreeId
+               }
+           },
+           model: 'TreeFlags',
+           fieldName: data,
+           submit: 'Save',
+           cancel: 'Cancel'
+       };    
+           
+       $(this.parentNode.parentNode).remove();
+       var d = new Date();
+       var dateStr = (d.getYear()+1900)+"-"+(d.getMonth()+1)+"-"+d.getDate();
+       tm.updateEditableServerCall(dateStr, settings)
+       $("#localTable").append(
+           $("<tr><td>"+tm.localTypes[data]+"</td><td>"+dateStr+"</td></tr>"));  
+       $("#localCount").html(parseInt($("#localCount")[0].innerHTML) + 1);     
+    },
+    localTypes: {
+        '1': 'Landmark Tree',
+        '2': 'Local Carbon Fund',
+        '3': 'Fruit Gleaning Project',
+        '4': 'Historically Significant Tree'
+    },
+    searchParams: {},
     pageLoadSearch: function () {
         tm.loadingSearch = true;
-        tm.searchParams = {};
+        tm.searchparams = {};
         var params = $.address.parameterNames();
         if (params.length) {
             for (var i = 0; i < params.length; i++) {
@@ -743,66 +1746,44 @@ tm = {
                     var dvals = $.address.parameter(key).split("-");
                     $("#diameter_slider").slider('values', 0, dvals[0]);
                     $("#diameter_slider").slider('values', 1, dvals[1]);
-                }
+                }   
                 if (key == "planted_range") {
                     var pvals = $.address.parameter(key).split("-");
                     $("#planted_slider").slider('values', 0, pvals[0]);
                     $("#planted_slider").slider('values', 1, pvals[1]);
-                }
+                }   
                 if (key == "updated_range") {
                     var uvals = $.address.parameter(key).split("-");
                     $("#updated_slider").slider('values', 0, uvals[0]);
                     $("#updated_slider").slider('values', 1, uvals[1]);
-                }
+                }   
                 if (key == "height_range") {
                     var hvals = $.address.parameter(key).split("-");
                     $("#height_slider").slider('values', 0, hvals[0]);
                     $("#height_slider").slider('values', 1, hvals[1]);
-                }
+                }   
                 if (key == "plot_range") {
                     var plvals = $.address.parameter(key).split("-");
                     $("#plot_slider").slider('values', 0, plvals[0]);
                     $("#plot_slider").slider('values', 1, plvals[1]);
-                }
+                }   
                 if (key == "species") {
-                    tm.updateSpeciesFields('species_search',$.address.parameter(key), '');
-                }
+                    var cultivar = null;
+                    if ($.address.parameter("cultivar")) {
+                        cultivar = $.address.parameter("cultivar");
+                    }    
+                    tm.updateSpeciesFields('species_search',$.address.parameter(key), cultivar);
+                } 
                 if (key == "location") {
                     tm.updateLocationFields($.address.parameter(key).replace(/\+/g, " "));
-                }
-                if (key == "tree_stewardship") {
-                    $("#steward-tree").click();
-                    var actions = val.split(',');
-                    for (j=0;j<actions.length;j++) {
-                        $(".steward-action[value=" + actions[j] + "]").click();
-                    }
-                }
-                if (key == "plot_stewardship") {
-                    $("#steward-plot").click();
-                    var actions = val.split(',');
-                    for (k=0;k<actions.length;k++) {
-                        $(".steward-action[value=" + actions[k] + "]").click();
-                    }
-                }
-                if (key == "stewardship_reverse") {
-                    $(".steward-reverse[value=" + val + "]").click();
-                }
-                if (key == "stewardship_range") {
-                    var svals = $.address.parameter(key).split("-");
-                    var date1 = new Date(parseInt(svals[0] * 1000));
-                    var date2 = new Date(parseInt(svals[1] * 1000));
-
-                    $("#steward-date-1").datepicker("setDate", date1).change();
-                    $("#steward-date-2").datepicker("setDate", date2).change();
-                }
-            }
+                }    
+            }    
         }
         tm.loadingSearch = false;
         tm.updateSearch();
     },
-
     serializeSearchParams: function() {
-        var q = $.query.empty();
+        var q = $.query.empty(); 
         for (var key in tm.searchParams) {
             if (!tm.searchParams[key]){
                 continue;
@@ -810,44 +1791,66 @@ tm = {
             var val = tm.searchParams[key];
             q = q.set(key, val);
         }
-        if (tm.handleStewardship) {
-            q = tm.handleStewardship(q);
-        }
-
         var qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
-        if (qstr != '?'+$.query.toString()) {
-            if (!tm.loadingSearch) {
-                $.query.load(qstr);
+        if (qstr != '?'+$.address.queryString()) {
+            if (!tm.loadingSearch) { 
+                $.address.value(qstr);
             }
         }
-
-
+       
+        if (tm.searchParams['location']) {
+            var val = tm.searchParams['location'];
+            var coords = tm.geocoded_locations[val];
+            if (!coords) {return false;}
+            if (coords.join) {
+                q.SET('location', coords.join(','));
+            }
+            else {
+                q.SET('location', coords);
+            }
+            qstr = decodeURIComponent(q.toString()).replace(/\+/g, "%20")
+        }
+        $("#kml_link").attr('href', tm_static + "/search/kml/"+qstr);
+        $("#csv_link").attr('href', tm_static + "/search/csv/"+qstr);
+        $("#shp_link").attr('href', tm_static + "/search/shp/"+qstr);
         return qstr;
     },
+    
 
     updateSearch: function() {
+        
         if (tm.loadingSearch) { return; }
-
         var qs = tm.serializeSearchParams();
-
-        $("#kml_link").attr('href', tm_static + "search/kml/"+qs);
-        $("#csv_link").attr('href', tm_static + "search/csv/"+qs);
-        $("#shp_link").attr('href', tm_static + "search/shp/"+qs);
-
         if (qs === false) { return; }
-
         tm.trackPageview('/search/' + qs);
-
-        $('#displayResults').show();
+        jQuery('#displayResults').show();
         $.ajax({
-            url: tm_static + 'search/'+qs,
+            url: tm_static + '/search/'+qs,
             dataType: 'json',
-            success: tm.display_search_results,
+            success: function(results) {
+                tm.display_search_results(results)
+            },
             error: function(err) {
-                $('#displayResults').hide();
-                alert("There was an error while executing your search");
-            }
-        });
+                jQuery('#displayResults').hide();
+                alert("Error: " + err.status + "\nQuery: " + qs);
+                }
+        });    
+    },
+    
+    
+    widenEditMap : function(){
+        return false;
+                
+        // #add_tree_map{
+        // margin-left:-410px;
+        // width:680px;
+        // }
+
+
+        // .activeEditTable{
+        // margin-top:250px;
+        // }
+    
     },
 
     updateLocationFields: function(loc){
@@ -855,158 +1858,115 @@ tm = {
             $("#location_search_input").val(loc);
             tm.handleSearchLocation(loc);
         }
+        
     },
-
-    updateSpeciesFields: function(field_prefix, spec){
-        if (!tm.speciesData) {
+    
+    updateSpeciesFields: function(field_prefix,spec, cultivar){
+        if (!tm.speciesData) { 
+            var func = function() { 
+                tm.updateSpeciesFields(field_prefix, spec, cultivar);
+            }
+            tm.speciesDataListeners.push(func);
             return;
         }
-
         if (spec) {
             $("#" + field_prefix + "_id").val(spec);
+            if (cultivar) {
+                $("#" + field_prefix + "_id_cultivar").val(cultivar);
+            } else {
+                $("#" + field_prefix + "_id_cultivar").val("");
+            }    
 
             for (var i = 0; i < tm.speciesData.length; i++) {
-                if (tm.speciesData[i].id == spec) {
-                    $("#" + field_prefix + "_input").val(tm.speciesData[i].cname + " [ " + tm.speciesData[i].sname + " ]");
-                    break;
+                if (tm.speciesData[i].symbol == spec && (cultivar ? tm.speciesData[i].cultivar == cultivar : tm.speciesData[i].cultivar == '')) {
+                    $("#" + field_prefix + "_input").val(tm.speciesData[i].cname + " / " + tm.speciesData[i].sname);
                 }
             }
-        }
+        }    
     },
 
 
     add_favorite_handlers : function(base_create, base_delete) {
-        $('.favorite.fave').live('click', function(e) {
+        $('a.favorite.fave').live('click', function(e) {
             var pk = $(this).attr('id').replace('favorite_', '');
             var url = base_create + pk + '/';
             $.getJSON(tm_static + url, function(data, textStatus) {
-                $('#favorite_' + pk).removeClass('fave').addClass('unfave');
-                $('#favorite_' + pk).html('Remove as favorite');
+                $('#favorite_' + pk).removeClass('fave').addClass('unfave').text('Remove as favorite');
             });
             tm.trackEvent('Favorite', 'Add Favorite', 'Tree', pk);
             return false;
         });
-        $('.favorite.unfave').live('click', function(e) {
+        $('a.favorite.unfave').live('click', function(e) {
             var pk = $(this).attr('id').replace('favorite_', '');
             var url = base_delete + pk + '/';
             $.getJSON(tm_static + url, function(data, textStatus) {
-                $('#favorite_' + pk).removeClass('unfave').addClass('fave');
-                $('#favorite_' + pk).html('Add as favorite');
+                $('#favorite_' + pk).removeClass('unfave').addClass('fave').text('Add as favorite');
             });
             tm.trackEvent('Favorite', 'Remove Favorite', 'Tree', pk);
             return false;
         });
     },
-
-    /**
-     * Determine if "search" is a zipcode, neighborhood, or address
-     * and then <do more search stuff>
-     */
+    
     handleSearchLocation: function(search) {
         if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
 
         tm.geocode_address = search;
-        // clean up any previous location search params
-        delete tm.searchParams.location;
-        delete tm.searchParams.geoName;
-        delete tm.searchParams.lat;
-        delete tm.searchParams.lon;
 
-        function continueSearchWithFeature(nbhoods) {
-            var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-            tm.map.zoomToExtent(bbox, true);
+        jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
+            if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
 
-            tm.add_location_marker(bbox.getCenterLonLat());
-            var featureName = nbhoods.features[0].properties.name;
-            if (featureName) {
-                tm.searchParams['geoName'] = featureName;
-            }
-            else {
-                featureName = nbhoods.features[0].properties.zip;
-                tm.searchParams['location'] = featureName;
-                tm.geocoded_locations[search] = featureName;
-            }
+            if (nbhoods.features.length > 0) {
+                var olPoint = OpenLayers.Bounds.fromArray(nbhoods.bbox).getCenterLonLat();
+                var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                tm.map.zoomToExtent(bbox, true);
 
-            tm.updateSearch();
-        }
+                //if (nbhoods.features[0].properties.name == 'Philadelphia'){                    
+                //    delete tm.searchParams.location; 
+                //    delete tm.searchParams.geoName;
+                //} else {  
+                    tm.add_location_marker(bbox.getCenterLonLat());
+                    tm.geocoded_locations[tm.geocode_address] = [olPoint.lon, olPoint.lat];
+                    tm.searchParams['location'] = tm.geocode_address;
+                    tm.searchParams['geoName'] = nbhoods.features[0].properties.name;
+                //}
+                tm.updateSearch();
+            } else {                 
+                delete tm.searchParams.geoName;        
+                tm.geocode(search, function(lat, lng, place) {
+                    var olPoint = new OpenLayers.LonLat(lng, lat);
+                    var llpoint = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+                    tm.map.setCenter(llpoint, tm.add_zoom);
 
-        // Search order:
-        // -> If the string is a number, assume it is a zipcode and search by zipcode
-        // -> Otherwise:
-        //    -> Check the string aginst the neighborhoods table
-        //    -> Otherwise assume it's an address
-        if (tm.isNumber(search)) {
-            $.getJSON(tm_static + 'zipcodes/', {format:'json', name: search}, function(zips){
-                if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)}
+                    tm.add_location_marker(llpoint);
 
-                if (zips.features.length > 0) {
-                    continueSearchWithFeature(zips);
-                }
-            });
-        }
-        else
-        {
-            $.getJSON(tm_static + 'neighborhoods/', {format:'json', name: search}, function(nbhoods){
-                if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)}
-
-                if (nbhoods.features.length > 0) {
-                    continueSearchWithFeature(nbhoods);
-                } else {
-                    tm.geocode(search, function(lat, lng, place) {
-                        var olPoint = new OpenLayers.LonLat(lng, lat);
-                        var llpoint = new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
-                        tm.map.setCenter(llpoint, tm.add_zoom);
-
-                        tm.add_location_marker(llpoint);
-
+                    if (olPoint) {
                         tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
-                        tm.searchParams['lat'] = olPoint.lat;
-                        tm.searchParams['lon'] = olPoint.lon;
-                        tm.updateSearch();
-                   });
-               }
-            });
-        }
-    },
-
-    editDiameter: function(field, diams) {
-        // no value: show box
-        // one value: show box w/ value
-        // many values: show boxes w/ split values
-        if (!$.isArray(diams)) {diams=[0];}
-
-        //diams is either [0] or an array of what's there by this point
-        diams = tm.currentTreeDiams || diams;
-        var html = '';
-
-        tm.currentDiameter = $(field).html();
-        if ($.isArray(diams)){
-            for (var i = 0; i < Math.max(diams.length, 1); i++) {
-                var val = '';
-                if (diams[i]) { val = parseFloat(diams[i].toFixed(3)); }
-                html += "<input type='text' size='7' id='dbh"+i+"' name='dbh"+i+"' value='"+val+"' />";
-                if (i == 0) {
-                    html += "<br /><input type='radio' id='diam' checked name='circum' /><label for='diam'><small>Diameter</small></label><input type='radio' id='circum' name='circum' /><label for='circum'><small>Circumference</small></label>"
-                }
-                html += "<br />";
+                        tm.searchParams['location'] = search;       
+                    } else {
+                        delete tm.searchParams.location;
+                    }
+                    tm.updateSearch();
+                });
             }
-        } else {
-            html += "<input type='text' size='7' id='dbh0' name='dbh0' value='"+ parseFloat(diams).toFixed(3) + "' />";
-            html += "<br /><input type='radio' id='diam' checked name='circum' /><label for='diam'><small>Diameter</small></label><input type='radio' id='circum' name='circum' /><label for='circum'><small>Circumference</small></label>"
+        });
+    },
+    editDiameter: function(field, diams) {
+        tm.editingDiameter = true;
+        if (diams == "None") {diams=[];}        
+        var diams = tm.currentTreeDiams || diams;
+        var html = '';
+        tm.currentDiameter = $(field).html();
+        for (var i = 0; i < Math.max(diams.length, 1); i++) {
+            var val = '';
+            if (diams[i]) { val = parseFloat(diams[i]).toFixed(3); }
+            html += "<input type='text' size='7' id='dbh"+i+"' name='dbh"+i+"' value='"+val+"' />";
+            if (i == 0) {
+                html += "<br /><input type='radio' id='diam' checked name='circum' /><label for='diam'><small>Diameter</small></label><input type='radio' id='circum' name='circum' /><label for='circum'><small>Circumference</small></label>"
+            }
             html += "<br />";
         }
-
-        if ($.isArray(diams)) {
-            if (diams.length == 0) {
-                tm.currentTreeDiams = [0];
-            } else {
-                tm.currentTreeDiams = diams;
-            }
-        } else {
-            tm.currentTreeDiams = [diams];
-        }
-
+        tm.currentTreeDiams = diams.length ? diams : [0];
         html += "<span id='add_more_dbh'><a href='#' onclick='tm.addAnotherDiameter(); return false'>Add another trunk?</a></span> <br />";
         html += "<span class='activeEdit'>";
         html += "<button type='submit' onclick='tm.saveDiameters(); return false;'>Save</button>";
@@ -1019,9 +1979,9 @@ tm = {
             $("#edit_dbh").html("Click icon to edit");
         } else {
             $("#edit_dbh").html(parseFloat(tm.currentDiameter).toFixed(1));
-        }
-    },
-
+        }            
+        tm.editingDiameter = false;
+    },  
     addAnotherDiameter: function() {
         var dbh = $("#add_more_dbh")[0];
         var input = document.createElement("input");
@@ -1038,34 +1998,29 @@ tm = {
         var sum = 0;
         for (var i = 0; i < tm.currentTreeDiams.length; i++) {
             if ($("#dbh"+i).val()) {
-
+            
                 var val = parseFloat($("#dbh"+i).val());
-                if ($("#circum").attr("checked")) {
+                if ($("#circum").attr("checked") == true) {
                     val = val / Math.PI;
-                }
+                }    
                 vals.push(val);
                 sum += Math.pow(val, 2);
             }
         }
         var total = Math.sqrt(sum);
-
-        if (total > 100) {
-            $("#edit_dbh").append("<br/><span class='smError'>Total diameter too large.</span>")
-            return;
-        }
-
-        if (isNaN(total)) {
-            $("#edit_dbh").append("<br/><span class='smError'>Diameter must be a number.</span>")
+        
+        if (total > 200) {
+            $("#edit_dbh").append("<br/><span class='error'>Total diameter too large.</span>")
             tm.editingDiameter = false;
             return;
         }
-
+        
         tm.currentTreeDiams = vals;
         var editableOptions = {
             submit: 'Save',
             cancel: 'Cancel',
             cssclass:  'activeEdit',
-            indicator: '<img src="' + tm_static + 'static/images/loading-indicator.gif" alt="" />',
+            indicator: '<img src="' + tm_static + '/static/images/loading-indicator.gif" alt="" />',
             width: '80%',
             model: 'Tree',
             fieldName:  'dbh',
@@ -1074,6 +2029,438 @@ tm = {
         };
         tm.updateEditableServerCall(total, editableOptions);
         $("#edit_dbh").html(total.toFixed(1));
+        tm.editingDiameter = false;
+        
+    },
+    approvePend: function(pend_id) {
+        $.ajax({
+            url: tm_static + '/trees/pending/' + pend_id + '/approve/',
+            dataType: 'json',
+            type: 'POST',
+            success: function(response) {
+                tm.trackEvent('Pend', 'Approve', 'id', pend_id);
+                location.reload();
+            },
+            error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + pend_id);
+            }
+        });
+    },
+    rejectPend: function(pend_id) {
+        $.ajax({
+            url: tm_static + '/trees/pending/' + pend_id + '/reject/',
+            dataType: 'json',
+            type: 'POST',
+            success: function(response) {
+                tm.trackEvent('Pend', 'Reject', 'id', pend_id);
+                location.reload();
+            },
+            error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + pend_id);
+            }
+        });
+    },
+    addTreeToPlot: function(plot_id) {
+        $.ajax({
+            url: tm_static + '/plots/' + plot_id + '/addtree/',
+            dataType: 'json',
+            type: 'POST',
+            success: function(response) {
+                tm.trackEvent('Add', 'New Tree');
+                location = tm_static + "/plots/" + plot_id + "/";
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + plot_id);
+            }
+        });
+    },
+    deleteTree: function(tree_id) {
+        if (window.confirm("Are you sure you want to remove this tree permanently from the system?"))
+        {
+            $.ajax({
+                url: tm_static + '/trees/' + tree_id + '/delete/',
+                dataType: 'json',
+                type: 'POST',
+                success: function(response) {
+                    tm.trackEvent('Edit', 'Delete');
+                    location.reload();
+                },
+                error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + tree_id);
+                }
+            });
+        }
+    },
+    deletePlot: function(plot_id) {
+        if (window.confirm("Are you sure you want to remove this plot and it's current tree permanently from the system?"))
+        {
+            $.ajax({
+                url: tm_static + '/plots/' + plot_id + '/delete/',
+                dataType: 'json',
+                type: 'POST',
+                success: function(response) {
+                    tm.trackEvent('Edit', 'Delete');
+                    window.location = tm_static + "/map/";
+                },
+                error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + plot_id);
+                }
+            });
+        }
+    },
+    deletePhoto: function(tree_id, photo_id) {
+        if (window.confirm("Are you sure you want to delete this photo permanently from the system?"))
+        {
+            $.ajax({
+                url: tm_static + '/trees/' + tree_id + '/deletephoto/' +  photo_id,
+                dataType: 'json',
+                type: 'POST',
+                success: function(response) {
+                    window.location.reload(true);
+                },
+                error: function(err) {
+                console.log(err)
+                alert("Error: " + err.status )
+                }
+            });
+        }
+    },
+    
+    deleteUserPhoto: function(username) {
+        if (window.confirm("Are you sure you want to delete this photo permanently from the system?"))
+        {
+            $.ajax({
+                url: tm_static + '/profiles/' + username + '/deletephoto/',
+                dataType: 'json',
+                type: 'POST',
+                success: function(response) {
+                    window.location.reload(true);
+                },
+                error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
+                }
+            });
+        }
+    },
+    
+     updateSpeciesFromKey: function(tree_code, tree_cultivar)  {
+       alert(tree_code);
+     },
+    
+    updateReputation: function(change_type, change_id, rep_dir) {
+        $.ajax({
+        url: tm_static + '/verify/' + change_type + '/' + change_id + '/' + rep_dir,
+        dataType: 'json',
+        success: function(response) {
+            $("#" + response.change_type + "_" + response.change_id).fadeOut();
+            tm.trackEvent("Reputation", rep_dir)
+        },
+        error: function(err) {
+        alert("Error: " + err.status + "\nQuery: " + change_type + " " + change_id + " " + rep_dir);
+        }
+        });
+    },
+    
+    updateReputation_Admin: function(user_id, rep_total) {
+        var data = {
+        'user_id': user_id,
+        'rep_total': rep_total
+    };
+        var jsonString = JSON.stringify(data);
+        
+        $.ajax({
+        url: tm_static + '/users/update/',
+        dataType: 'json',
+        data: jsonString,
+        type: 'POST',
+        success: function(response) {
+        },
+        error: function(err) {
+        alert("Error: " + err.status + "\nQuery: " + user_id + " " + rep_total);
+        }
+        });
+    },
+    
+    updateGroup_Admin: function(user_id, group_id) {
+        var data = {
+            'user_id': user_id,
+            'group_id': group_id
+        };
+            var jsonString = JSON.stringify(data);
+            
+        $.ajax({
+            url: tm_static + '/users/update/',
+            dataType: 'json',
+            data: jsonString,
+            type: 'POST',
+            success: function(response) {
+                if (response.new_rep)
+                {$("#reputation_" + response.user_id).val(response.new_rep);}
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + user_id + " " + group_id);
+            }
+        });
+    },
+    
+    banUser: function(user_id) {
+        var data = {
+            'user_id': user_id
+        };
+        var jsonString = JSON.stringify(data);
 
+        $.ajax({
+            url: tm_static + '/users/ban/',
+            dataType: 'json',
+            data: jsonString,
+            type: 'POST',
+            success: function(response) {
+                $('#' + response.user_id).children("#rep").children("#ban").toggle();
+                $('#' + response.user_id).children("#rep").children("#activate").toggle();
+                $('#' + response.user_id).children("#active").html('Inactive');
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + user_id);
+            }
+        });
+    },
+    activateUser: function(user_id) {
+        var data = {
+            'user_id': user_id
+        };
+        var jsonString = JSON.stringify(data);
+
+        $.ajax({
+            url: tm_static + '/users/activate/',
+            dataType: 'json',
+            data: jsonString,
+            type: 'POST',
+            success: function(response) {
+                $('#' + response.user_id).children("#rep").children("#ban").toggle();
+                $('#' + response.user_id).children("#rep").children("#activate").toggle();
+                $('#' + response.user_id).children("#active").html('Active');
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + user_id);
+            }
+        });
+    },
+
+    updatePend: function(pend_id, pend_dir) {
+        $.ajax({
+        url: tm_static + '/trees/pending/' + pend_id + '/' + pend_dir,
+        dataType: 'json',
+        success: function(response) {
+            $("#" + response.pend_id).hide();
+            tm.trackEvent("Pending", pend_dir)
+        },
+        error: function(err) {
+        alert("Error: " + err.status + "\nQuery: " + pend_id + " " + pend_dir);
+        }
+        });
+    },
+
+    validate_watch: function(watch_id){
+        var data = {
+            'watch_id': watch_id
+        };
+        var jsonString = JSON.stringify(data);      
+        $.ajax({
+            url: tm_static + '/watch/validate/',
+            dataType: 'json',
+            data: jsonString,
+            type: 'POST',
+            success: function(response) {
+                $("#" + watch_id).fadeOut();
+            },
+            error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + watch_id );
+            }
+        });
+    },
+    
+    hideComment: function(flag_id) {
+        var data = {
+            'flag_id': flag_id
+        };
+        var jsonString = JSON.stringify(data);      
+        $.ajax({
+            url: tm_static + '/comments/hide/',
+            dataType: 'json',
+            data: jsonString,
+            type: 'POST',
+            success: function(response) {
+                $("#" + flag_id).fadeOut();
+            },
+            error: function(err) {
+                alert("Error: " + err.status + "\nQuery: " + flag_id );
+            }
+        });
+    },
+    removeFlag: function(flag_id) {
+        var data = {
+        'flag_id': flag_id
+        };
+        var jsonString = JSON.stringify(data);      
+        $.ajax({
+            url: tm_static + '/comments/unflag/',
+            dataType: 'json',
+            data: jsonString,
+            type: 'POST',
+            success: function(response) {
+            $("#" + flag_id).fadeOut();
+            },
+            error: function(err) {
+            alert("Error: " + err.status + "\nQuery: " + flag_id );
+            }
+        });
+    },
+    isNumber: function (o) {
+      return ! isNaN (o-0);
     }
-};
+};  
+$.editable.addInputType("autocomplete_species", {
+    element: function(settings, original) {
+        var hiddenInput = $('<input type="hidden" class="hide">');
+        var input = $("<input type='text' />");
+        tm.setupAutoComplete(input).result(function(event, item) {
+            hiddenInput[0].value = item.id; 
+        });
+        $(this).append(input);
+        $(this).append(hiddenInput);
+        return (hiddenInput);
+    }
+});
+$.editable.addInputType('date', {
+    element : function(settings, original) {       
+        var monthselect = $('<select id="month_">');
+        var dayselect  = $('<select id="day_">');
+        var yearselect  = $('<select id="year_">');
+    
+        /* Month loop */
+        for (var month=1; month <= 12; month++) {
+            if (month < 10) {
+                month = '0' + month;
+            }
+            var option = $('<option>').val(month).append(month);
+            monthselect.append(option);
+        }
+        $(this).append(monthselect);
+
+        /* Day loop */
+        for (var day=1; day <= 31; day++) {
+            if (day < 10) {
+                day = '0' + day;
+            }
+            var option = $('<option>').val(day).append(day);
+            dayselect.append(option);
+        }
+        $(this).append(dayselect);
+            
+        /* Year loop */
+        thisyear = new Date().getFullYear()
+        for (var year=thisyear; year >= 1800; year--) {
+            var option = $('<option>').val(year).append(year);
+            yearselect.append(option);
+        }
+        $(this).append(yearselect);
+        
+        $(this).append("<br><span>MM</span><span style='padding-left:30px;'>DD</span><span style='padding-left:36px;'>YYYY</span><br><div style='color:red;' id='dateplanted_error'/>")
+        
+        /* Hidden input to store value which is submitted to server. */
+        var hidden = $('<input type="hidden">');
+        $(this).append(hidden);
+        return(hidden);
+    },
+    submit: function (settings, original) {
+        var vdate = new Date($("#year_").val(), $("#month_").val()-1, $('#day_').val());
+        if (vdate.getTime() > new Date().getTime()) {
+            $("#dateplanted_error").html("Enter a past date")
+            return false;
+        }
+        
+        var value = $("#year_").val() + "-" + $("#month_").val() + "-" + $('#day_').val();
+        $("input", this).val(value);
+    },
+    content : function(string, settings, original) {
+        var pieces = string.split('-');
+        var year = pieces[0];
+        var month  = pieces[1];
+        var day  = pieces[2];
+        
+
+        $("#year_", this).children().each(function() {
+            if (year == $(this).val()) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+        $("#month_", this).children().each(function() {
+            if (month == $(this).val()) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+        $("#day_", this).children().each(function() {
+            if (day == $(this).val()) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+    }
+});
+$.editable.addInputType('feetinches', {
+    element : function(settings, original) {       
+        var footselect = $('<select id="feet_">');
+        var inchselect  = $('<select id="inches_">');
+    
+        /* Month loop */
+        for (var foot=1; foot <= 15; foot++) {
+            var option = $('<option>').val(foot).append(foot);
+            footselect.append(option);
+        }
+        var option = $('<option>').val(99).append('15+');
+        footselect.append(option);
+        $(this).append(footselect);
+
+        /* Day loop */
+        for (var inch=0; inch <= 11; inch++) {
+            var option = $('<option>').val(inch).append(inch);
+            inchselect.append(option);
+        }
+        $(this).append(inchselect);
+            
+        
+        $(this).append("<br><span>Feet</span><span style='padding-left:30px;'>Inches</span><br><div style='color:red;' id='dateplanted_error'/>")
+        
+        /* Hidden input to store value which is submitted to server. */
+        var hidden = $('<input type="hidden">');
+        $(this).append(hidden);
+        return(hidden);
+    },
+    submit: function (settings, original) {
+        var vfeet = parseFloat($("#feet_").val());
+        var vinch = parseFloat($("#inches_").val());
+        var value = vfeet + (vinch / 12)
+        if (vfeet == 99) {
+            $("input", this).val(vfeet);
+        }
+        else {
+            $("input", this).val(Math.round(value*100)/100);
+        }
+    },
+    content : function(string, settings, original) {
+        var pieces = parseFloat(string);
+        var ft = Math.floor(pieces);
+        var inch = Math.round((pieces - ft) * 12);
+        
+
+        $("#feet_", this).children().each(function() {
+            if (ft == $(this).val()) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+        $("#inches_", this).children().each(function() {
+            if (inch == $(this).val()) {
+                $(this).attr('selected', 'selected');
+            }
+        });
+    }
+});
