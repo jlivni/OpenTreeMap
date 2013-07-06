@@ -551,7 +551,6 @@ var tm = {
     },
     
     update_add_address: function(ll, full_address, city, zip) {
-console.log(ll, full_address, city, zip)
         if ($("#geocode_address")) {
             $("#geocode_address").html("<b>Address Found: </b><br>" + full_address);
         }
@@ -624,9 +623,52 @@ console.log(ll, full_address, city, zip)
             if (evt.keyCode == 13) {                
                 evt.preventDefault();
                 evt.stopPropagation();
+                if (jQuery('#id_edit_address_street').val() != "") {
+                    jQuery('#update_map').click();
+                }
+            }
+        });
+        jQuery('#id_edit_address_city').keydown(function(evt){
+            if (evt.keyCode == 13) {                
+                evt.preventDefault();
+                evt.stopPropagation();
+                jQuery('#update_map').click();
             }
         });
         
+        jQuery('#update_map').click(function(evt) {
+            var address = jQuery('#id_edit_address_street').val();
+            var city = jQuery('#id_edit_address_city').val();
+            if (city == "Enter a City") {
+               city = ""
+            }
+            if (!address || address == "Enter an Address or Intersection") {return;}
+            geo_address = address + " " + city
+            tm.geocode(geo_address, function (lat, lng, place) {
+                var olPoint = new OpenLayers.LonLat(lng, lat);
+                var zoom = tm.add_zoom;
+                if (tm.map.getZoom() > tm.add_zoom) {zoom = tm.map.getZoom();}
+                tm.map.setCenter(new OpenLayers.LonLat(lng, lat).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject()), zoom);
+                
+                if (tm.add_vector_layer) {tm.add_vector_layer.destroyFeatures();}
+                if (tm.tree_layer) {tm.tree_layer.clearMarkers();}
+                
+                tm.load_nearby_trees(olPoint);
+                tm.add_new_tree_marker(olPoint, true);
+                
+                tm.drag_control.activate();
+                
+                jQuery('#id_lat').val(olPoint.lat);
+                jQuery('#id_lon').val(olPoint.lon);
+                jQuery('#id_geocode_address').val(place)
+                
+                jQuery('#update_map').html("Update Map");
+                jQuery("#mapHolder").show();
+                jQuery("#calloutContainer").show();
+                tm.trackEvent('Add', 'View Map');
+            });
+            
+        });
     },
         
     //initializes map on the profile page; shows just favorited trees
@@ -907,9 +949,7 @@ console.log(ll, full_address, city, zip)
         }
 
         tm.geocode_address = address;
-        if (tm.geocode_address.toLocaleLowerCase().indexOf("oaks")  == -1) {
-          tm.geocode_address += ', oakland'
-        }
+
         if (tm.local_geocoder) {
             $.getJSON(tm_static + "/geocode/", {address: tm.geocode_address, geocoder_name: tm.local_geocoder}, function(json) {
                 if (json.success == true) {
@@ -1371,7 +1411,7 @@ console.log(ll, full_address, city, zip)
             'update': {
             }
         };
-        console.log(value,settings,'!')
+        //console.log(value);
         // TODO - I think if '' then we should replace
         // with original value and if 'null' then
         // we should save None in database if its
@@ -1420,7 +1460,7 @@ console.log(ll, full_address, city, zip)
                 }
             }
             
-            if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeFlags","TreeFauna"]) >=0) {
+            if (jQuery.inArray(settings.model, ["TreeAlert","TreeAction","TreeFlags"]) >=0) {
                 data['update']['value'] = value;
                 data['update']['key'] = settings.fieldName;
             } else {    
@@ -1535,21 +1575,6 @@ console.log(ll, full_address, city, zip)
         });
 
     },
-    newFauna: function() {
-        console.log('adding fauna')
-        var select = $("<select id='faunaTypeSelection' />");
-        for (var key in tm.faunaTypes) {
-            select.append($("<option value='"+key+"'>"+tm.faunaTypes[key]+"</option>"));
-        }    
-        var tr = $("<tr />").append($(""), $("<td colspan='2' />").append(select));
-        tr.append(
-            $("<td />").append(
-                $("<input type='submit' value='Submit' class='button' />").click(tm.handleNewFauna),
-                $("<input type='submit' value='Cancel' class='button' />").click(tm.cancelNew)
-            )
-        );
-        $("#faunaTable").append(tr);
-    },
     newAction: function() {
         var select = $("<select id='actionTypeSelection' />");
         for (var key in tm.actionTypes) {
@@ -1632,41 +1657,16 @@ console.log(ll, full_address, city, zip)
    }, 
    deleteAction: function(key, value, elem) {
        $(elem.parentNode.parentNode).remove();
+   
    },
    deleteHazard: function(key, value, elem) {
        $(elem.parentNode.parentNode).remove();
+   
    },
    deleteLocal: function(key, value, elem) {
        $(elem.parentNode.parentNode).remove();
+   
    },
-   deleteFauna: function(key, value, elem) {
-       $(elem.parentNode.parentNode).remove();
-   },
-   handleNewFauna: function(evt) {
-       var data = $("#faunaTypeSelection")[0].value;
-       settings = {
-           'extraData': {
-               'parent': {
-                   'model': 'Tree',
-                   'id': tm.currentTreeId
-               }
-           },
-           model: 'TreeFauna',
-           fieldName: data,
-           submit: 'Save',
-           cancel: 'Cancel'
-       };    
-           
-       $(this.parentNode.parentNode).remove();
-       var d = new Date();
-       //TODO get date from field
-       var dateStr = (d.getYear()+1900)+"-"+(d.getMonth()+1)+"-"+d.getDate();
-       tm.updateEditableServerCall(dateStr, settings)
-       $("#faunaTable").append(
-           $("<tr><td>"+tm.faunaTypes[data]+"</td></tr>"));  
-       $("#faunaCount").html(parseInt($("#faunaCount")[0].innerHTML) + 1);     
-    },
-    faunaTypes: {"80": "Squirrel", "81": "Raccoon", "82": "Opossum", "83": "Housecat", "84": "Human", "85": "California Scrub Jay", "86": "Anna's Hummingbird", "87": "Hutton's Vireo", "88": "American Crow", "89": "American Robin", "90": "California Towhee", "91": "Rufous-backed Chickadee", "92": "Bushtit", "93": "Mourning Dove", "94": "Northern Mockingbird", "95": "Calfornia Sister butterfly", "96": "Western Fence Lizard", "97": "Arboreal Salamander", "98": "Red-backed Jumping Spider", "99": "Orb-weaving Spider"},
    handleNewAction: function(evt) {
        var data = $("#actionTypeSelection")[0].value;
        settings = {

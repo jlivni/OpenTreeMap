@@ -14,11 +14,7 @@ from treemap.views import _build_tree_search_result
 
 # http://bitbucket.org/springmeyer/djmapnik/
 from djmapnik.adapter import qs_to_map
-
-try:
-    import mapnik2 as mapnik
-except:
-    import mapnik
+import mapnik
 
 # todo - remove <layername>, and remove 'foo' from url in static/treemap.js
 tile_request_pat = r'/(?P<version>\d{1,2}\.\d{1,3}\.\d{1,3})/(?P<layername>[a-z]{1,64})/(?P<z>\d{1,10})/(?P<x>\d{1,10})/(?P<y>\d{1,10})\.(?P<extension>(?:png|jpg|gif))'
@@ -28,6 +24,24 @@ m = mapnik.Map(1,1)
 mapnik.load_map(m,settings.MAPNIK_STYLESHEET)
 style = m.find_style('style')
 del m
+
+
+style2 = mapnik.Style()
+r = mapnik.Rule()
+icon = '/ebs/projects/oakland/OpenTreeMap/static/SanDiego/images/map_icons/v4/marker-sm.png'
+sym = mapnik.PointSymbolizer( mapnik.PathExpression(icon))
+sym.transform = 'scale(0.4)'
+sym.allow_overlap = True
+sym.opacity = .5
+x = mapnik.MarkersSymbolizer()
+x.width = mapnik.Expression("20")
+x.stroke_width = mapnik.Expression("20")
+x.allow_overlap = True
+x.fill = '#ff0'
+x.stroke = '#ccc'
+r.symbols.append(sym)
+style2.rules.append(r)
+
 
 srv = None
 
@@ -72,7 +86,7 @@ def get_tile(request, version, layername, z, x, y, extension='png'):
                  'foo',# mapfile skipped as we dynamically assign map object
                  spherical_mercator = 'true',
                  extension = "png",
-                 tms_type = 'google',
+                 tms_type = 'google', # tms or google
                  paletted = 'true',
                  debug=False
                  )
@@ -95,10 +109,12 @@ def get_tile(request, version, layername, z, x, y, extension='png'):
         # cached map - must be run multiprocess to avoid potential race condition
         m = query_hash.get(name)
         if not m:
-            trees, geog_obj = _build_tree_search_result(request)
-            trees = trees.only('geometry')
+            trees, plots, agg_search_result, agg_obj, str_tile_query = _build_tree_search_result(request)
+            plots = plots.filter(tree__in=trees)
+            trees = plots.only('geometry')
             styles=[{'name':'style','obj':style}]
             m = qs_to_map(trees,styles=styles)
+            #print mapnik.save_map_to_string(m)
             query_hash[name] = m
         # push the actual mapnik map into the TC MapnikLayer
         mapnik_layer.mapnik = m

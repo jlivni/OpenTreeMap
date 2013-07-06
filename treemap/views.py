@@ -1477,7 +1477,7 @@ def _build_tree_search_result(request, with_benefits=True):
                 # another thread has already likely saved the same object...
                 pass
 
-    return trees, plots, geog_obj, agg_object, ' AND '.join(tile_query)
+    return trees, plots, geog_obj, agg_object, request.META['QUERY_STRING'] #' AND '.join(tile_query)
 
 
 

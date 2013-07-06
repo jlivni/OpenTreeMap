@@ -37,7 +37,7 @@ urlpatterns = patterns('',
 
     (r'^', include('treemap.urls')),
     (r'^importer/', include('importer.urls')),
-    #(r'^', include('qs_tiles.urls')),
+    (r'^', include('qs_tiles.urls')),
 
     # using new 0.8 beta with "backends" support
     # http://docs.b-list.org/django-registration/0.8/
