@@ -257,7 +257,7 @@
             <ul id="userImage">
                 <li>
                 {% if tree.treephoto_set.count %}
-                    <a href="/media/{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}">
+                    <a target="_blank" href="{{ tree.treephoto_set.all|first|get:"photo"|get:"url" }}">
  {% thumbnail tree.treephoto_set.all|first|get:"photo" "181x119" crop="center" as image %}
                             <img src="{{ image.url }}" alt="{{ tree.treephoto_set.all|first|get:"title" }}" width="181" height="119" class="mainImage" />
                           {% endthumbnail %}
