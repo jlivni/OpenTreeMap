@@ -5,7 +5,7 @@
 
 {% block form %}
 
-{% with SITE_ROOT|add:"map/" as next_page %}
+{% with SITE_ROOT|add:"/map/" as next_page %}
 
 <form id="form1" name="form1" method="post" action="?next={{ next|default:next_page }}">
 
