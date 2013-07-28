@@ -169,6 +169,8 @@ var tm = {
                 } else {
                     $("#location_search_input").val(tm.initial_location_string);
                     delete tm.searchParams['location'];
+                    delete tm.searchParams['lat'];
+                    delete tm.searchParams['lon'];
                     delete tm.searchParams['geoName'];
                     if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
                     if (tm.map) {
@@ -1928,6 +1930,8 @@ var tm = {
                     tm.add_location_marker(bbox.getCenterLonLat());
                     tm.geocoded_locations[tm.geocode_address] = [olPoint.lon, olPoint.lat];
                     tm.searchParams['location'] = tm.geocode_address;
+                    tm.searchParams['lat'] = olPoint.lat;
+                    tm.searchParams['lon'] = olPoint.lon;
                     tm.searchParams['geoName'] = nbhoods.features[0].properties.name;
                 //}
                 tm.updateSearch();
@@ -1943,8 +1947,12 @@ var tm = {
                     if (olPoint) {
                         tm.geocoded_locations[search] = [olPoint.lon, olPoint.lat];
                         tm.searchParams['location'] = search;       
+                        tm.searchParams['lat'] = olPoint.lat;
+                        tm.searchParams['lon'] = olPoint.lon;
                     } else {
                         delete tm.searchParams.location;
+                        delete tm.searchParams.lat;
+                        delete tm.searchParams.lon;
                     }
                     tm.updateSearch();
                 });

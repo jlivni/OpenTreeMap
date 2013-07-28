@@ -11,7 +11,7 @@ class Search (object):
 
 def apply_location_filter(request, search):
     geog_obj = None
-    if 'location' in request:
+    if 'location' in request and ZipCode.objects.all():
         loc = request['location']
         z = ZipCode.objects.filter(zip=loc)
         if z.count():
