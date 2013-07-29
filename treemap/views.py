@@ -1890,7 +1890,8 @@ def verify_edits(request, audit_type='tree'):
             'type': 'tree'
         })
 
-    changes.sort(lambda x,y: cmp(x['last_updated'], y['last_updated']))
+    sort_field = request.GET.get('sort','last_updated')
+    changes.sort(lambda x,y: cmp(x[sort_field], y[sort_field]))
     return render_to_response('treemap/verify_edits.html',RequestContext(request,{'changes':changes, "geometry":n}))
 
 @login_required
