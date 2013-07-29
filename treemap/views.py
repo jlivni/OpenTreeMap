@@ -64,7 +64,7 @@ def redirect(rel):
     if rel[0] == "/":
         rel = rel[1:]
 
-    return HttpResponseRedirect('%s%s' % (settings.SITE_ROOT, rel))
+    return HttpResponseRedirect('%s%s' % (settings.SITE_ROOT or '/', rel))
 
 def render_to_json(j):
     response = HttpResponse()

@@ -168,7 +168,7 @@ class TreeAddForm(forms.Form):
 
         #TODO: fix this
         pests = self.cleaned_data.get('pests')
-        if species or height or canopy_height or dbh or \
+        if 1 or species or height or canopy_height or dbh or \
            condition or canopy_condition or pests:
            # print species, height, canopy_height, dbh, condition, canopy_condition
             if species:
