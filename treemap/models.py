@@ -31,16 +31,6 @@ status_choices = (
         ('canopy_condition', 'Canopy Condition')
     )
 
-choices_choices = (
-    ('factoid', 'Factoid'),
-    ('plot', 'Plot'),
-    ('alert', 'Alert'),
-    ('action', 'Action'),
-    ('local', 'Local'),
-    ('sidewalk_damage', 'Sidewalk Damage'),
-    ('condition', 'Condition'),
-    ('canopy_condition', 'Canopy Condition')
-)
 watch_choices = {
     "height_dbh": "Height to DBH Ratio",
     "proximity": "Trees Nearby",
