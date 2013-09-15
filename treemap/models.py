@@ -465,6 +465,7 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
     neighborhood = models.ManyToManyField(Neighborhood, null=True)
     neighborhoods = models.CharField(max_length=150, null=True, blank=True) # Really this should be 'blank=True' and null=False
     zipcode = models.ForeignKey(ZipCode, null=True, blank=True) # Because it is calculated in the save method
+    district = models.ForeignKey(SupervisorDistrict, null=True, blank=True) # Because it is calculated in the save method
     sunset_zone = models.ForeignKey(SunsetZone, null=True, blank=True)
 
     geocoded_accuracy = models.IntegerField(null=True, blank=True)
@@ -584,6 +585,8 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
         
         n = Neighborhood.objects.filter(geometry__contains=pnt)
         z = ZipCode.objects.filter(geometry__contains=pnt)
+        district = SupervisorDistrict.objects.filter(geometry__contains=pnt)
+     
 
         if n:
             oldns = self.neighborhoods
@@ -599,9 +602,11 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
         if self.id:
             oldn = self.neighborhood.all()
             oldz = self.zipcode
+            old_district = self.district
         else:
             oldn = []
             oldz = None
+            old_district = None
 
         super(Plot, self).save(*args,**kwargs)
         if n:
@@ -613,6 +618,11 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
             self.neighborhood.clear()
         if z: self.zipcode = z[0]
         else: self.zipcode = None
+
+        if district:
+          self.district = district[0]
+        else:
+          self.district = None
 
         super(Plot, self).save(*args,**kwargs)
 
@@ -636,8 +646,11 @@ class Plot(models.Model, ManagementMixin, PendingMixin):
                     done.append(nhood.id)
 
         if self.current_tree() and z and z[0] != oldz:
-            if z: self.current_tree().update_aggregate(AggregateZipCode, z[0])
-            if oldz: self.current_tree().update_aggregate(AggregateZipCode, oldz)
+            self.current_tree().update_aggregate(AggregateZipCode, z[0])
+            #TODO update area it moved from, if any
+
+        if self.current_tree() and district and district[0] != old_district:
+            self.current_tree().update_aggregate(AggregateSupervisorDistrict, district[0])
 
     def update_aggregate(self, ag_model, location):
         agg =  ag_model.objects.filter(location=location)

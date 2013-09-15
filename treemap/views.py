@@ -363,7 +363,8 @@ def plot_location_search(request):
                              'owner_orig_id',
                              'owner_additional_id',
                              'owner_additional_properties',
-                             'zipcode_id'
+                             'zipcode_id',
+                             'district_id'
                              ],
                              model=Plot,
                              extent=extent)
@@ -1703,14 +1704,16 @@ def geographies(request, model, id=''):
     name = request.GET.get('name', '')
     list = request.GET.get('list', '')
 
-    ns = model.objects.all().order_by('state','county','name')
+    if id:
+      ns = model.objects.all(id=id)
+    else:
+      ns = model.objects.all()#.order_by('county','name')
+
     if location:
         coords = map(float,location.split(','))
         pt = Point(coords)
         ns = ns.filter(geometry__contains=pt)
 
-    if id:
-        ns = ns.filter(id=id)
     if name:
         ns = ns.filter(name__iexact=name)[:1]
         #print ns

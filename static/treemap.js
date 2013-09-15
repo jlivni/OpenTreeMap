@@ -1912,28 +1912,34 @@ var tm = {
     handleSearchLocation: function(search) {
         if (tm.misc_markers) {tm.misc_markers.clearMarkers();}
         if (tm.vector_layer) {tm.vector_layer.destroyFeatures();}
-
         tm.geocode_address = search;
 
-        jQuery.getJSON(tm_static + '/neighborhoods/', {format:'json', name: tm.geocode_address}, function(nbhoods){
+        var params = {
+            format:'json'
+        }
+
+        if (new RegExp('district [0-9]','i').exec(search)) {
+          location_type = 'districts';
+          params.id = search.substr(-1);
+        } else {
+          location_type = 'neighborhoods';
+          params.name = tm.geocode_address;
+        }
+
+        jQuery.getJSON(tm_static + '/' + location_type + '/', params, function(results){
             if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
 
-            if (nbhoods.features.length > 0) {
-                var olPoint = OpenLayers.Bounds.fromArray(nbhoods.bbox).getCenterLonLat();
-                var bbox = OpenLayers.Bounds.fromArray(nbhoods.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
+            if (results.features.length > 0) {
+                var olPoint = OpenLayers.Bounds.fromArray(results.bbox).getCenterLonLat();
+                var bbox = OpenLayers.Bounds.fromArray(results.bbox).transform(new OpenLayers.Projection("EPSG:4326"), tm.map.getProjectionObject());
                 tm.map.zoomToExtent(bbox, true);
 
-                //if (nbhoods.features[0].properties.name == 'Philadelphia'){                    
-                //    delete tm.searchParams.location; 
-                //    delete tm.searchParams.geoName;
-                //} else {  
-                    tm.add_location_marker(bbox.getCenterLonLat());
-                    tm.geocoded_locations[tm.geocode_address] = [olPoint.lon, olPoint.lat];
-                    tm.searchParams['location'] = tm.geocode_address;
-                    tm.searchParams['lat'] = olPoint.lat;
-                    tm.searchParams['lon'] = olPoint.lon;
-                    tm.searchParams['geoName'] = nbhoods.features[0].properties.name;
-                //}
+                tm.add_location_marker(bbox.getCenterLonLat());
+                tm.geocoded_locations[tm.geocode_address] = [olPoint.lon, olPoint.lat];
+                tm.searchParams['location'] = tm.geocode_address;
+                tm.searchParams['lat'] = olPoint.lat;
+                tm.searchParams['lon'] = olPoint.lon;
+                tm.searchParams['geoName'] = results.features[0].properties.name;
                 tm.updateSearch();
             } else {                 
                 delete tm.searchParams.geoName;        
