@@ -1697,15 +1697,17 @@ def check_username(request):
 #@cache_page(60*5)
 def geographies(request, model, id=''):
     """
-    return list of nhbds and resource attrs, possibly in json format
+    return list of geographies and resource attrs, possibly in json format
     """
     format = request.GET.get('format','html')
     location = request.GET.get('location','')
     name = request.GET.get('name', '')
     list = request.GET.get('list', '')
+    if not id:
+      id = request.GET.get('id','')
 
     if id:
-      ns = model.objects.all(id=id)
+      ns = model.objects.filter(id=id)
     else:
       ns = model.objects.all()#.order_by('county','name')
 

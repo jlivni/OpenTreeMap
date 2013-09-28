@@ -1925,8 +1925,9 @@ var tm = {
           location_type = 'neighborhoods';
           params.name = tm.geocode_address;
         }
+        var url = tm_static + '/' + location_type + '/';
 
-        jQuery.getJSON(tm_static + '/' + location_type + '/', params, function(results){
+        jQuery.getJSON(url, params, function(results){
             if (tm.location_marker) {tm.misc_markers.removeMarker(tm.location_marker)} 
 
             if (results.features.length > 0) {
@@ -1937,9 +1938,10 @@ var tm = {
                 tm.add_location_marker(bbox.getCenterLonLat());
                 tm.geocoded_locations[tm.geocode_address] = [olPoint.lon, olPoint.lat];
                 tm.searchParams['location'] = tm.geocode_address;
+                tm.searchParams['location_type'] = location_type;
                 tm.searchParams['lat'] = olPoint.lat;
                 tm.searchParams['lon'] = olPoint.lon;
-                tm.searchParams['geoName'] = results.features[0].properties.name;
+                tm.searchParams['geoName'] = results.features[0].properties.name || results.features.properties.id;
                 tm.updateSearch();
             } else {                 
                 delete tm.searchParams.geoName;        
@@ -1965,6 +1967,8 @@ var tm = {
             }
         });
     },
+
+
     editDiameter: function(field, diams) {
         tm.editingDiameter = true;
         if (diams == "None") {diams=[];}        

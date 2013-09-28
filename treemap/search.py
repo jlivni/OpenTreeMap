@@ -26,30 +26,48 @@ def apply_location_filter(request, search):
         if 'geoName' in request or \
            'hood' in request or \
            'lat' in request:
+            if 'location_type' in request:
+              model_str = request['location_type']
+            else:
+              model_str = 'neighborhoods'
 
-            ns = Neighborhood.objects.all().order_by('id')
+            if model_str == 'neighborhoods':
+              model = Neighborhood
+            else:
+              model = SupervisorDistrict
+
+            geog = model.objects.all().order_by('id')
             hood = None
 
             if 'geoName' in request:
-                ns = ns.filter(name=request['geoName'])
+                geog = geog.filter(name=request['geoName'])
             elif 'hood' in request:
-                ns = ns.filter(name__icontains=request['hood'])
+                geog = geog.filter(name__icontains=request['hood'])
             elif 'lat' in request and 'lon' in request:
                 pnt = Point(float(request['lon']), float(request['lat']))
-                ns = ns.filter(geometry__contains=pnt)
+                geog = geog.filter(geometry__contains=pnt)
 
             try:
-                hood = ns[0]
+                hood = geog[0]
             except IndexError, e: # In case our location isn't on the map
                 return search
 
-            search.trees = search.trees.filter(plot__neighborhood = hood)
-            search.plots = search.plots.filter(neighborhood = hood)
-            search.geog_obj = hood
-            search.tile_query.append(
-                "(neighborhoods = '%(id)d' OR "
-                "neighborhoods LIKE '%% %(id)d' OR "
-                "neighborhoods LIKE '%(id)d %%')" % { "id": hood.id })
+            if model_str == 'neighborhoods':
+              search.trees = search.trees.filter(plot__neighborhood = hood)
+              search.plots = search.plots.filter(neighborhood = hood)
+              search.geog_obj = hood
+              search.tile_query.append(
+                  "(neighborhoods = '%(id)d' OR "
+                  "neighborhoods LIKE '%% %(id)d' OR "
+                  "neighborhoods LIKE '%(id)d %%')" % { "id": hood.id })
+            else:
+              search.trees = search.trees.filter(plot__district = hood)
+              search.plots = search.plots.filter(district = hood)
+              search.geog_obj = hood
+              search.tile_query.append(
+                  "(district = '%(id)d' OR "
+                  "district LIKE '%% %(id)d' OR "
+                  "district LIKE '%(id)d %%')" % { "id": hood.id })
 
     return search
 
